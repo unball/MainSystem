@@ -28,11 +28,11 @@ class Trajectory(ABC):
     return self.norm(self.P(t), r0) - d
     
   def tmin(self, r0: tuple):
-    return scipy.optimize.fmin(self.tofindmin, 0.5, args=(r0,), disp=False)[0]
+    return scipy.optimize.brute(self.tofindmin, [(0,1)], args=(r0,))[0]
   
   def target(self, r0: tuple, d: float) -> tuple:
     """Função que retorna o target que dista `d` do ponto `r0` pertence à trajetória no sentido de progressão do percurso. Faz isso encontrando \\(t_{opt}\\) tal que: \\(\\|\\vec{r}(t_{opt})-\\vec{r}_0\\| - d = 0\\) usando o método de Brent e \\(t \\in [t_{min}, 1]\\) e retorna \\(\\vec{P}(t_{opt})\\)"""
-    tmin = scipy.optimize.fmin(self.tofindmin, 0.5, args=(r0,), disp=False)[0]
+    tmin = self.tmin(r0)
     dmin = self.tofindmin(tmin, r0)
     
     try:
