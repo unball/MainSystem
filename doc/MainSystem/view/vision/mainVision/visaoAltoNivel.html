@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>MainSystem.view.vision.mainVision.visaoAltoNivel API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS_CHTML'></script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>MainSystem.view.vision.mainVision.visaoAltoNivel</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from gi.repository import Gtk, GLib
+from pkg_resources import resource_filename
+from view.frameSelector import FrameRenderer
+from view.drawing import Drawing
+from controller.vision.pixel2metric import  meters2pixel,meters2pixelSize
+import cv2
+import numpy as np
+import time
+
+class VisaoAltoNivel(FrameRenderer):
+  &#34;&#34;&#34;Essa classe implementa o FrameRenderer que permite ver os dados produzidos pela visão&#34;&#34;&#34;
+  
+  def __init__(self, notebook, controller, visionSystem, world):
+    self.__visionSystem = visionSystem
+    self.__controller = controller
+    self.__world = world
+    self.__n_robots = 0
+    self.__uiElements = []
+    super().__init__(notebook, &#34;Visão em alto nível&#34;)
+    
+  def ui(self):
+    &#34;&#34;&#34;Conteúdo a ser inserido na interface da configuração visão em alto nível&#34;&#34;&#34;
+    builder = Gtk.Builder.new_from_file(resource_filename(__name__, &#34;visaoAltoNivel.ui&#34;))
+    self.__timeFlow = builder.get_object(&#34;time_flow&#34;)
+    self.__timeAdversarioFlow = builder.get_object(&#34;time_adversario_flow&#34;)
+    self.__bolaEstado = builder.get_object(&#34;bola_estado&#34;)
+    self.__bolaPosicao = builder.get_object(&#34;bola_posicao&#34;)
+    return builder.get_object(&#34;main&#34;)
+    
+  def getFrame(self):
+    &#34;&#34;&#34;Retorna um frame que desenha retângulos ao redor dos robôs com seus identificadores e círculo ao redor da bola&#34;&#34;&#34;
+    frame = self.__visionSystem.cameraHandler.getFrame()
+    if frame is None: return None
+    
+    img_warpped = self.__visionSystem.warp(frame)
+    img_hsv = self.__visionSystem.converterHSV(img_warpped)
+    fgMask = self.__visionSystem.obterMascaraElementos(img_hsv)
+    img_filtered = cv2.bitwise_and(img_warpped, img_warpped, mask=fgMask)
+    t0 = time.time()
+    message = self.__visionSystem.process(frame)
+    print((time.time()-t0)*1000)
+    GLib.idle_add(self.updateRobotsInfo, message)
+    
+    Drawing.draw_field(self.__world, img_filtered)
+    
+    for i in range(message.n_total_robots):
+      if(message.found[i]):
+        x,y = meters2pixel(self.__world, (message.x[i], message.y[i]), img_warpped.shape)
+        w,h = meters2pixelSize(self.__world, (0.08,0.08), img_warpped.shape)
+        color = (0,0,255) if i &gt;= message.n_total_robots/2 else (0,255,0)
+        Drawing.draw_rectangle(img_filtered, (x,y), (w,h), message.th[i], color=color)
+        cv2.putText(img_filtered, str(i), (x-10, y+10), cv2.FONT_HERSHEY_TRIPLEX, 1, (0,0,0))
+    
+    if message.ball_found:
+      p = meters2pixel(self.__world, (message.ball_x, message.ball_y), img_warpped.shape)
+      cv2.circle(img_filtered, p, 5, (255,0,0), 2)
+      
+    return img_filtered
+  
+  def updateRobotsInfo(self, message):
+    &#34;&#34;&#34;Atualiza os elementos de interface gráfica com os novos valores obtidos pela visão&#34;&#34;&#34;
+  
+    if self.__n_robots != message.n_total_robots:
+      for e in self.__uiElements:
+        self.__timeFlow.remove(e[&#34;fbc&#34;])
+      self.__n_robots = message.n_total_robots
+      self.__uiElements = [None for x in range(0,self.__n_robots)]
+      
+    for i in range(self.__n_robots):
+      if self.__uiElements[i] is not None:
+        self.__uiElements[i][&#34;idLabel&#34;].set_text(&#34;{0}&#34;.format(i))
+        self.__uiElements[i][&#34;posicaoLabel&#34;].set_text(&#34;Posição: x: {:.2f} m, y: {:.2f} m&#34;.format(message.x[i], message.y[i]))
+        self.__uiElements[i][&#34;anguloLabel&#34;].set_text(&#34;Ângulo {:.1f}º&#34;.format(message.th[i]*180/np.pi))
+        self.__uiElements[i][&#34;estadoLabel&#34;].set_text(&#34;Estado: &#34; + &#34;Identificado&#34; if message.found[i] else &#34;Não-Identificado&#34;)
+        if message.found[i]:
+          self.__uiElements[i][&#34;fbc&#34;].set_opacity(1)
+        else:
+          self.__uiElements[i][&#34;fbc&#34;].set_opacity(0.5)
+      else:
+        flowBoxChild = Gtk.FlowBoxChild()
+        Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboRow&#34;)
+        
+        builder = Gtk.Builder.new_from_file(resource_filename(__name__, &#34;robo.ui&#34;))
+        idLabel = builder.get_object(&#34;idLabel&#34;)
+        posicaoLabel = builder.get_object(&#34;posicaoLabel&#34;)
+        estadoLabel = builder.get_object(&#34;estadoLabel&#34;)
+        anguloLabel = builder.get_object(&#34;anguloLabel&#34;)
+        
+        if i &lt; self.__n_robots/2:
+          Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboAliado&#34;)
+          builder.get_object(&#34;tipoRoboLabel&#34;).set_text(&#34;Tipo: Aliado&#34;)
+          self.__timeFlow.add(flowBoxChild)
+        else:
+          Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboInimigo&#34;)
+          builder.get_object(&#34;tipoRoboLabel&#34;).set_text(&#34;Tipo: Inimigo&#34;)
+          self.__timeAdversarioFlow.add(flowBoxChild)
+        
+        flowBoxChild.add(builder.get_object(&#34;main&#34;))
+        self.__uiElements[i] = {&#34;idLabel&#34;: idLabel, &#34;posicaoLabel&#34;: posicaoLabel, &#34;anguloLabel&#34;: anguloLabel, &#34;estadoLabel&#34;: estadoLabel, &#34;fbc&#34;: flowBoxChild}
+        
+    self.__timeFlow.show_all()
+    self.__timeAdversarioFlow.show_all()
+    
+    if message.ball_found:
+      self.__bolaEstado.set_text(&#34;Estado: Identificada&#34;)
+      self.__bolaPosicao.set_text(&#34;Posição: x: {:.2f} m, y: {:.2f} m&#34;.format(message.ball_x, message.ball_y))
+    else:
+      self.__bolaEstado.set_text(&#34;Estado: Não-Identificada&#34;)
+      </code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel"><code class="flex name class">
+<span>class <span class="ident">VisaoAltoNivel</span></span>
+<span>(</span><span>notebook, controller, visionSystem, world)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Essa classe implementa o FrameRenderer que permite ver os dados produzidos pela visão</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VisaoAltoNivel(FrameRenderer):
+  &#34;&#34;&#34;Essa classe implementa o FrameRenderer que permite ver os dados produzidos pela visão&#34;&#34;&#34;
+  
+  def __init__(self, notebook, controller, visionSystem, world):
+    self.__visionSystem = visionSystem
+    self.__controller = controller
+    self.__world = world
+    self.__n_robots = 0
+    self.__uiElements = []
+    super().__init__(notebook, &#34;Visão em alto nível&#34;)
+    
+  def ui(self):
+    &#34;&#34;&#34;Conteúdo a ser inserido na interface da configuração visão em alto nível&#34;&#34;&#34;
+    builder = Gtk.Builder.new_from_file(resource_filename(__name__, &#34;visaoAltoNivel.ui&#34;))
+    self.__timeFlow = builder.get_object(&#34;time_flow&#34;)
+    self.__timeAdversarioFlow = builder.get_object(&#34;time_adversario_flow&#34;)
+    self.__bolaEstado = builder.get_object(&#34;bola_estado&#34;)
+    self.__bolaPosicao = builder.get_object(&#34;bola_posicao&#34;)
+    return builder.get_object(&#34;main&#34;)
+    
+  def getFrame(self):
+    &#34;&#34;&#34;Retorna um frame que desenha retângulos ao redor dos robôs com seus identificadores e círculo ao redor da bola&#34;&#34;&#34;
+    frame = self.__visionSystem.cameraHandler.getFrame()
+    if frame is None: return None
+    
+    img_warpped = self.__visionSystem.warp(frame)
+    img_hsv = self.__visionSystem.converterHSV(img_warpped)
+    fgMask = self.__visionSystem.obterMascaraElementos(img_hsv)
+    img_filtered = cv2.bitwise_and(img_warpped, img_warpped, mask=fgMask)
+    t0 = time.time()
+    message = self.__visionSystem.process(frame)
+    print((time.time()-t0)*1000)
+    GLib.idle_add(self.updateRobotsInfo, message)
+    
+    Drawing.draw_field(self.__world, img_filtered)
+    
+    for i in range(message.n_total_robots):
+      if(message.found[i]):
+        x,y = meters2pixel(self.__world, (message.x[i], message.y[i]), img_warpped.shape)
+        w,h = meters2pixelSize(self.__world, (0.08,0.08), img_warpped.shape)
+        color = (0,0,255) if i &gt;= message.n_total_robots/2 else (0,255,0)
+        Drawing.draw_rectangle(img_filtered, (x,y), (w,h), message.th[i], color=color)
+        cv2.putText(img_filtered, str(i), (x-10, y+10), cv2.FONT_HERSHEY_TRIPLEX, 1, (0,0,0))
+    
+    if message.ball_found:
+      p = meters2pixel(self.__world, (message.ball_x, message.ball_y), img_warpped.shape)
+      cv2.circle(img_filtered, p, 5, (255,0,0), 2)
+      
+    return img_filtered
+  
+  def updateRobotsInfo(self, message):
+    &#34;&#34;&#34;Atualiza os elementos de interface gráfica com os novos valores obtidos pela visão&#34;&#34;&#34;
+  
+    if self.__n_robots != message.n_total_robots:
+      for e in self.__uiElements:
+        self.__timeFlow.remove(e[&#34;fbc&#34;])
+      self.__n_robots = message.n_total_robots
+      self.__uiElements = [None for x in range(0,self.__n_robots)]
+      
+    for i in range(self.__n_robots):
+      if self.__uiElements[i] is not None:
+        self.__uiElements[i][&#34;idLabel&#34;].set_text(&#34;{0}&#34;.format(i))
+        self.__uiElements[i][&#34;posicaoLabel&#34;].set_text(&#34;Posição: x: {:.2f} m, y: {:.2f} m&#34;.format(message.x[i], message.y[i]))
+        self.__uiElements[i][&#34;anguloLabel&#34;].set_text(&#34;Ângulo {:.1f}º&#34;.format(message.th[i]*180/np.pi))
+        self.__uiElements[i][&#34;estadoLabel&#34;].set_text(&#34;Estado: &#34; + &#34;Identificado&#34; if message.found[i] else &#34;Não-Identificado&#34;)
+        if message.found[i]:
+          self.__uiElements[i][&#34;fbc&#34;].set_opacity(1)
+        else:
+          self.__uiElements[i][&#34;fbc&#34;].set_opacity(0.5)
+      else:
+        flowBoxChild = Gtk.FlowBoxChild()
+        Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboRow&#34;)
+        
+        builder = Gtk.Builder.new_from_file(resource_filename(__name__, &#34;robo.ui&#34;))
+        idLabel = builder.get_object(&#34;idLabel&#34;)
+        posicaoLabel = builder.get_object(&#34;posicaoLabel&#34;)
+        estadoLabel = builder.get_object(&#34;estadoLabel&#34;)
+        anguloLabel = builder.get_object(&#34;anguloLabel&#34;)
+        
+        if i &lt; self.__n_robots/2:
+          Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboAliado&#34;)
+          builder.get_object(&#34;tipoRoboLabel&#34;).set_text(&#34;Tipo: Aliado&#34;)
+          self.__timeFlow.add(flowBoxChild)
+        else:
+          Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboInimigo&#34;)
+          builder.get_object(&#34;tipoRoboLabel&#34;).set_text(&#34;Tipo: Inimigo&#34;)
+          self.__timeAdversarioFlow.add(flowBoxChild)
+        
+        flowBoxChild.add(builder.get_object(&#34;main&#34;))
+        self.__uiElements[i] = {&#34;idLabel&#34;: idLabel, &#34;posicaoLabel&#34;: posicaoLabel, &#34;anguloLabel&#34;: anguloLabel, &#34;estadoLabel&#34;: estadoLabel, &#34;fbc&#34;: flowBoxChild}
+        
+    self.__timeFlow.show_all()
+    self.__timeAdversarioFlow.show_all()
+    
+    if message.ball_found:
+      self.__bolaEstado.set_text(&#34;Estado: Identificada&#34;)
+      self.__bolaPosicao.set_text(&#34;Posição: x: {:.2f} m, y: {:.2f} m&#34;.format(message.ball_x, message.ball_y))
+    else:
+      self.__bolaEstado.set_text(&#34;Estado: Não-Identificada&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>view.frameSelector.FrameRenderer</li>
+<li>abc.ABC</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.ui"><code class="name flex">
+<span>def <span class="ident">ui</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Conteúdo a ser inserido na interface da configuração visão em alto nível</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ui(self):
+  &#34;&#34;&#34;Conteúdo a ser inserido na interface da configuração visão em alto nível&#34;&#34;&#34;
+  builder = Gtk.Builder.new_from_file(resource_filename(__name__, &#34;visaoAltoNivel.ui&#34;))
+  self.__timeFlow = builder.get_object(&#34;time_flow&#34;)
+  self.__timeAdversarioFlow = builder.get_object(&#34;time_adversario_flow&#34;)
+  self.__bolaEstado = builder.get_object(&#34;bola_estado&#34;)
+  self.__bolaPosicao = builder.get_object(&#34;bola_posicao&#34;)
+  return builder.get_object(&#34;main&#34;)</code></pre>
+</details>
+</dd>
+<dt id="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.getFrame"><code class="name flex">
+<span>def <span class="ident">getFrame</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Retorna um frame que desenha retângulos ao redor dos robôs com seus identificadores e círculo ao redor da bola</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getFrame(self):
+  &#34;&#34;&#34;Retorna um frame que desenha retângulos ao redor dos robôs com seus identificadores e círculo ao redor da bola&#34;&#34;&#34;
+  frame = self.__visionSystem.cameraHandler.getFrame()
+  if frame is None: return None
+  
+  img_warpped = self.__visionSystem.warp(frame)
+  img_hsv = self.__visionSystem.converterHSV(img_warpped)
+  fgMask = self.__visionSystem.obterMascaraElementos(img_hsv)
+  img_filtered = cv2.bitwise_and(img_warpped, img_warpped, mask=fgMask)
+  t0 = time.time()
+  message = self.__visionSystem.process(frame)
+  print((time.time()-t0)*1000)
+  GLib.idle_add(self.updateRobotsInfo, message)
+  
+  Drawing.draw_field(self.__world, img_filtered)
+  
+  for i in range(message.n_total_robots):
+    if(message.found[i]):
+      x,y = meters2pixel(self.__world, (message.x[i], message.y[i]), img_warpped.shape)
+      w,h = meters2pixelSize(self.__world, (0.08,0.08), img_warpped.shape)
+      color = (0,0,255) if i &gt;= message.n_total_robots/2 else (0,255,0)
+      Drawing.draw_rectangle(img_filtered, (x,y), (w,h), message.th[i], color=color)
+      cv2.putText(img_filtered, str(i), (x-10, y+10), cv2.FONT_HERSHEY_TRIPLEX, 1, (0,0,0))
+  
+  if message.ball_found:
+    p = meters2pixel(self.__world, (message.ball_x, message.ball_y), img_warpped.shape)
+    cv2.circle(img_filtered, p, 5, (255,0,0), 2)
+    
+  return img_filtered</code></pre>
+</details>
+</dd>
+<dt id="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.updateRobotsInfo"><code class="name flex">
+<span>def <span class="ident">updateRobotsInfo</span></span>(<span>self, message)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Atualiza os elementos de interface gráfica com os novos valores obtidos pela visão</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateRobotsInfo(self, message):
+  &#34;&#34;&#34;Atualiza os elementos de interface gráfica com os novos valores obtidos pela visão&#34;&#34;&#34;
+
+  if self.__n_robots != message.n_total_robots:
+    for e in self.__uiElements:
+      self.__timeFlow.remove(e[&#34;fbc&#34;])
+    self.__n_robots = message.n_total_robots
+    self.__uiElements = [None for x in range(0,self.__n_robots)]
+    
+  for i in range(self.__n_robots):
+    if self.__uiElements[i] is not None:
+      self.__uiElements[i][&#34;idLabel&#34;].set_text(&#34;{0}&#34;.format(i))
+      self.__uiElements[i][&#34;posicaoLabel&#34;].set_text(&#34;Posição: x: {:.2f} m, y: {:.2f} m&#34;.format(message.x[i], message.y[i]))
+      self.__uiElements[i][&#34;anguloLabel&#34;].set_text(&#34;Ângulo {:.1f}º&#34;.format(message.th[i]*180/np.pi))
+      self.__uiElements[i][&#34;estadoLabel&#34;].set_text(&#34;Estado: &#34; + &#34;Identificado&#34; if message.found[i] else &#34;Não-Identificado&#34;)
+      if message.found[i]:
+        self.__uiElements[i][&#34;fbc&#34;].set_opacity(1)
+      else:
+        self.__uiElements[i][&#34;fbc&#34;].set_opacity(0.5)
+    else:
+      flowBoxChild = Gtk.FlowBoxChild()
+      Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboRow&#34;)
+      
+      builder = Gtk.Builder.new_from_file(resource_filename(__name__, &#34;robo.ui&#34;))
+      idLabel = builder.get_object(&#34;idLabel&#34;)
+      posicaoLabel = builder.get_object(&#34;posicaoLabel&#34;)
+      estadoLabel = builder.get_object(&#34;estadoLabel&#34;)
+      anguloLabel = builder.get_object(&#34;anguloLabel&#34;)
+      
+      if i &lt; self.__n_robots/2:
+        Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboAliado&#34;)
+        builder.get_object(&#34;tipoRoboLabel&#34;).set_text(&#34;Tipo: Aliado&#34;)
+        self.__timeFlow.add(flowBoxChild)
+      else:
+        Gtk.StyleContext.add_class(flowBoxChild.get_style_context(), &#34;roboInimigo&#34;)
+        builder.get_object(&#34;tipoRoboLabel&#34;).set_text(&#34;Tipo: Inimigo&#34;)
+        self.__timeAdversarioFlow.add(flowBoxChild)
+      
+      flowBoxChild.add(builder.get_object(&#34;main&#34;))
+      self.__uiElements[i] = {&#34;idLabel&#34;: idLabel, &#34;posicaoLabel&#34;: posicaoLabel, &#34;anguloLabel&#34;: anguloLabel, &#34;estadoLabel&#34;: estadoLabel, &#34;fbc&#34;: flowBoxChild}
+      
+  self.__timeFlow.show_all()
+  self.__timeAdversarioFlow.show_all()
+  
+  if message.ball_found:
+    self.__bolaEstado.set_text(&#34;Estado: Identificada&#34;)
+    self.__bolaPosicao.set_text(&#34;Posição: x: {:.2f} m, y: {:.2f} m&#34;.format(message.ball_x, message.ball_y))
+  else:
+    self.__bolaEstado.set_text(&#34;Estado: Não-Identificada&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="MainSystem.view.vision.mainVision" href="index.html">MainSystem.view.vision.mainVision</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel" href="#MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel">VisaoAltoNivel</a></code></h4>
+<ul class="">
+<li><code><a title="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.ui" href="#MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.ui">ui</a></code></li>
+<li><code><a title="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.getFrame" href="#MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.getFrame">getFrame</a></code></li>
+<li><code><a title="MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.updateRobotsInfo" href="#MainSystem.view.vision.mainVision.visaoAltoNivel.VisaoAltoNivel.updateRobotsInfo">updateRobotsInfo</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
