@@ -8,9 +8,7 @@ import rospy
 class RosRadio(Communication):
   """Implementa a comunicação usando o ROS"""
   def __init__(self, world):
-    super().__init__()
-    
-    self.__world = world
+    super().__init__(world)
     
     #self.rh = RosHandler()
     #self.rh.runProcess("roscore") # Asserts roscore is running
@@ -25,7 +23,7 @@ class RosRadio(Communication):
     self.rh.runProcess("roscore") # Asserts roscore is running
     self.rh.runProcess("radioSerial") # Asserts radio is listening
     
-    for i in range(self.__world.n_robots):
+    for i in range(self._world.n_robots):
         self.msg.MotorA[i], self.msg.MotorB[i] = speeds2motors(msg[i].v, msg[i].w)
 
     self.pub.publish(self.msg)
