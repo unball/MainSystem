@@ -64,15 +64,21 @@ class NLC():
       for i,robot in enumerate(self.robots):
         robot.x_e = robot.x_r - robot.x_i
         robot.y_e = robot.y_r - robot.y_i
-        robot.th_e = robot.th_r - robot.th_i
-        
-        robot.th_e = self.fixAngle(robot.th_e)
+        robot.th_e = self.diffAngle(robot.th_r, robot.th_i)
           
     def fixAngle(self, angle):
       if abs(angle) > np.pi/2:
         return (angle + np.pi/2) % (np.pi) - np.pi/2
       else:
         return angle
+    
+    def diffAngle(self, alpha, beta):
+      """Computa a diferença entre dois ângulos de modo que essa diferença pertença a \\([0,\\pi/2]\\)"""
+      auxdiff = np.cos(alpha-beta)
+      auxsign = np.sign(np.sin(alpha-beta))
+      
+      decided = min([[np.arccos(auxdiff), auxsign], [np.arccos(-auxdiff), -auxsign]], key=lambda x: x[0])
+      return decided[0] * decided[1]
     
     def santitize(self, references):
       santitized = [(0,0,0) for i in range(len(self.robots))]
@@ -94,7 +100,7 @@ class NLC():
         p = np.sqrt(robot.x_e**2+robot.y_e**2)
         gamma = np.arctan2(robot.y_e, robot.x_e)
         
-        self.output_vel[i].w = robot.ka * robot.th_e + robot.kg * self.fixAngle(gamma-robot.th_i) * p**2
+        self.output_vel[i].w = robot.ka * robot.th_e + robot.kg * self.diffAngle(gamma, robot.th_i) * p**2
         
         self.output_vel[i].w = self.sat(self.output_vel[i].w, 4*np.pi)
         
