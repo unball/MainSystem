@@ -1,3 +1,5 @@
+"""Módulo que reune os componentes de backend do sistema."""
+
 from threading import Thread
 import queue
 from gi.repository import GLib

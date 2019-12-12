@@ -1,3 +1,5 @@
+"""Este módulo implementa a interface gráfica do sistema."""
+
 import gi
 gi.require_version('Gtk', '3.0')
 

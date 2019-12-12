@@ -1,3 +1,5 @@
+"""Aqui implementa-se o gerenciamento das variáveis permanentes do sistema no arquivo de configuração."""
+
 import json
 from helpers import Singleton
 

@@ -1,3 +1,5 @@
+"""Neste módulo estão algumas classes base e funções úteis para todos os outros módulos"""
+
 class Singleton(type):
   _instances = {}
   def __call__(cls, *args, **kwargs):
