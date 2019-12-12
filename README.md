@@ -9,5 +9,5 @@ Execute o comando
 `python3 main.py`
 
 ### Documentação
-A documentação está disponível em `doc/MainSystem/index.html` e pode ser gerada com o comando:
+A documentação pode ser gerada com o comando:
 `pdoc --html --force -o doc .`
