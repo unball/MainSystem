@@ -1,197 +1,173 @@
 from controller.states import State
-from controller.strategy.trajectory import StraightLine, Dubins
+from controller.strategy.trajectory import StraightLine, Circle, Dubins, Point, UnifiedVectorField
+from controller.world.robot import Robot
+from controller.tools import norm, fixAngle
+from controller.control import SpeedPair
+from controller.control.NLC import NLC
+from controller.control.PID import PID
+from controller.control.UFC import UFC
+from model.paramsPattern import ParamsPattern
+from helpers import Mux
 import numpy as np
 import time
+import copy
 
-class Individuo():
-  def __init__(self, params):
-    self.params = params
-    self.adequacao = 0
-    
-  @property
-  def ka(self):
-    return self.params[0]
-    
-  @property
-  def kg(self):
-    return self.params[1]
-    
-  @property
-  def kp(self):
-    return self.params[2]
-
-class AG():
-  def __init__(self, size):
-    self.currentIndividuo = 0
-    
-    self.weights = [10,500,5]
-    self.min = [4, 0, 7]
-    
-    self.initialGen = [{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 1.1172688438443967, "kg": 109.4501515549437, "kp": 5.9396152856884},
-{"ka": 6.699208305468581, "kg": 382.8649280089019, "kp": 2.377935126960727},
-{"ka": 5.837680521958922, "kg": 133.61676185098975, "kp": 4.555786188293416},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 5.837680521958922, "kg": 133.61676185098975, "kp": 4.555786188293416},
-{"ka": 5.617773757461554, "kg": 14.683103375551232, "kp": 5.9396152856884},
-{"ka": 5.617773757461554, "kg": 14.683103375551232, "kp": 5.9396152856884},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 5.617773757461554, "kg": 14.683103375551232, "kp": 5.9396152856884},
-{"ka": 5.837680521958922, "kg": 14.683103375551232, "kp": 5.9396152856884},
-{"ka": 4.7270998549824705, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 2.5297938123647503},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553},
-{"ka": 5.837680521958922, "kg": 133.61676185098975, "kp": 4.555786188293416},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 9.385447667773759},
-{"ka": 5.837680521958922, "kg": 118.99659632111248, "kp": 5.870844036094553}]
-    
-    self.individuos = [Individuo([self.weights[0]*np.random.rand()+self.min[0], self.weights[1]*np.random.rand()+self.min[1], self.weights[2]*np.random.rand() + self.min[2]]) for i in range(size)]
-    #self.individuos = [Individuo([self.initialGen[i]["ka"], self.initialGen[i]["kg"], self.initialGen[i]["kp"]]) for i in range(size)]
-  
-    
-  def setAdequacao(self, valor):
-    self.individuos[self.currentIndividuo].adequacao = valor
-    self.currentIndividuo = self.currentIndividuo + 1
-    
-    # Fim do experimento com todos os indivíduos
-    if self.currentIndividuo == len(self.individuos):
-      self.reproduzir()
-      self.currentIndividuo = 0
-      
-  def getIndividuo(self):
-    return self.individuos[self.currentIndividuo]
-    
-  def corrigirAdequacao(self):
-    maiorAdequacao = max(self.individuos, key=lambda x: x.adequacao).adequacao
-    soma = 0
-    for i in range(len(self.individuos)):
-      self.individuos[i].adequacao = maiorAdequacao-self.individuos[i].adequacao
-      soma = soma + self.individuos[i].adequacao
-    return soma
-    
-    
-  def encontrarIndividuo(self, regioes, prob):
-    for i in range(len(self.individuos)):
-      if regioes[i][0] <= prob and regioes[i][1] >= prob:
-        return i
-    return None
-      
-  def reproduzir(self):
-    somaAdequacao = self.corrigirAdequacao()
-    
-    print("Resultado indivíduos:")
-    for individuo in sorted(self.individuos, key=lambda x:-x.adequacao):
-      print("Adequação: {3}\tka: {0}\tkg: {1}\tkp: {2}".format(individuo.ka, individuo.kg, individuo.kp, individuo.adequacao))
-      
-    listaRegiaoProb = []
-    probAnt = 0
-    for i in range(len(self.individuos)):
-      prob = self.individuos[i].adequacao/somaAdequacao
-      listaRegiaoProb.append((probAnt,probAnt+prob))
-      probAnt = probAnt+prob
-      
-    print(listaRegiaoProb)
-    
-    pais = []
-    maes = []
-    for i in range(len(self.individuos)//2):
-      pais.append(self.individuos[self.encontrarIndividuo(listaRegiaoProb, np.random.rand())])
-      maes.append(self.individuos[self.encontrarIndividuo(listaRegiaoProb, np.random.rand())])
-    
-    novosIndividuos = []
-    for i in range(len(self.individuos)//2):
-      pc = np.random.rand()
-      if pc > 0.7:
-        locus = np.random.randint(3)+1
-        novosIndividuos.append(Individuo(pais[i].params[:locus]+maes[i].params[locus:3]))
-        novosIndividuos.append(Individuo(maes[i].params[:locus]+pais[i].params[locus:3]))
-      else:
-        novosIndividuos.append(Individuo(pais[i].params))
-        novosIndividuos.append(Individuo(maes[i].params))
-      
-      for j in range(len(novosIndividuos[-1].params)):
-        pm1 = np.random.rand()
-        pm2 = np.random.rand()
-        if pm1 > 0.97:
-          novosIndividuos[-1].params[j] = self.weights[j] * np.random.rand() + self.min[j]
-        if pm2 > 0.97:
-          novosIndividuos[-2].params[j] = self.weights[j] * np.random.rand() + self.min[j]
-    
-    print("Novos indivíduos:")
-    for individuo in novosIndividuos:
-      print("ka: {0}\tkg: {1}\tkp: {2}".format(individuo.ka, individuo.kg, individuo.kp))
-    
-    self.individuos = novosIndividuos
-
-class DebugHLC(State):
+class DebugHLC(ParamsPattern, State):
   """Estado de debug HLC. Executa a visão, define trajetórias específicas para os robôs, passa um target ao controle de alto nível e envia sinal via rádio."""
   
   def __init__(self, controller):
-    super().__init__(controller)
+    State.__init__(self, controller)
+    ParamsPattern.__init__(self, "debugHLCState", {
+      "manualControlSpeedV": 0,
+      "manualControlSpeedW": 0,
+      "enableManualControl": False,
+      "selectedTrajectory": "Dubins",
+      "selectableFinalPoint": False,
+      "runVision": True,
+      "dubinsRadius": 0.15,
+      "step": 0.03,
+      "selectedHLCcontrol": 0,
+      "UVF_h": 0.5,
+      "UVF_n": 1,
+      "UVF_runUnified": True,
+      "UVF_showField": True
+    })
     
     self.finalPoint = None
-    self.ag = AG(20)
-    self.adequacao = 0
-    self.tin = 0
-    
+    self.currentFinalPoint = None
+    self.currentTrajectory = None
+    self.robot = Robot()
+    self.initialTime = time.time()
+    self.t = time.time()
+    self.time = []
+
+    self.debugData = {
+      "posX": [],
+      "posXRef": [],
+      "posY": [],
+      "posYRef": [],
+      "posTh": [],
+      "posThRef": [],
+      "velLin": [],
+      "visionLin": [],
+      "velAng": [],
+      "visionAng": [],
+      "distTarg": [],
+      "loopTime": 0,
+      "controlV": 0,
+      "controlW": 0,
+      "visionV": 0,
+      "visionW": 0,
+      "visionPose": (0,0,0)
+    }
+
+    # Sistema de controle de médio nível
+    self.vCtrl = PID("MLCV")
+    self.wCtrl = PID("MLCW")
+
+    # Sistemas de controle de alto nível suportados
+    self.HLCs = Mux([NLC("debugHLC"), UFC("debugHLC")], selected=self.getParam("selectedHLCcontrol"))
+
+  def setFinalPoint(self, point):
+    self.finalPoint = point
+
+  def selectHLC(self, index):
+    self.setParam("selectedHLCcontrol", index)
+    self.HLCs.select(index)
+
+  def changeCondition(self):
+    return self.finalPoint is None or self.finalPoint != self.currentFinalPoint or self.currentTrajectory != self.getParam("selectedTrajectory") or self.paramsChanged
 
   def update(self):
-    t0 = time.time()
+    # Computa o tempo desde o último loop e salva
+    dt = time.time()-self.t
+    self.t = time.time()
     
+    # Atualiza o mundo com a visão
     self._controller.visionSystem.update()
     
-    robot = self._controller.world.robots[0]
+    # Se a flag de usar visão estiver habilitada, usa o robô no mundo
+    if self.getParam("runVision"):
+      self.robot = copy.deepcopy(self._controller.world.robots[0])
     
+    # Robô de referência
+    robot = self.robot
+    robot.step = self.getParam("step")
     
-    
-    if self.finalPoint is None or (robot.x-self.finalPoint[0])**2 + (robot.y-self.finalPoint[1])**2 < 0.07**2 or time.time()-self.tin >= 5:
+    # Condições para recalcular a trajetória
+    if self.changeCondition() or (not self.getParam("selectableFinalPoint") and norm(robot.pos, self.finalPoint) < 0.07):
       
-      if self._controller.world.running:
-        # Fim do experimento
-        #if self.tin != 0:
-          #self.adequacao = self.adequacao + 50*(time.time()-self.tin)
-          #print("Não adequação: " + str(self.adequacao))
-          #self.ag.setAdequacao(self.adequacao)
-          #self.adequacao = 0
-          #self._controller.communicationSystem.sendZero()
-        
-        # Inicio do experimento
-        self.tin = time.time()
-        #individuo = self.ag.getIndividuo()
-        #self._controller.controlSystem.setConstantes(individuo.ka, individuo.kg, individuo.kp)
+      sign = np.sign(robot.x)
+      if sign == 0: sign = 1
       
-      self.finalPoint = (-np.sign(robot.x)*self._controller.world.field_x_length/2*0.70, 0, -np.pi/2)
-      self.trajectory = Dubins(robot.pose, self.finalPoint, 0.15)
+      # Condições para recalcular o ponto final
+      if not self.getParam("selectableFinalPoint") or self.finalPoint is None:
+        self.finalPoint = (-sign*self._controller.world.field_x_length/2*0.70, 0, -np.pi/2)
+      self.currentFinalPoint = self.finalPoint
       
-      #self.trajectory = StraightLine(robot.pose, (-robot.x, robot.y, -np.pi/2))
-    
-#    # Integra a adequacao do experimento
-#    if self._controller.world.running:
-#      rmin = self.trajectory.P(self.trajectory.tmin(robot.pose))
-#      p = np.sqrt((robot.x-rmin[0])**2 + (robot.y-rmin[1])**2)
-#      a = rmin[2]-robot.th
-#      self.adequacao = self.adequacao + (p + abs(np.sin(a))/2)
+      # Atualiza a trajetória
+      self.currentTrajectory = self.getParam("selectedTrajectory")
+
+      if self.currentTrajectory == "Dubins":
+        self.trajectory = Dubins(robot.pose, self.finalPoint, self.getParam("dubinsRadius"))
+      elif self.currentTrajectory == "UVF":
+        self.trajectory = UnifiedVectorField("debugHLC", robot.pose, self.finalPoint,
+          h=self.getParam("UVF_h"),
+          n=self.getParam("UVF_n"),
+          runUnified=self.getParam("UVF_runUnified"),
+          showField=self.getParam("UVF_showField"))
+      elif self.currentTrajectory == "StraightLine":
+        self.trajectory = StraightLine(robot.pose, self.finalPoint)
+      elif self.currentTrajectory == "Circle":
+        self.trajectory = Circle(robot.pose, self.finalPoint)
+      elif self.currentTrajectory == "Point":
+        self.trajectory = Point(self.finalPoint)
     
     # Define uma trajetória
     robot.trajectory = self.trajectory
     
     # Obtém o target instantâneo
-    targets = [robot.trajectory.target(robot.pose, robot.step)]
+    target = robot.trajectory.target(robot.pose, robot.step)
+
+    # Define um controle
+    robot.controlSystem = self.HLCs.get()
     
     # Obtém velocidade angular e linear
-    speeds = self._controller.controlSystem.actuate(targets, [])
+    if self.getParam("enableManualControl"):
+      speeds = [SpeedPair(self.getParam("manualControlSpeedV"), self.getParam("manualControlSpeedW"))]
+    else:
+      highLevelspeed = robot.controlSystem.actuate(target, robot, False)
+      v = self.vCtrl.actuate(highLevelspeed.v, robot.velmod, dt)
+      w = self.wCtrl.actuate(highLevelspeed.w, robot.w, dt)
+
+      speeds = [SpeedPair(v,w)]
     
     # Envia os dados via rádio
     if self._controller.world.running:
-      self._controller.communicationSystem.send(speeds)
-    else: self._controller.communicationSystem.sendZero()
-    
-    
-    #print(speeds[0])
-    
-    #print((time.time()-t0)*1000)
+
+      # Alimenta dados de debug
+      self.time.append(time.time()-self.initialTime)
+      self.debugData["posX"].append(robot.x)
+      self.debugData["posXRef"].append(target[0])
+      self.debugData["posY"].append(robot.y)
+      self.debugData["posYRef"].append(target[1])
+      self.debugData["posTh"].append(fixAngle(robot.th))
+      self.debugData["posThRef"].append(fixAngle(target[2]))
+      self.debugData["velLin"].append(speeds[0].v)
+      self.debugData["visionLin"].append(robot.velmod)
+      self.debugData["velAng"].append(speeds[0].w)
+      self.debugData["visionAng"].append(robot.w)
+      self.debugData["distTarg"].append(norm(robot.pos, target))
+
+      self._controller.communicationSystems.get().send(speeds)
+    else: self._controller.communicationSystems.get().sendZero()
+
+    # Mais dados de debug
+    self.debugData["loopTime"] = (dt*1000)*0.1 + self.debugData["loopTime"]*0.9
+    self.debugData["controlV"] = speeds[0].v
+    self.debugData["controlW"] = speeds[0].w
+    self.debugData["visionV"] = robot.velmod
+    self.debugData["visionW"] = robot.w
+    self.debugData["visionPose"] = (*robot.pos, robot.th*180/np.pi)
     
     

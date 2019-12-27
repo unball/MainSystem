@@ -8,8 +8,9 @@ from pkg_resources import resource_filename
 
 from view.vision.camerasView import CameraHandlerView
 from view.vision.mainVision.mainVisionView import MainVisionView
-from view.HLC.HLCView import HLCView
-from view.viewThreads import ViewThreads
+from view.communication.communicationView import CommunicationHandlerView
+from view.states.debugHLCView import DebugHLCView
+from view.tools.viewThreads import ViewThreads
 
 class View:
   def __init__(self, controller):
@@ -50,12 +51,15 @@ class View:
     # Botão que gerencia as câmeras
     CameraHandlerView(self.__controller, self.__controller.visionSystem.cameraHandler, builder.get_object("camerasMenuButton"))
     
+    # Botão que gerencia o sistema de comunicação
+    CommunicationHandlerView(self.__controller, self.__controller.communicationSystems, builder.get_object("communicationMenuButton"))
+
     # Pilha do Gtk da página principal
     mainStack = builder.get_object("mainStack")
     
     # Adiciona a pilha a view de configuração da visão
     MainVisionView(self.__controller, self.__controller.visionSystem, self.__controller.world, mainStack)
-    HLCView(self.__controller, self.__controller.world, mainStack)
+    DebugHLCView(self.__controller, self.__controller.world, mainStack)
     
     # Loop principal do Gtk
     Gtk.main()

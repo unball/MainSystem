@@ -7,9 +7,11 @@ from gi.repository import GLib
 from controller.vision.mainVision import MainVision
 from controller.control.NLC import NLC
 from controller.communication.rosRadio import RosRadio
+from controller.communication.serialRadio import SerialRadio
 from controller.communication.rosHandler import RosHandler
 from controller.states import DummyState
 from controller.world import World
+from helpers import Mux
 
 class Controller:
   """Classe que declara a thread do backend e define o estado do sistema"""
@@ -33,10 +35,7 @@ class Controller:
     self.visionSystem = MainVision(self.world)
     """Instância do sistema de visão"""
     
-    self.controlSystem = NLC(self.world)
-    """Instância do sistema de controle"""
-    
-    self.communicationSystem = RosRadio(self.world)
+    self.communicationSystems = Mux([RosRadio(self.world), SerialRadio(self.world)])
     """Instância do sistema que se comunica com o rádio"""
     
     self.__thread.start()

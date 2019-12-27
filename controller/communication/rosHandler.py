@@ -1,6 +1,7 @@
 import subprocess
 import time
 import rosgraph
+import rospy
 from helpers import Singleton
 
 class Process():

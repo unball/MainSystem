@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 from pkg_resources import resource_filename
-from view.frameSelector import FrameRenderer
+from view.tools.frameSelector import FrameRenderer
 
 class SegmentarElementos(FrameRenderer):
   """Essa classe implementa o FrameRenderer que permite configurar a segmentação dos elementos"""

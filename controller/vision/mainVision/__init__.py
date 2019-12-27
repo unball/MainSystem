@@ -1,8 +1,8 @@
 from controller.vision import Vision
 from controller.vision.visionMessage import VisionMessage
 from model.vision.mainVisionModel import MainVisionModel
-from controller.vision.pixel2metric import pixel2meters, meters2pixel, normToAbs
-from view.drawing import Drawing
+from controller.tools.pixel2metric import pixel2meters, meters2pixel, normToAbs
+from view.tools.drawing import Drawing
 import cv2
 import numpy as np
 

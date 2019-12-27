@@ -1,8 +1,8 @@
 from gi.repository import Gtk
 from pkg_resources import resource_filename
-from view.cv2renderer import cv2Renderer
-from view.frameSelector import FrameSelector
-from view.stackSelector import StackSelector
+from view.tools.cv2Renderer import cv2Renderer
+from view.tools.frameSelector import FrameSelector
+from view.tools.stackSelector import StackSelector
 from view.vision.mainVision.cortarCampo import CortarCampo
 from view.vision.mainVision.segmentarElementos import SegmentarElementos
 from view.vision.mainVision.morfologia import Morfologia
@@ -28,13 +28,14 @@ class MainVisionView(StackSelector):
     # Elementos internos
     mainBox = builder.get_object("mainVisionBox")
     notebook = builder.get_object("mainVisionNotebook")
+    frameBox = builder.get_object("mainVisionFrame")
     
     self.__renderer = cv2Renderer(worker=self.renderer, interpolation=cv2.INTER_NEAREST)
     """Instancia o renderizador, ele é do tipo GtkFrame"""
     
     # Adiciona o renderizador ao GtkBox
-    mainBox.pack_start(self.__renderer, True, True, 0)
-    mainBox.reorder_child(self.__renderer, 0)
+    frameBox.pack_start(self.__renderer, True, True, 0)
+    frameBox.reorder_child(self.__renderer, 0)
     
     self.__frameSelector = FrameSelector(notebook, [
       CortarCampo(notebook, self.__controller, self.__visionSystem, self.__renderer.getEventBox()),

@@ -1,8 +1,8 @@
 from gi.repository import Gtk
 from pkg_resources import resource_filename
-from view.frameSelector import FrameRenderer
-from view.drawing import Drawing
-from controller.vision.pixel2metric import  meters2pixel,meters2pixelSize
+from view.tools.frameSelector import FrameRenderer
+from view.tools.drawing import Drawing
+from controller.tools.pixel2metric import  meters2pixel,meters2pixelSize
 from view.vision.mainVision.visaoAltoNivel import VisaoAltoNivel
 import cv2
 import numpy as np

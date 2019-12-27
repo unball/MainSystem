@@ -1,6 +1,6 @@
-"""Arquivo com a função principal do sistema"""
-
 #!/usr/bin/env python3
+
+"""Arquivo com a função principal do sistema"""
 
 from view import View
 from controller import Controller

@@ -20,7 +20,6 @@ from helpers import Singleton
 #    
 #  def __getitem__(self, key):
 #    return self.l[key]
-    
 
 class ModelContext(object):
   """Essa classe é uma camada de acesso às variáveis no arquivo. Recebe um dicionário cujas chaves são o nome da variável de instância da classe e cujos valores são os nomes das variáveis no arquivo de configuração. A classe vai mapear cada variável no arquivo de configuração a uma variável de instância, isso permitirá que qualquer tentativa de acesso ou alteração da variável passe pelo crivo dessa classe, que fará a alteração no arquivo de configuração de modo transparente."""

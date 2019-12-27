@@ -1,7 +1,7 @@
 from gi.repository import Gtk
 from pkg_resources import resource_filename
-from view.frameSelector import FrameRenderer
-from controller.vision.pixel2metric import normToAbs
+from view.tools.frameSelector import FrameRenderer
+from controller.tools.pixel2metric import normToAbs
 from model.vision.cortarCampoModel import CortarCampoModel
 import cv2
 import numpy as np

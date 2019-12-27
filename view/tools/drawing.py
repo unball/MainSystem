@@ -1,4 +1,4 @@
-from controller.vision.pixel2metric import meters2pixel
+from controller.tools.pixel2metric import meters2pixel
 from controller.world import Field
 import numpy as np
 import cv2
