@@ -4,6 +4,7 @@ from view.tools.cv2Renderer import cv2Renderer
 from view.tools.frameSelector import FrameSelector
 from view.tools.stackSelector import StackSelector
 from view.vision.mainVision.cortarCampo import CortarCampo
+from view.vision.mainVision.cortarCampoInterno import CortarCampoInterno
 from view.vision.mainVision.segmentarElementos import SegmentarElementos
 from view.vision.mainVision.morfologia import Morfologia
 from view.vision.mainVision.segmentarBola import SegmentarBola
@@ -39,9 +40,10 @@ class MainVisionView(StackSelector):
     
     self.__frameSelector = FrameSelector(notebook, [
       CortarCampo(notebook, self.__controller, self.__visionSystem, self.__renderer.getEventBox()),
+      CortarCampoInterno(notebook, self.__controller, self.__visionSystem, self.__renderer.getEventBox()),
       SegmentarElementos(notebook, self.__controller, self.__visionSystem),
-      Morfologia(notebook, self.__controller, self.__visionSystem),
       SegmentarBola(notebook, self.__controller, self.__visionSystem),
+      Morfologia(notebook, self.__controller, self.__visionSystem),
       SegmentarTime(notebook, self.__controller, self.__visionSystem),
       ParametrosVisao(notebook, self.__controller, self.__visionSystem, self.__world),
       VisaoAltoNivel(notebook, self.__controller, self.__visionSystem, self.__world)
