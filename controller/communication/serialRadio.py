@@ -44,7 +44,7 @@ class SerialRadio(ParamsPattern, Communication):
       checksum += va + vb
 
     # Concatena com o checksum
-    message += (checksum % 65536).to_bytes(2,byteorder='little')
+    message += (checksum % 65536).to_bytes(2,byteorder='little', signed=True)
 
     # Envia
     try:
