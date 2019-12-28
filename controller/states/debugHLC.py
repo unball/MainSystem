@@ -11,6 +11,7 @@ from helpers import Mux
 import numpy as np
 import time
 import copy
+import json
 
 class DebugHLC(ParamsPattern, State):
   """Estado de debug HLC. Executa a visão, define trajetórias específicas para os robôs, passa um target ao controle de alto nível e envia sinal via rádio."""
@@ -39,9 +40,9 @@ class DebugHLC(ParamsPattern, State):
     self.robot = Robot()
     self.initialTime = time.time()
     self.t = time.time()
-    self.time = []
 
     self.debugData = {
+      "time": [],
       "posX": [],
       "posXRef": [],
       "posY": [],
@@ -77,6 +78,10 @@ class DebugHLC(ParamsPattern, State):
 
   def changeCondition(self):
     return self.finalPoint is None or self.finalPoint != self.currentFinalPoint or self.currentTrajectory != self.getParam("selectedTrajectory") or self.paramsChanged
+
+  def saveData(self, filename):
+    with open(filename, "w") as f:
+      json.dump(self.debugData, f, indent=4, separators=(". ", " = "))
 
   def update(self):
     # Computa o tempo desde o último loop e salva
@@ -146,7 +151,7 @@ class DebugHLC(ParamsPattern, State):
     if self._controller.world.running:
 
       # Alimenta dados de debug
-      self.time.append(time.time()-self.initialTime)
+      self.debugData["time"].append(time.time()-self.initialTime)
       self.debugData["posX"].append(robot.x)
       self.debugData["posXRef"].append(target[0])
       self.debugData["posY"].append(robot.y)
