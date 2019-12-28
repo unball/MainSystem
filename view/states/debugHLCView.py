@@ -122,7 +122,7 @@ class DebugHLCView(LoopThread, StackSelector):
     GLib.idle_add(self.controlWLabel.set_text, "{:.2f} rad/s".format(self.__controllerState.debugData["controlW"]))
     GLib.idle_add(self.visionVLabel.set_text, "{:.2f} m/s".format(self.__controllerState.debugData["visionV"]))
     GLib.idle_add(self.visionWLabel.set_text, "{:.2f} rad/s".format(self.__controllerState.debugData["visionW"]))
-    GLib.idle_add(self.visionPoseLabel.set_text, "x: {:.2f} m\ty: {:.2f} m\tth: {:6.2f} º".format(*self.__controllerState.debugData["visionPose"]))
+    GLib.idle_add(self.visionPoseLabel.set_text, "x: {:.2f} m\ny: {:.2f} m\nth: {:6.2f} º".format(*self.__controllerState.debugData["visionPose"]))
     for key in self.__plots:
       GLib.idle_add(self.__plots[key][0].set_data, *self.getData(*self.__plots[key][1]))
       GLib.idle_add(self.__plots[key][0].queue_draw)

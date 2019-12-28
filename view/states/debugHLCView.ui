@@ -19,11 +19,22 @@
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="margin_left">5</property>
+        <property name="margin_right">5</property>
+        <property name="margin_top">5</property>
+        <property name="margin_bottom">5</property>
+        <property name="row_spacing">5</property>
+        <property name="column_spacing">5</property>
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label" translatable="yes">h:</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">Distância do ponto de guia ao target:</property>
+            <property name="justify">fill</property>
+            <property name="wrap">True</property>
+            <property name="width_chars">15</property>
+            <property name="max_width_chars">15</property>
           </object>
           <packing>
             <property name="left_attach">0</property>
@@ -34,6 +45,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="halign">start</property>
             <property name="label" translatable="yes">n:</property>
           </object>
           <packing>
@@ -45,6 +57,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="halign">start</property>
             <property name="label" translatable="yes">Modo unificado:</property>
           </object>
           <packing>
@@ -67,6 +80,7 @@
           <object class="GtkSpinButton">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="valign">center</property>
             <property name="adjustment">HLC_UVF_h</property>
             <property name="digits">3</property>
           </object>
@@ -91,6 +105,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="halign">start</property>
             <property name="label" translatable="yes">Mostrar campo:</property>
           </object>
           <packing>
@@ -128,6 +143,12 @@
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="margin_left">5</property>
+        <property name="margin_right">5</property>
+        <property name="margin_top">5</property>
+        <property name="margin_bottom">5</property>
+        <property name="row_spacing">5</property>
+        <property name="column_spacing">5</property>
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
@@ -191,6 +212,12 @@
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="margin_left">5</property>
+        <property name="margin_right">5</property>
+        <property name="margin_top">5</property>
+        <property name="margin_bottom">5</property>
+        <property name="row_spacing">5</property>
+        <property name="column_spacing">5</property>
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
@@ -298,6 +325,12 @@
       <object class="GtkGrid">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="margin_left">5</property>
+        <property name="margin_right">5</property>
+        <property name="margin_top">5</property>
+        <property name="margin_bottom">5</property>
+        <property name="row_spacing">5</property>
+        <property name="column_spacing">5</property>
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
@@ -995,11 +1028,15 @@
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="HLCvisionPose">
-                                        <property name="width_request">250</property>
+                                        <property name="width_request">100</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="halign">start</property>
-                                        <property name="label" translatable="yes">x: 0 m		y: 0 m		th: 0 º</property>
+                                        <property name="label" translatable="yes">x: 0 m
+y: 0 m
+th: 0 º</property>
+                                        <property name="justify">fill</property>
+                                        <property name="wrap">True</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
@@ -1795,9 +1832,9 @@
                                             <property name="label" translatable="yes">O controle manual permite enviar diretamente velocidade linear e angular para o robô</property>
                                             <property name="justify">fill</property>
                                             <property name="wrap">True</property>
-                                            <property name="width_chars">45</property>
+                                            <property name="width_chars">35</property>
                                             <property name="angle">2.2351741811588166e-10</property>
-                                            <property name="max_width_chars">45</property>
+                                            <property name="max_width_chars">40</property>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -1941,8 +1978,10 @@
                                     </child>
                                     <child>
                                       <object class="GtkScale">
+                                        <property name="width_request">200</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
+                                        <property name="halign">center</property>
                                         <property name="hexpand">True</property>
                                         <property name="adjustment">manualControlLin</property>
                                         <property name="round_digits">2</property>
@@ -1990,8 +2029,10 @@
                                     </child>
                                     <child>
                                       <object class="GtkScale">
+                                        <property name="width_request">200</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
+                                        <property name="halign">center</property>
                                         <property name="adjustment">manualControlAng</property>
                                         <property name="round_digits">2</property>
                                         <property name="digits">2</property>
