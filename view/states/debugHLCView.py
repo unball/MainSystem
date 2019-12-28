@@ -29,6 +29,7 @@ class DebugHLCView(LoopThread, StackSelector):
     mainBox = builder.get_object("HLCBox")
     renderContainer = builder.get_object("HLCRender")
     playPause = builder.get_object("HLCPlayPause")
+    saveData = builder.get_object("HLCSaveData")
     self.dubinsRadiusEntry = builder.get_object("HLC_dubinsRadius")
     self.stepEntry = builder.get_object("HLC_step")
     self.UVF_h = builder.get_object("HLC_UVF_h")
@@ -84,6 +85,7 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Liga os sinais
     playPause.connect("toggled", self.playPause)
+    saveData.connect("clicked", self.saveData)
     self.dubinsRadiusEntry.connect("value-changed", self.setHLCParam, "dubinsRadius")
     self.UVF_h.connect("value-changed", self.setHLCParam, "UVF_h")
     self.UVF_n.connect("value-changed", self.setHLCParam, "UVF_n")
@@ -131,7 +133,7 @@ class DebugHLCView(LoopThread, StackSelector):
     xdata = []
     ydata = []
     for name in dataNames:
-      xdata.append(self.__controllerState.time[-self.limit:])
+      xdata.append(self.__controllerState.debugData["time"][-self.limit:])
       ydata.append(self.__controllerState.debugData[name][-self.limit:])
     return xdata, ydata
 
@@ -147,6 +149,21 @@ class DebugHLCView(LoopThread, StackSelector):
 
   def playPause(self, widget):
     self.__controller.addEvent(self.__world.setRunning, widget.get_active())
+
+  def saveData(self, widget):
+    dialog = Gtk.FileChooserDialog("Salvar arquivo", None, Gtk.FileChooserAction.SAVE,
+      (Gtk.STOCK_CANCEL,
+       Gtk.ResponseType.CANCEL,
+       Gtk.STOCK_SAVE,
+       Gtk.ResponseType.ACCEPT))
+
+    dialog.connect("response", self.saveDataResponse)
+    dialog.show()
+
+  def saveDataResponse(self, dialog, response):
+    if response == Gtk.ResponseType.ACCEPT:
+      self.__controller.addEvent(self.__controllerState.saveData, dialog.get_filename())
+    dialog.destroy()
 
   def setHLCParam(self, widget, key):
     self.__controller.addEvent(self.__controllerState.setParam, key, widget.get_value())
