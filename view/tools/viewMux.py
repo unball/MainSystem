@@ -35,6 +35,10 @@ class ViewMux(Gtk.ListBox):
       grid = Gtk.Grid()
       grid.set_row_spacing(5)
       grid.set_column_spacing(5)
+      grid.set_margin_left(5)
+      grid.set_margin_top(5)
+      grid.set_margin_right(5)
+      grid.set_margin_bottom(5)
 
       # Preenche o menu com base nos parâmetros do elemento
       for idx,key in enumerate(element.params):
@@ -62,9 +66,8 @@ class ViewMux(Gtk.ListBox):
       # Adiciona os filhos
       grid.show_all()
       popOver.add(grid)
-      rowWithSettingBuilder.get_object("RowMenu").set_popover(popOver)
 
-      self.insert(rowWithSettingBuilder.get_object("main"), -1)
+      self.insert(rowWithSettingBuilder.get_object("RowBox"), -1)
       rowChild = self.get_row_at_index(i)
 
       # Seleciona o filho a depender do mux
