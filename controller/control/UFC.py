@@ -4,7 +4,7 @@ import numpy as np
 
 class UFC(HLC):
   def __init__(self, source):
-    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 1, "amax": 1, "L": 1, "vmax": 1})
+    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 1, "L": 1, "vmax": 1, "amax": 1})
 
   def actuate(self, referencePose, robot, spin):
     # Computa os erros
