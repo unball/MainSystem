@@ -8,6 +8,7 @@ class FrameRenderer(ABC):
     
     self.__notebook = notebook
     self.__notebook.append_page(self.ui(), Gtk.Label(name))
+    self.disconnectSpecialSignals()
     
   @abstractmethod
   def ui(self):
@@ -32,6 +33,7 @@ class FrameSelector():
   def __init__(self, notebook, frameRenderers):
     self.__frameRenderers = frameRenderers
     self.__selected = frameRenderers[0]
+    self.__selected.connectSpecialSignals()
     
     notebook.connect("switch-page", self.select_frame)
   
