@@ -4,7 +4,9 @@ import numpy as np
 
 class UFC(HLC):
   def __init__(self, source):
-    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 1, "L": 1, "vmax": 1, "amax": 1})
+    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 1, "L": 1, "vmax": 1, "mu": 1})
+
+    self.g = 9.8
 
   def actuate(self, referencePose, robot, spin):
     # Computa os erros
@@ -14,7 +16,7 @@ class UFC(HLC):
     kw = self.getParam("kw")
     kp = self.getParam("kp")
     L = self.getParam("L")
-    amax = self.getParam("amax")
+    amax = self.getParam("mu") * self.g
     vmax = self.getParam("vmax")
 
     # Só continua se for uma trajetória capaz de computar o phi
