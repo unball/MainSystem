@@ -86,6 +86,16 @@ class Dubins(Trajectory):
     elif t > 1: return self.__rb
     return self.__path.sample(t*self.__path.path_length())
 
+  def referenceAngle(self, robotPose: tuple, step: float):
+    target = self.target(robotPose, step)
+    return ang(robotPose, target)
+
+  def phi(self, pose: tuple, step: float, d=0.0001):
+    pose = np.array(pose)
+    dx = (self.referenceAngle(pose+[d,0,0], step)-self.referenceAngle(pose, step)) / d
+    dy = (self.referenceAngle(pose+[0,d,0], step)-self.referenceAngle(pose, step)) / d
+    return dx*np.cos(pose[2]) + dy*np.sin(pose[2])
+
 
 class Point(Trajectory):
   """Classe que implementa uma trajetória que contém apenas um ponto"""
