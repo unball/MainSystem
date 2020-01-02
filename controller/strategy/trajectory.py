@@ -87,10 +87,12 @@ class Dubins(Trajectory):
     return self.__path.sample(t*self.__path.path_length())
 
   def referenceAngle(self, robotPose: tuple, step: float):
+    """Computa um ângulo de referência \\(\\theta_d\\) dado um pose \\((x,y,\\theta)\\) e um step, este ângulo é o ângulo entre o `robotPose` e o ponto `self.target(robotPose, step)`"""
     target = self.target(robotPose, step)
     return ang(robotPose, target)
 
   def phi(self, pose: tuple, step: float, d=0.0001):
+    """Calcula o ângulo \\(\\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\) usado para o controle"""
     pose = np.array(pose)
     dx = (self.referenceAngle(pose+[d,0,0], step)-self.referenceAngle(pose, step)) / d
     dy = (self.referenceAngle(pose+[0,d,0], step)-self.referenceAngle(pose, step)) / d
@@ -174,6 +176,7 @@ class UnifiedVectorField(Trajectory):
       return Trajectory.target(self, r0, d)
 
   def phi(self, pose: tuple, step: float, d=0.0001):
+    """Calcula o ângulo \\(\\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\) usado para o controle"""
     pose = np.array(pose)
     dx = (self.E(pose+[d,0,0])[2]-self.E(pose)[2])/d
     dy = (self.E(pose+[0,d,0])[2]-self.E(pose)[2])/d
