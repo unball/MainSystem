@@ -5,7 +5,7 @@ from controller.tools import norm, fixAngle
 from controller.control import SpeedPair
 from controller.control.NLC import NLC
 from controller.control.PID import PID
-from controller.control.UFC import UFC
+from controller.control.UFC import UFC, NLCUFC
 from model.paramsPattern import ParamsPattern
 from helpers import Mux
 import numpy as np
@@ -67,7 +67,7 @@ class DebugHLC(ParamsPattern, State):
     self.wCtrl = PID("MLCW")
 
     # Sistemas de controle de alto nível suportados
-    self.HLCs = Mux([NLC("debugHLC"), UFC("debugHLC")], selected=self.getParam("selectedHLCcontrol"))
+    self.HLCs = Mux([NLCUFC("debugHLC"), UFC("debugHLC"), NLC("debugHLC")], selected=self.getParam("selectedHLCcontrol"))
 
   def setFinalPoint(self, point):
     self.finalPoint = point

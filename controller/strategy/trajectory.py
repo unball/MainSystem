@@ -163,7 +163,7 @@ class UnifiedVectorField(Trajectory):
     else:
       return Trajectory.target(self, r0, d)
 
-  def phi(self, pose: tuple, d=0.0001):
+  def phi(self, pose: tuple, step: float, d=0.0001):
     pose = np.array(pose)
     dx = (self.E(pose+[d,0,0])[2]-self.E(pose)[2])/d
     dy = (self.E(pose+[0,d,0])[2]-self.E(pose)[2])/d
