@@ -5,7 +5,15 @@ import math
 
 
 def ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax):
-  """Lei de controle que segue um ângulo de uma trajetória"""
+  """Lei de controle baseada no livro Springer Tracts in Advanced Robotics - Soccer Robotics para o controle unificado. Esta função implementa a lei:
+  $$
+  v = \\min(v_1,v_2,v_3)\\\\
+  v_1 = \\frac{-K_{\\omega} \\sqrt{|\\theta_e|} + \\sqrt{K_{\\omega}^2 |\\theta_e| + 4 |\\phi| A_m}}{2|\\phi|}\\\\
+  v_2 = \\frac{2 \\cdot V_m - L \\cdot K_{\\omega} \\sqrt{|\\theta_e|} }{2+L \\cdot |\\phi|}\\\\
+  v_3 = K_p ||\\vec{r}-\\vec{P}(1)||\\\\
+  \\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\\\
+  \\omega = v \\cdot \\phi + K_{\\omega} \\cdot \\text{sign}(\\theta_e) \\sqrt{|\\theta_e|}
+  $$"""
   # Computa os erros
   errorAngle = fixAngle(referenceAngle-robot.th)
 
@@ -30,6 +38,7 @@ def ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax):
   return SpeedPair(v,w)
 
 class UFC(HLC):
+  """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
   def __init__(self, source):
     super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 1, "L": 0.075, "vmax": 1, "mu": 1})
 
@@ -47,6 +56,7 @@ class UFC(HLC):
     return ctrlLaw(referencePose[2], robot, spin, kw, kp, L, amax, vmax)
 
 class NLCUFC(HLC):
+  """Controle baseado no UFC, mas utiliza como ângulo de referência o ângulo entre a posição do robô e o target"""
   def __init__(self, source):
     super().__init__("Non-Linear Control (baseado no UFC)", source + "_NLCUFC", {"kw": 1, "kp": 1, "L": 0.075, "vmax": 1, "mu": 1})
 
