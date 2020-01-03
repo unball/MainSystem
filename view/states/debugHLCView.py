@@ -77,8 +77,8 @@ class DebugHLCView(LoopThread, StackSelector):
       "PlotPosX": (Plotter(), ("posX","posXRef")),
       "PlotPosY": (Plotter(), ("posY","posYRef")),
       "PlotPosTh": (Plotter(), ("posTh","posThRef")),
-      "PlotVelLin": (Plotter(), ("velLin","visionLin")),
-      "PlotVelAng": (Plotter(), ("velAng","visionAng")),
+      "PlotVelLin": (Plotter(), ("visionLin","velLin")),
+      "PlotVelAng": (Plotter(), ("visionAng","velAng")),
       "PlotDistTarg": (Plotter(), ("distTarg",))
     }
     for el in self.__plots: builder.get_object(el).add(self.__plots[el][0])
