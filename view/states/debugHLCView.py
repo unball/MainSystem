@@ -113,7 +113,7 @@ class DebugHLCView(LoopThread, StackSelector):
 
   def on_scroll(self, mouse, delta):
     finalPoint = (*self.__controllerState.finalPoint[:2], self.__controllerState.finalPoint[2]+delta*0.1)
-    if norm(finalPoint, mouse) < 0.07:
+    if norm(finalPoint, mouse) < 0.03:
       self.__controller.addEvent(self.__controllerState.setFinalPoint, finalPoint)
 
   def view_worker(self):

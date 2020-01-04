@@ -18,8 +18,8 @@ def speeds2motors(v: float, w: float) -> (int, int):
   """Recebe velocidade linear e angular e retorna velocidades para as duas rodas"""
 
   # Computa a velocidade angular de rotação de cada roda
-  vr = (-v + (L/2)*w) / (2*pi*r) * wheel_reduction
-  vl = (-v - (L/2)*w) / (2*pi*r) * wheel_reduction
+  vr = (v + (L/2)*w) / (2*pi*r) * wheel_reduction
+  vl = (v - (L/2)*w) / (2*pi*r) * wheel_reduction
   
   if fabs(vr) > max_motor_speed or fabs(vl) > max_motor_speed:
     vr = max_motor_speed * vr / max(vr, vl)

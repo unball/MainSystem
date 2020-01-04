@@ -21,3 +21,13 @@ def fixAngle(angle: float):
     return (angle + np.pi/2) % (np.pi) - np.pi/2
   else:
     return angle
+
+def angError(reference: float, current: float) -> float:
+  """Calcula o erro angular entre `reference` e `current` de modo que este erro esteja no intervalo de \\((-\\pi,\\pi]\\) e o sinal do erro indique qual deve ser a orientação para seguir a referência, de modo que positivo é anti-horário e negativo é horário"""
+  diff = np.arccos(np.cos(reference-current))
+  sign = 1 if np.sin(reference-current) >= 0 else -1
+  return sign * diff
+    
+def adjustAngle(angle: float) -> float:
+  """Pega um ângulo em \\(\\mathbb{R}\\) e leva para o correspondente em \\((-\\pi,\\pi]\\)"""
+  return angError(angle, 0)

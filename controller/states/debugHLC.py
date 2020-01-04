@@ -1,7 +1,7 @@
 from controller.states import State
 from controller.strategy.trajectory import StraightLine, Circle, Dubins, Point, UnifiedVectorField
 from controller.world.robot import Robot
-from controller.tools import norm, fixAngle
+from controller.tools import norm, adjustAngle
 from controller.control import SpeedPair
 from controller.control.NLC import NLC
 from controller.control.PID import PID
@@ -156,8 +156,8 @@ class DebugHLC(ParamsPattern, State):
       self.debugData["posXRef"].append(target[0])
       self.debugData["posY"].append(robot.y)
       self.debugData["posYRef"].append(target[1])
-      self.debugData["posTh"].append(fixAngle(robot.th))
-      self.debugData["posThRef"].append(fixAngle(target[2]))
+      self.debugData["posTh"].append(adjustAngle(robot.th))
+      self.debugData["posThRef"].append(adjustAngle(target[2]))
       self.debugData["velLin"].append(speeds[0].v)
       self.debugData["visionLin"].append(robot.velmod)
       self.debugData["velAng"].append(speeds[0].w)

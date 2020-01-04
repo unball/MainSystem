@@ -1,10 +1,11 @@
 from controller.control import SpeedPair, HLC
-from controller.tools import fixAngle, norm, ang
+from controller.tools import norm, ang, angError, sat
 import numpy as np
 import math
+import time
 
 
-def ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax):
+def ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax, motorangaccelmax, r, lastspeed, interval):
   """Lei de controle baseada no livro Springer Tracts in Advanced Robotics - Soccer Robotics para o controle unificado. Esta função implementa a lei:
   $$
   v = \\min(v_1,v_2,v_3)\\\\
@@ -15,7 +16,7 @@ def ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax):
   \\omega = v \\cdot \\phi + K_{\\omega} \\cdot \\text{sign}(\\theta_e) \\sqrt{|\\theta_e|}
   $$"""
   # Computa os erros
-  errorAngle = fixAngle(referenceAngle-robot.th)
+  errorAngle = angError(referenceAngle, robot.th)
 
   # Se a trajetória for incapaz de calcular o phi, então usa 0
   if getattr(robot.trajectory, "phi", None) is None:
@@ -29,22 +30,35 @@ def ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax):
 
   # Lei de controle da velocidade linear
   v2 = (2*vmax - L * kw * np.sqrt(np.abs(errorAngle))) / (2 + L * np.abs(phi))
-  v3 = kp * norm(robot.pos, robot.trajectory.P(1))
+  v3 = kp * norm(robot.pos, robot.trajectory.P(1)) ** 2
+  
   v  = min(v1, v2, v3)
+  
+  # Satura v caso ultrapasse a mudança máxima permitida
+  v  = lastspeed.v + sat(v-lastspeed.v, motorangaccelmax * r * interval / 2)
 
   # Lei de controle da velocidade angular
   w = v * phi + kw * np.sign(errorAngle) * np.sqrt(np.abs(errorAngle))
+  
+  # Satura w caso ultrapasse a mudança máxima permitida
+  w  = lastspeed.w + sat(w-lastspeed.w, motorangaccelmax * r * interval / L)
 
   return SpeedPair(v,w)
 
 class UFC(HLC):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
   def __init__(self, source):
-    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 1, "L": 0.075, "vmax": 1, "mu": 1})
+    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 10, "L": 0.075, "vmax": 0.7, "mu": 1, "motorangaccelmax": 50, "r": 0.03})
 
     self.g = 9.8
+    self.lastSpeed = SpeedPair()
+    self.lastT = None
 
   def actuate(self, referencePose, robot, spin):
+  
+    # Calcula o intervalo de tempo desde a última chamada
+    deltaT = 0 if self.lastT is None else time.time()-self.lastT
+    self.lastT = time.time()
 
     # Obtém os parâmetros
     kw = self.getParam("kw")
@@ -52,17 +66,27 @@ class UFC(HLC):
     L = self.getParam("L")
     amax = self.getParam("mu") * self.g
     vmax = self.getParam("vmax")
+    motorangaccelmax = self.getParam("motorangaccelmax")
+    r = self.getParam("r")
 
-    return ctrlLaw(referencePose[2], robot, spin, kw, kp, L, amax, vmax)
+    self.lastSpeed = ctrlLaw(referencePose[2], robot, spin, kw, kp, L, amax, vmax, motorangaccelmax, r, self.lastSpeed, deltaT)
+    
+    return self.lastSpeed
 
 class NLCUFC(HLC):
   """Controle baseado no UFC, mas utiliza como ângulo de referência o ângulo entre a posição do robô e o target"""
   def __init__(self, source):
-    super().__init__("Non-Linear Control (baseado no UFC)", source + "_NLCUFC", {"kw": 1, "kp": 1, "L": 0.075, "vmax": 1, "mu": 1})
+    super().__init__("Non-Linear Control (baseado no UFC)", source + "_NLCUFC", {"kw": 1, "kp": 10, "L": 0.075, "vmax": 0.7, "mu": 1, "motorangaccelmax": 50, "r": 0.03})
 
     self.g = 9.8
+    self.lastSpeed = SpeedPair()
+    self.lastT = None
 
   def actuate(self, referencePose, robot, spin):
+  
+    # Calcula o intervalo de tempo desde a última chamada
+    deltaT = 0 if self.lastT is None else time.time()-self.lastT
+    self.lastT = time.time()
 
     # Obtém os parâmetros
     kw = self.getParam("kw")
@@ -70,8 +94,12 @@ class NLCUFC(HLC):
     L = self.getParam("L")
     amax = self.getParam("mu") * self.g
     vmax = self.getParam("vmax")
+    motorangaccelmax = self.getParam("motorangaccelmax")
+    r = self.getParam("r")
 
     # Ângulo de referência é o ângulo entre o robô e o ponto da trajetória
-    referenceAngle = ang(robot.pose, referencePose)
+    referenceAngle = ang(robot.pose, referencePose) if norm(robot.pos, robot.trajectory.P(1)) > 2*robot.step else referencePose[2]
 
-    return ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax)
+    self.lastSpeed = ctrlLaw(referenceAngle, robot, spin, kw, kp, L, amax, vmax, motorangaccelmax, r, self.lastSpeed, deltaT)
+    
+    return self.lastSpeed
