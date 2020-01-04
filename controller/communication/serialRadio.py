@@ -17,6 +17,7 @@ class SerialRadio(ParamsPattern, Communication):
     try:
       if self.serial is None:
         self.serial = serial.Serial('/dev/ttyUSB0', 115200)
+        self.serial.timeout = 0.005
     except:
       print("Falha ao abrir serial")
       return
@@ -27,31 +28,39 @@ class SerialRadio(ParamsPattern, Communication):
     # Checksum
     checksum = 0
 
-    # Adiciona as cinco velocidades
-    for i in range(5):
+    # Vetor de dados
+    data = [0] * 10
+
+    # Adiciona as velocidades ao vetor de dados
+    for i,m in enumerate(msg):
 
       # Converte para velocidade nos motores
-      if i < len(msg):
-        va, vb = speeds2motors(msg[i].v, msg[i].w)
-      else:
-        va, vb = (0,0)
+      va, vb = speeds2motors(m.v, m.w)
 
-      # Concatena em bytes
-      message += (va).to_bytes(2,byteorder='little', signed=True)
-      message += (vb).to_bytes(2,byteorder='little', signed=True)
+      # Coloca no vetor de dados
+      data[i] = va
+      data[i+5] = vb
 
       # Computa o checksum
       checksum += va + vb
 
+    # Concatena o vetor de dados à mensagem
+    for v in data: message += (v).to_bytes(2,byteorder='little', signed=True)
+
     # Concatena com o checksum
-    message += (checksum % 65536).to_bytes(2,byteorder='little', signed=True)
+    message += (checksum).to_bytes(2,byteorder='little', signed=True)
 
     # Envia
     try:
       self.serial.write(message)
       if waitack:
-        result = self.serial.readline()
-        if result.decode() != "OK\r\n": print(result)
+        response = self.serial.readline().decode()
+        result = list(map(lambda x:int(x), response.replace("\n","").split("\t")))
+        if len(result) != 3: print("ACK de tamanho errado")
+        else:
+          if result[0] != checksum or result[1] != data[0] or result[2] != data[5]:
+            print("Enviado:\t" + str(checksum) + "\t" + str(data[0]) + "\t" + str(data[5]))
+            print("ACK:\t\t" + response)
     except:
       print("Falha ao enviar")
       self.serial = None
