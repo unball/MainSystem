@@ -2,7 +2,7 @@ from model.paramsPattern import ParamsPattern
 
 class PID(ParamsPattern):
   def __init__(self, name):
-    ParamsPattern.__init__(self, name, {"kp": 1, "ki": 1, "kd": 1, "sat": 1, "enable": True})
+    ParamsPattern.__init__(self, name, {"kp": 1, "ki": 1, "kd": 1, "sat": 1, "enable": False})
     self.integrated = 0
     self.lastError = 0
     
