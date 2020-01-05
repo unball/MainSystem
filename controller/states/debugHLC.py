@@ -40,6 +40,7 @@ class DebugHLC(ParamsPattern, State):
     self.robot = Robot()
     self.initialTime = time.time()
     self.t = time.time()
+    self.finalPointIndex = 0
 
     self.debugData = {
       "time": [],
@@ -107,7 +108,14 @@ class DebugHLC(ParamsPattern, State):
       
       # Condições para recalcular o ponto final
       if not self.getParam("selectableFinalPoint") or self.finalPoint is None:
-        self.finalPoint = (-sign*self._controller.world.field_x_length/2*0.70, 0, -np.pi/2)
+        finalPoints = [
+          (-self._controller.world.field_x_length/2*0.60, +self._controller.world.field_y_length/2*0.60, 0),
+          (+self._controller.world.field_x_length/2*0.60, +self._controller.world.field_y_length/2*0.60, -np.pi/2),
+          (+self._controller.world.field_x_length/2*0.60, -self._controller.world.field_y_length/2*0.60, np.pi),
+          (-self._controller.world.field_x_length/2*0.60, -self._controller.world.field_y_length/2*0.60, np.pi/2)
+        ]
+        self.finalPoint = finalPoints[self.finalPointIndex % 4]
+        self.finalPointIndex += 1
       self.currentFinalPoint = self.finalPoint
       
       # Atualiza a trajetória
