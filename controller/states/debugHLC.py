@@ -26,7 +26,7 @@ class DebugHLC(ParamsPattern, State):
       "selectableFinalPoint": False,
       "runVision": True,
       "dubinsRadius": 0.15,
-      "step": 0.03,
+      "step": 0.20,
       "selectedHLCcontrol": 0,
       "UVF_h": 0.5,
       "UVF_n": 1,
