@@ -32,7 +32,7 @@ class Trajectory(ABC):
   
   def target(self, r0: tuple, d: float) -> tuple:
     """Função que retorna o target que dista `d` do ponto `r0` pertence à trajetória no sentido de progressão do percurso. Faz isso encontrando \\(t_{opt}\\) tal que: \\(\\|\\vec{r}(t_{opt})-\\vec{r}_0\\| - d = 0\\) usando o método de Brent e \\(t \\in [t_{min}, 1]\\) e retorna \\(\\vec{P}(t_{opt})\\)"""
-    tmin = self.tmin(r0)
+    tmin = max(self.tmin(r0), self.lastt)
     dmin = self.tofindmin(tmin, r0)
     
     try:
@@ -40,6 +40,8 @@ class Trajectory(ABC):
     except:
       t = 1
     
+    self.lastt = t
+
     return self.P(t)
   
   def interestPoints(self):
