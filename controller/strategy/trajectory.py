@@ -11,6 +11,8 @@ import dubins
 class Trajectory(ABC):
   def __init__(self):
     super().__init__()
+
+    self.lastt = 0
   
   @abstractmethod
   def P(self, t: float) -> tuple:

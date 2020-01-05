@@ -84,6 +84,23 @@ class DebugHLC(ParamsPattern, State):
     with open(filename, "w") as f:
       json.dump(self.debugData, f, indent=4, separators=(". ", " = "))
 
+  def simulate(self, v, w, dt):
+    v = v
+    w = w
+    if w != 0:
+      R = abs(v / w)
+      rc = (self.robot.x - np.sign(w) * R * np.sin(self.robot.th), self.robot.y + np.sign(w) * R * np.cos(self.robot.th))
+      dth = w * dt
+      x = rc[0] + R * np.cos(ang(rc, self.robot.pos) + dth)
+      y = rc[1] + R * np.sin(ang(rc, self.robot.pos) + dth)
+      th = adjustAngle(self.robot.th + dth)
+    else:
+      x = self.robot.x + v * dt * np.cos(self.robot.th)
+      y = self.robot.y + v * dt * np.sin(self.robot.th)
+      th = self.robot.th
+
+    self.robot.update(x,y,th)
+
   def update(self):
     # Computa o tempo desde o último loop e salva
     dt = time.time()-self.t
@@ -149,7 +166,8 @@ class DebugHLC(ParamsPattern, State):
     if self.getParam("enableManualControl"):
       speeds = [SpeedPair(self.getParam("manualControlSpeedV"), self.getParam("manualControlSpeedW"))]
     else:
-      highLevelspeed = robot.controlSystem.actuate(target, robot, False)
+      deltaT = dt if self._controller.world.running else 0
+      highLevelspeed = robot.controlSystem.actuate(target, robot, False, deltaT)
       v = self.vCtrl.actuate(highLevelspeed.v, robot.velmod, dt)
       w = self.wCtrl.actuate(highLevelspeed.w, robot.w, dt)
 
@@ -157,6 +175,9 @@ class DebugHLC(ParamsPattern, State):
     
     # Envia os dados via rádio
     if self._controller.world.running:
+
+      # Simula nova posição
+      self.simulate(speeds[0].v, speeds[0].w, dt)
 
       # Alimenta dados de debug
       self.debugData["time"].append(time.time()-self.initialTime)
@@ -183,4 +204,4 @@ class DebugHLC(ParamsPattern, State):
     self.debugData["visionW"] = robot.w
     self.debugData["visionPose"] = (*robot.pos, robot.th*180/np.pi)
     
-    
+    time.sleep(max(0.016-(time.time()-self.t), 0))
