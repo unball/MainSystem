@@ -1,7 +1,7 @@
 from controller.states import State
 from controller.strategy.trajectory import StraightLine, Circle, Dubins, Point, UnifiedVectorField
 from controller.world.robot import Robot
-from controller.tools import norm, adjustAngle
+from controller.tools import norm, adjustAngle, ang
 from controller.control import SpeedPair
 from controller.control.NLC import NLC
 from controller.control.PID import PID
