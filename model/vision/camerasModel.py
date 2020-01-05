@@ -6,7 +6,7 @@ class CameraHandlerModel(ModelContext):
   
   def __init__(self):
     ModelContext.__init__(self, {
-      "current_camera": ("camera", 0),
+      "current_camera": ("camera", -1),
       "frame_scale": ("frame_scale", 1)
     })
     """Variáveis armazenadas no modelo"""
