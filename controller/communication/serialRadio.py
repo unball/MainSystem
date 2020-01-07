@@ -11,13 +11,14 @@ class SerialRadio(ParamsPattern, Communication):
     Communication.__init__(self, world)
 
     self.serial = None
+    self.failCount = 0
 
   def send(self, msg, waitack=True):
     """Envia a mensagem via barramento serial em `/dev/ttyUSB0`."""
     try:
       if self.serial is None:
         self.serial = serial.Serial('/dev/ttyUSB0', 115200)
-        self.serial.timeout = 0.005
+        self.serial.timeout = 0.100
     except:
       print("Falha ao abrir serial")
       return
@@ -61,6 +62,11 @@ class SerialRadio(ParamsPattern, Communication):
           if result[0] != checksum or result[1] != data[0] or result[2] != data[5]:
             print("Enviado:\t" + str(checksum) + "\t" + str(data[0]) + "\t" + str(data[5]))
             print("ACK:\t\t" + response)
-    except:
-      print("Falha ao enviar")
-      self.serial = None
+    except Exception as e:
+      self.failCount += 1
+      print("Falha ao enviar: " + str(self.failCount) + ", " + str(e))
+
+      if self.failCount >= 30:
+        self.serial.close()
+        self.serial = None
+        self.failCount = 0
