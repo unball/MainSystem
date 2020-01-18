@@ -21,9 +21,9 @@ def speeds2motors(v: float, w: float) -> (int, int):
   vr = (v + (L/2)*w) / (2*pi*r) * wheel_reduction
   vl = (v - (L/2)*w) / (2*pi*r) * wheel_reduction
   
-  if fabs(vr) > max_motor_speed or fabs(vl) > max_motor_speed:
-    vr = max_motor_speed * vr / max(vr, vl)
-    vl = max_motor_speed * vl / max(vr, vl)
+  #if fabs(vr) > max_motor_speed or fabs(vl) > max_motor_speed:
+  #  vr = max_motor_speed * vr / max(vr, vl)
+  #  vl = max_motor_speed * vl / max(vr, vl)
   
   vr *= convertion
   vl *= convertion

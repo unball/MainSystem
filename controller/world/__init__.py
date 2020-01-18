@@ -16,6 +16,11 @@ class World():
   def __init__(self):
     self.field_x_length = 1.66
     self.field_y_length = 1.30
+    self.xmax = (self.field_x_length) / 2
+    self.ymax = (self.field_y_length) / 2
+    self.xmaxmargin = self.xmax - 0.15
+    self.ymaxmargin = self.ymax - 0.15
+    self.goalylength = 0.4
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
     self.running = False
@@ -31,10 +36,10 @@ class World():
       if not visionMessage.found[i]: continue
       
       # O ângulo do robô não pode variar de um loop para outro mais que 70% de pi/2, se isso ocorrer deve ser algum erro da visão
-      if self.robots[i].poseDefined and np.arccos(np.cos(visionMessage.th[i]-self.robots[i].th)) > 0.7*np.pi/2: 
-        theta = self.robots[i].th
-      else:
-        theta = visionMessage.th[i]
+      #if self.robots[i].poseDefined and np.arccos(np.cos(visionMessage.th[i]-self.robots[i].th)) > 0.5*np.pi/2:
+      #  theta = self.robots[i].th
+      #else:
+      theta = visionMessage.th[i]
       
       self.robots[i].update(visionMessage.x[i], visionMessage.y[i], theta)
     

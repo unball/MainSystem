@@ -31,3 +31,20 @@ def angError(reference: float, current: float) -> float:
 def adjustAngle(angle: float) -> float:
   """Pega um ângulo em \\(\\mathbb{R}\\) e leva para o correspondente em \\((-\\pi,\\pi]\\)"""
   return angError(angle, 0)
+
+def unit(angle):
+  """Retorna um vetor unitário de ângulo `angle` no formato de numpy array"""
+  return np.array([np.cos(angle), np.sin(angle)])
+  
+def bestAngError(reference: float, current: float, robot) -> float:
+  err1 = angError(reference, current)
+  err2 = angError(reference, current+np.pi)
+  
+  if robot.velmod < 0.05:
+    if abs(err1) <= abs(err2): return err1, 1
+    else: return err2, -1
+  else:
+    if robot.dir == 1: return err1, 1
+    else: return err2, -1
+  
+

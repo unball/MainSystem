@@ -177,7 +177,7 @@ class MainVision(Vision):
     
   def aplicarFiltrosMorfologicos(self, mask):
     """Aplica filtros morfológicos com o objetivo de retirar ruido a uma mascara"""
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
     filtered = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
     filtered = cv2.dilate(filtered, kernel, iterations=1)

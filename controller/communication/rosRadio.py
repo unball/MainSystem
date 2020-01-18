@@ -3,7 +3,6 @@ from model.paramsPattern import ParamsPattern
 from controller.tools.speedConverter import speeds2motors
 from controller.communication.rosHandler import RosHandler
 from controller.communication.rosHandler import roscorechecker
-from controller.control.NLC import SpeedPair
 from gi.repository import GLib
 
 class RosRadio(ParamsPattern, Communication):

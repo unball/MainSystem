@@ -1,11 +1,9 @@
 from controller.states import State
-from controller.strategy.trajectory import StraightLine, Circle, Dubins, Point, UnifiedVectorField
+from controller.strategy.field import UVF
 from controller.world.robot import Robot
-from controller.tools import norm, adjustAngle, ang
+from controller.tools import norm, adjustAngle, ang, sat, unit
 from controller.control import SpeedPair
-from controller.control.NLC import NLC
-from controller.control.PID import PID
-from controller.control.UFC import UFC, NLCUFC
+from controller.control.UFC import UFC
 from model.paramsPattern import ParamsPattern
 from helpers import Mux
 import numpy as np
@@ -14,7 +12,7 @@ import copy
 import json
 
 class DebugHLC(ParamsPattern, State):
-  """Estado de debug HLC. Executa a visão, define trajetórias específicas para os robôs, passa um target ao controle de alto nível e envia sinal via rádio."""
+  """Estado de debug HLC. Executa a visão, define campos específicos para os robôs, passa um target ao controle de alto nível e envia sinal via rádio."""
   
   def __init__(self, controller):
     State.__init__(self, controller)
@@ -22,32 +20,33 @@ class DebugHLC(ParamsPattern, State):
       "manualControlSpeedV": 0,
       "manualControlSpeedW": 0,
       "enableManualControl": False,
-      "selectedTrajectory": "Dubins",
+      "selectedField": "UVF",
       "selectableFinalPoint": False,
       "runVision": True,
-      "dubinsRadius": 0.15,
-      "step": 0.20,
       "selectedHLCcontrol": 0,
       "UVF_h": 0.5,
-      "UVF_n": 1,
-      "UVF_runUnified": True,
-      "UVF_showField": True
+      "UVF_n": 1
     })
     
     self.finalPoint = None
     self.currentFinalPoint = None
-    self.currentTrajectory = None
+    self.currentField = None
     self.robot = Robot()
     self.initialTime = time.time()
     self.t = time.time()
     self.finalPointIndex = 0
+    self.loops = 0
+    self.lastv = 0
+    self.lastw = 0
+    self.field = None
+    
+    
+    self.v = 0
 
     self.debugData = {
       "time": [],
       "posX": [],
-      "posXRef": [],
       "posY": [],
-      "posYRef": [],
       "posTh": [],
       "posThRef": [],
       "velLin": [],
@@ -63,12 +62,8 @@ class DebugHLC(ParamsPattern, State):
       "visionPose": (0,0,0)
     }
 
-    # Sistema de controle de médio nível
-    self.vCtrl = PID("MLCV")
-    self.wCtrl = PID("MLCW")
-
     # Sistemas de controle de alto nível suportados
-    self.HLCs = Mux([NLCUFC("debugHLC"), UFC("debugHLC"), NLC("debugHLC")], selected=self.getParam("selectedHLCcontrol"))
+    self.HLCs = Mux([UFC("debugHLC")], selected=self.getParam("selectedHLCcontrol"))
 
   def setFinalPoint(self, point):
     self.finalPoint = point
@@ -77,28 +72,34 @@ class DebugHLC(ParamsPattern, State):
     self.setParam("selectedHLCcontrol", index)
     self.HLCs.select(index)
 
-  def changeCondition(self):
-    return self.finalPoint is None or self.finalPoint != self.currentFinalPoint or self.currentTrajectory != self.getParam("selectedTrajectory") or self.paramsChanged
+  def changeFieldCondition(self):
+    return self.finalPoint != self.currentFinalPoint or self.currentField != self.getParam("selectedField") or self.paramsChanged or (self.loops % 1 == 0)
+
+  def changePointCondition(self, robot):
+     return self.finalPoint is None or (not self.getParam("selectableFinalPoint") and norm(robot.pos, self.finalPoint) < 0.07)
 
   def saveData(self, filename):
     with open(filename, "w") as f:
-      json.dump(self.debugData, f, indent=4, separators=(". ", " = "))
+      json.dump(self.debugData, f, indent=4)
 
-  def simulate(self, v, w, dt):
-    v = v
-    w = w
+  def simulate(self, v, w, dt, r=0.03, L=0.075, motorangaccelmax=35):
+    v = v#self.lastv + sat(v-self.lastv, motorangaccelmax * r * dt / 2)
+    w = w + (np.random.uniform() - 0.5) * (5 * v**2) / 0.5
+    w = self.lastw + sat(w-self.lastw, motorangaccelmax * r * dt / L)
     if w != 0:
-      R = abs(v / w)
-      rc = (self.robot.x - np.sign(w) * R * np.sin(self.robot.th), self.robot.y + np.sign(w) * R * np.cos(self.robot.th))
+      R = v / w
+      rc = (self.robot.x - R * np.sin(self.robot.th), self.robot.y + R * np.cos(self.robot.th))
       dth = w * dt
-      x = rc[0] + R * np.cos(ang(rc, self.robot.pos) + dth)
-      y = rc[1] + R * np.sin(ang(rc, self.robot.pos) + dth)
+      x = rc[0] + abs(R) * np.cos(ang(rc, self.robot.pos) + dth)
+      y = rc[1] + abs(R) * np.sin(ang(rc, self.robot.pos) + dth)
       th = adjustAngle(self.robot.th + dth)
     else:
       x = self.robot.x + v * dt * np.cos(self.robot.th)
       y = self.robot.y + v * dt * np.sin(self.robot.th)
       th = self.robot.th
 
+    self.lastv = v
+    self.lastw = w
     self.robot.update(x,y,th)
 
   def update(self):
@@ -117,81 +118,70 @@ class DebugHLC(ParamsPattern, State):
     robot = self.robot
     robot.step = self.getParam("step")
     
-    # Condições para recalcular a trajetória
-    if self.changeCondition() or (not self.getParam("selectableFinalPoint") and norm(robot.pos, self.finalPoint) < 0.07):
+    # Condições para recalcular o ponto final
+    if self.changePointCondition(robot) and not self.getParam("runVision"):
+      finalPoints = [
+       (-self._controller.world.field_x_length/2*0.45, +self._controller.world.field_y_length/2*0.45, 0),
+       (+self._controller.world.field_x_length/2*0.45, +self._controller.world.field_y_length/2*0.45, -np.pi/2),
+       (+self._controller.world.field_x_length/2*0.45, -self._controller.world.field_y_length/2*0.45, np.pi),
+       (-self._controller.world.field_x_length/2*0.45, -self._controller.world.field_y_length/2*0.45, np.pi/2)
+      ]
+      self.finalPoint = finalPoints[self.finalPointIndex % 4]
+      self.finalPointIndex += 1
       
-      sign = np.sign(robot.x)
-      if sign == 0: sign = 1
-      
-      # Condições para recalcular o ponto final
-      if not self.getParam("selectableFinalPoint") or self.finalPoint is None:
-        finalPoints = [
-          (-self._controller.world.field_x_length/2*0.60, +self._controller.world.field_y_length/2*0.60, 0),
-          (+self._controller.world.field_x_length/2*0.60, +self._controller.world.field_y_length/2*0.60, -np.pi/2),
-          (+self._controller.world.field_x_length/2*0.60, -self._controller.world.field_y_length/2*0.60, np.pi),
-          (-self._controller.world.field_x_length/2*0.60, -self._controller.world.field_y_length/2*0.60, np.pi/2)
-        ]
-        self.finalPoint = finalPoints[self.finalPointIndex % 4]
-        self.finalPointIndex += 1
-      self.currentFinalPoint = self.finalPoint
-      
-      # Atualiza a trajetória
-      self.currentTrajectory = self.getParam("selectedTrajectory")
+    elif self.getParam("runVision"):
+      self.finalPoint = (*self._controller.world.ball.pose[:2], ang(self._controller.world.ball.pose, (self._controller.world.field_x_length/2, 0)))
+      self.finalPoint = (*(np.array(self.finalPoint[:2]) + (0.05+sat(0.01**2/max(norm(self._controller.world.ball.pose[:2], robot.pose),0.0001)**2, 1)) * unit(self.finalPoint[2])), self.finalPoint[2])
 
-      if self.currentTrajectory == "Dubins":
-        self.trajectory = Dubins(robot.pose, self.finalPoint, self.getParam("dubinsRadius"))
-      elif self.currentTrajectory == "UVF":
-        self.trajectory = UnifiedVectorField("debugHLC", robot.pose, self.finalPoint,
+    # Condições para recomputar o campo
+    if self.changeFieldCondition():
+
+      self.currentFinalPoint = self.finalPoint
+
+      # Atualiza o campo
+      self.currentField = self.getParam("selectedField")
+
+      if self.currentField == "UVF":
+        self.field = UVF(self.finalPoint, self._controller.world,
           h=self.getParam("UVF_h"),
-          n=self.getParam("UVF_n"),
-          runUnified=self.getParam("UVF_runUnified"),
-          showField=self.getParam("UVF_showField"))
-      elif self.currentTrajectory == "StraightLine":
-        self.trajectory = StraightLine(robot.pose, self.finalPoint)
-      elif self.currentTrajectory == "Circle":
-        self.trajectory = Circle(robot.pose, self.finalPoint)
-      elif self.currentTrajectory == "Point":
-        self.trajectory = Point(self.finalPoint)
+          n=self.getParam("UVF_n"))
     
-    # Define uma trajetória
-    robot.trajectory = self.trajectory
+    # Define um campo
+    robot.field = self.field
     
     # Obtém o target instantâneo
-    target = robot.trajectory.target(robot.pose, robot.step)
+    reference = robot.field.F(robot.pose)
 
     # Define um controle
     robot.controlSystem = self.HLCs.get()
     
     # Obtém velocidade angular e linear
     if self.getParam("enableManualControl"):
-      speeds = [SpeedPair(self.getParam("manualControlSpeedV"), self.getParam("manualControlSpeedW"))]
+      if self._controller.world.running: self.v = self.getParam("manualControlSpeedV") * 0.1 + self.v * 0.9
+      speeds = [SpeedPair(self.v, self.getParam("manualControlSpeedW"))]
     else:
-      deltaT = dt if self._controller.world.running else 0
-      highLevelspeed = robot.controlSystem.actuate(target, robot, False, deltaT)
-      v = self.vCtrl.actuate(highLevelspeed.v, robot.velmod, dt)
-      w = self.wCtrl.actuate(highLevelspeed.w, robot.w, dt)
+      highLevelspeed = robot.controlSystem.actuate(reference, robot.pose, robot.field)
 
-      speeds = [SpeedPair(v,w)]
+      speeds = [SpeedPair(highLevelspeed.v,highLevelspeed.w)]
     
     # Envia os dados via rádio
     if self._controller.world.running:
 
       # Simula nova posição
-      self.simulate(speeds[0].v, speeds[0].w, dt)
+      if not self.getParam("runVision"): self.simulate(speeds[0].v, speeds[0].w, dt)
 
       # Alimenta dados de debug
       self.debugData["time"].append(time.time()-self.initialTime)
       self.debugData["posX"].append(robot.x)
-      self.debugData["posXRef"].append(target[0])
       self.debugData["posY"].append(robot.y)
-      self.debugData["posYRef"].append(target[1])
       self.debugData["posTh"].append(adjustAngle(robot.th))
-      self.debugData["posThRef"].append(adjustAngle(target[2]))
+      self.debugData["posThRef"].append(adjustAngle(reference))
       self.debugData["velLin"].append(speeds[0].v)
       self.debugData["visionLin"].append(robot.velmod)
       self.debugData["velAng"].append(speeds[0].w)
       self.debugData["visionAng"].append(robot.w)
-      self.debugData["distTarg"].append(norm(robot.pos, target))
+      #self.debugData["distTarg"].append(norm(robot.pos, robot.controlSystem.currentTarget))
+      self.debugData["distTarg"].append(robot.field.gama(robot.pose))
 
       self._controller.communicationSystems.get().send(speeds)
     else: self._controller.communicationSystems.get().sendZero()
@@ -204,4 +194,6 @@ class DebugHLC(ParamsPattern, State):
     self.debugData["visionW"] = robot.w
     self.debugData["visionPose"] = (*robot.pos, robot.th*180/np.pi)
     
-    time.sleep(max(0.016-(time.time()-self.t), 0))
+    time.sleep(max(0.033-(time.time()-self.t), 0))
+
+    self.loops += 1

@@ -5,7 +5,6 @@ import queue
 from gi.repository import GLib
 
 from controller.vision.mainVision import MainVision
-from controller.control.NLC import NLC
 from controller.communication.rosRadio import RosRadio
 from controller.communication.serialRadio import SerialRadio
 from controller.communication.rosHandler import RosHandler

@@ -76,11 +76,6 @@ class HighLevelRenderer(cv2Renderer):
     
   def draw_robot(self, frame, robot):
     """Desenha um robô e seu target no frame"""
-    # Desenha pontos de interesse da trajetória
-    if robot.trajectory is not None:
-      for point in robot.trajectory.interestPoints():
-        Drawing.draw_arrow(frame, meters2pixel(self.__world, point, frame.shape), point[2], color=(25,25,25))
-
     # Obtém posição em pixels do robô
     position = meters2pixel(self.__world, robot.pose, frame.shape)
     
@@ -91,18 +86,22 @@ class HighLevelRenderer(cv2Renderer):
     w,h = meters2pixelSize(self.__world, (0.08,0.08), frame.shape)
     Drawing.draw_rectangle(frame, position, (w,h), robot.th, color=robotColor)
     
-    # Desenha o target instantâneo do robô e o ponto final da trajetória
-    if robot.trajectory is not None:
-      final = robot.trajectory.P(1)
-      Drawing.draw_arrow(frame, meters2pixel(self.__world, final, frame.shape), final[2], color=(255,0,0))
-      target = robot.trajectory.target(robot.pose, robot.step)
-      Drawing.draw_arrow(frame, meters2pixel(self.__world, target, frame.shape), target[2], color=(0,255,0))
+  def draw_field(self, frame, field):
+    """Desenha o campo no frame"""
+    if field is None: return
     
-  def draw_trajectory(self, frame, trajectory):
-    """Desenha uma trajetória no frame"""
-    if trajectory is None: return
+    # Desenha todo o campo
+    arrow_size = 15
+    for i in range(0, frame.shape[1], arrow_size+2):
+      for j in range(0, frame.shape[0], arrow_size+2):
+        P = pixel2meters(self.__world, (i,j), frame.shape)
+        Drawing.draw_arrow(frame, (i,j), field.F(P), color=(128,128,128), size=arrow_size, thickness=1)
     
-    cv2.polylines(frame,[np.array([meters2pixel(self.__world, trajectory.P(t), frame.shape) for t in np.linspace(0,1)])],False,(255,255,255),1)
+    # Desenha pontos de interesse do campo
+    #for point in field.interestPoints():
+    #  Drawing.draw_arrow(frame, meters2pixel(self.__world, point, frame.shape), point[2], color=(128,128,128), size=arrow_size)
+    
+    #cv2.polylines(frame,[np.array([meters2pixel(self.__world, trajectory.P(t), frame.shape) for t in np.linspace(0,1)])],False,(255,255,255),1)
   
   def renderer(self):
     """Desenha um frame para o renderizador"""
@@ -118,7 +117,7 @@ class HighLevelRenderer(cv2Renderer):
     
     # Desenha os robôs e suas trajetórias
     for i,robot in enumerate(self.robots):
+      self.draw_field(frame, robot.field)
       self.draw_robot(frame, robot)
-      self.draw_trajectory(frame, robot.trajectory)
     
     return frame

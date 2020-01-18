@@ -20,6 +20,6 @@ class HLC(ABC, ParamsPattern):
     ParamsPattern.__init__(self, source, default, name=name)
 
   @abstractmethod
-  def actuate(self, referencePose, robot, spin):
-    """Este método deve fazer a atuação do controle de alto nível na planta, ele recebe o pose de referência, o robô e se é para executar spin. Retorna a velocidade linear e angular."""
+  def actuate(self, reference, robot, spin):
+    """Este método deve fazer a atuação do controle de alto nível na planta, ele recebe a referência, o robô e se é para executar spin. Retorna a velocidade linear e angular."""
     pass

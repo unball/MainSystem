@@ -1,3 +1,4 @@
+from controller.tools import angError
 import numpy as np
 
 class Element(object):
@@ -114,11 +115,11 @@ class Element(object):
     """Atualiza a velocidade angular do objeto"""
     self.inst_w = w
 
-  def calc_velocities(self, dt, alpha=0.5):
+  def calc_velocities(self, dt, alpha=0.5, thalpha=0.8):
     """Estima a velocidade do objeto por meio do pose atual, pose anterior e o intervalo de tempo passado `dt`. A velocidade computada é suavizada por uma média exponencial: \\(v[k] = v_{\\text{estimado}} \\cdot \\alpha + v[k-1] \\cdot (1-\\alpha)\\) onde \\(v_{\\text{estimado}} = \\frac{r[k]-r[k-1]}{dt}\\)"""
     self.inst_vx = ((self.inst_x - self.prev_x)/dt)*alpha + (self.inst_vx)*(1-alpha)
     self.inst_vy = ((self.inst_y - self.prev_y)/dt)*alpha + (self.inst_vy)*(1-alpha)
-    self.inst_w = ((self.inst_th - self.prev_th)/dt)*alpha + (self.inst_w)*(1-alpha)
+    self.inst_w = (angError(self.inst_th, self.prev_th)/dt)*thalpha + (self.inst_w)*(1-thalpha)
 
   @property
   def x(self):

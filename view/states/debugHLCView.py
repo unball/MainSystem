@@ -30,11 +30,8 @@ class DebugHLCView(LoopThread, StackSelector):
     renderContainer = builder.get_object("HLCRender")
     playPause = builder.get_object("HLCPlayPause")
     saveData = builder.get_object("HLCSaveData")
-    self.dubinsRadiusEntry = builder.get_object("HLC_dubinsRadius")
-    self.stepEntry = builder.get_object("HLC_step")
     self.UVF_h = builder.get_object("HLC_UVF_h")
     self.UVF_n = builder.get_object("HLC_UVF_n")
-    self.UVF_unified = builder.get_object("HLC_UVF_unified")
     self.UVF_showField = builder.get_object("HLC_UVF_showField")
     self.selectableFinalPoint = builder.get_object("HLCSelectableFinalPoint")
 
@@ -42,23 +39,13 @@ class DebugHLCView(LoopThread, StackSelector):
     HLCcontrolListBox = builder.get_object("HLCControlChooserBox")
     HLCcontrolListBox.pack_end(self.HLCcontrolList, True, True, 0)
 
-    self.trajectoryList = builder.get_object("HLCTrajectoryChooser")
+    self.fieldList = builder.get_object("HLCFieldChooser")
     self.manualControl = builder.get_object("HLCSwitchManualControl")
     self.manualControlLin = builder.get_object("manualControlLin")
     self.manualControlAng = builder.get_object("manualControlAng")
     self.useVisionButton = builder.get_object("HLCUseVision")
-    self.MLCVEnableButton = builder.get_object("HLCMLCVenable")
-    self.MLCVadjs = {
-      "kp": builder.get_object("MLC_vKp"),
-      "ki": builder.get_object("MLC_vKi"),
-      "kd": builder.get_object("MLC_vKd")
-    }
-    self.MLCWEnableButton = builder.get_object("HLCMLCWenable")
-    self.MLCWadjs = {
-      "kp": builder.get_object("MLC_wKp"),
-      "ki": builder.get_object("MLC_wKi"),
-      "kd": builder.get_object("MLC_wKd")
-    }
+    
+    # Labels
     self.loopTimeLabel = builder.get_object("HLCLoopTime")
     self.controlVLabel = builder.get_object("HLCcontrolV")
     self.controlWLabel = builder.get_object("HLCcontrolW")
@@ -74,8 +61,8 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Adiciona os gráficos
     self.__plots = {
-      "PlotPosX": (Plotter(), ("posX","posXRef")),
-      "PlotPosY": (Plotter(), ("posY","posYRef")),
+      "PlotPosX": (Plotter(), ("posX",)),
+      "PlotPosY": (Plotter(), ("posY",)),
       "PlotPosTh": (Plotter(), ("posTh","posThRef")),
       "PlotVelLin": (Plotter(), ("visionLin","velLin")),
       "PlotVelAng": (Plotter(), ("visionAng","velAng")),
@@ -86,24 +73,15 @@ class DebugHLCView(LoopThread, StackSelector):
     # Liga os sinais
     playPause.connect("toggled", self.playPause)
     saveData.connect("clicked", self.saveData)
-    self.dubinsRadiusEntry.connect("value-changed", self.setHLCParam, "dubinsRadius")
     self.UVF_h.connect("value-changed", self.setHLCParam, "UVF_h")
     self.UVF_n.connect("value-changed", self.setHLCParam, "UVF_n")
-    self.UVF_unified.connect("state-set", self.setHLCParam_state_set, "UVF_runUnified")
     self.UVF_showField.connect("state-set", self.setHLCParam_state_set, "UVF_showField")
-    self.stepEntry.connect("value-changed", self.setHLCParam, "step")
     self.selectableFinalPoint.connect("state-set", self.setHLCParam_state_set, "selectableFinalPoint")
-    self.trajectoryList.connect("row-activated", self.trajectoryChooser)
+    self.fieldList.connect("row-activated", self.fieldChooser)
     self.manualControl.connect("state-set", self.setHLCParam_state_set, "enableManualControl")
     self.manualControlLin.connect("value-changed", self.setHLCParam, "manualControlSpeedV")
     self.manualControlAng.connect("value-changed", self.setHLCParam, "manualControlSpeedW")
     self.useVisionButton.connect("state-set",  self.setHLCParam_state_set, "runVision")
-    self.MLCVEnableButton.connect("state-set", self.setMLCVparam_state_set, "enable")
-    for key in self.MLCVadjs:
-      self.MLCVadjs[key].connect("value-changed", self.setMLCVparam, key)
-    self.MLCWEnableButton.connect("state-set", self.setMLCWparam_state_set, "enable")
-    for key in self.MLCWadjs:
-      self.MLCWadjs[key].connect("value-changed", self.setMLCWparam, key)
 
     return mainBox
 
@@ -133,8 +111,9 @@ class DebugHLCView(LoopThread, StackSelector):
     xdata = []
     ydata = []
     for name in dataNames:
-      xdata.append(self.__controllerState.debugData["time"][-self.limit:])
-      ydata.append(self.__controllerState.debugData[name][-self.limit:])
+      d = self.__controllerState.debugData[name][-self.limit:]
+      xdata.append([i for i in range(len(d))])
+      ydata.append(d)
     return xdata, ydata
 
   def robotsGetter(self):
@@ -171,20 +150,8 @@ class DebugHLCView(LoopThread, StackSelector):
   def setHLCParam_state_set(self, widget, state, key):
     self.__controller.addEvent(self.__controllerState.setParam, key, state)
 
-  def trajectoryChooser(self, widget, row):
-    self.__controller.addEvent(self.__controllerState.setParam, "selectedTrajectory", row.get_name())
-
-  def setMLCVparam(self, widget, key):
-    self.__controller.addEvent(self.__controllerState.vCtrl.setParam, key, widget.get_value())
-
-  def setMLCVparam_state_set(self, widget, state, key):
-    self.__controller.addEvent(self.__controllerState.vCtrl.setParam, key, state)
-
-  def setMLCWparam(self, widget, key):
-    self.__controller.addEvent(self.__controllerState.wCtrl.setParam, key, widget.get_value())
-
-  def setMLCWparam_state_set(self, widget, state, key):
-    self.__controller.addEvent(self.__controllerState.wCtrl.setParam, key, state)
+  def fieldChooser(self, widget, row):
+    self.__controller.addEvent(self.__controllerState.setParam, "selectedField", row.get_name())
 
   def updateParam(self, widget, controlSystem, key):
     self.__controller.addEvent(controlSystem.setParam, key, widget.get_value())
@@ -196,23 +163,14 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Define valores padrão
     self.selectableFinalPoint.set_state(self.__controllerState.getParam("selectableFinalPoint"))
-    self.dubinsRadiusEntry.set_value(self.__controllerState.getParam("dubinsRadius"))
     self.UVF_h.set_value(self.__controllerState.getParam("UVF_h"))
     self.UVF_n.set_value(self.__controllerState.getParam("UVF_n"))
-    self.UVF_unified.set_state(self.__controllerState.getParam("UVF_runUnified"))
     self.UVF_showField.set_state(self.__controllerState.getParam("UVF_showField"))
-    self.stepEntry.set_value(self.__controllerState.getParam("step"))
-    self.trajectoryList.select_row(self.getRowByName(self.trajectoryList, self.__controllerState.getParam("selectedTrajectory")))
+    self.fieldList.select_row(self.getRowByName(self.fieldList, self.__controllerState.getParam("selectedField")))
     self.manualControl.set_state(self.__controllerState.getParam("enableManualControl"))
     self.manualControlLin.set_value(self.__controllerState.getParam("manualControlSpeedV"))
     self.manualControlAng.set_value(self.__controllerState.getParam("manualControlSpeedW"))
     self.useVisionButton.set_state(self.__controllerState.getParam("runVision"))
-    self.MLCVEnableButton.set_state(self.__controllerState.vCtrl.getParam("enable"))
-    for key in self.MLCVadjs:
-      self.MLCVadjs[key].set_value(self.__controllerState.vCtrl.getParam(key))
-    self.MLCWEnableButton.set_state(self.__controllerState.wCtrl.getParam("enable"))
-    for key in self.MLCWadjs:
-      self.MLCWadjs[key].set_value(self.__controllerState.wCtrl.getParam(key))
 
     self.__controller.addEvent(self.__controller.setState, self.__controllerState)
     self.__renderer.start()
