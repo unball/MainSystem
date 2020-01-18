@@ -3,6 +3,7 @@ from controller.tools.speedConverter import speeds2motors
 from model.paramsPattern import ParamsPattern
 import serial
 import time
+import os.path
 
 class SerialRadio(ParamsPattern, Communication):
   """Implementa a comunicação usando simplesmente a interface serial"""
@@ -17,8 +18,11 @@ class SerialRadio(ParamsPattern, Communication):
     """Envia a mensagem via barramento serial em `/dev/ttyUSB0`."""
     try:
       if self.serial is None:
-        self.serial = serial.Serial('/dev/ttyUSB0', 115200)
-        self.serial.timeout = 0.100
+        if os.path.isfile('/dev/ttyUSB0'):
+          self.serial = serial.Serial('/dev/ttyUSB0', 115200)
+          self.serial.timeout = 0.100
+        else:
+          return
     except:
       print("Falha ao abrir serial")
       return
