@@ -35,7 +35,7 @@ class Controller:
     self.visionSystem = MainVision(self.world)
     """Instância do sistema de visão"""
     
-    self.communicationSystems = Mux([RosRadio(self.world), SerialRadio(self.world)])
+    self.communicationSystems = Mux([SerialRadio(self.world), RosRadio(self.world)])
     """Instância do sistema que se comunica com o rádio"""
     
     self.__thread.start()

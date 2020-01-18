@@ -1,7 +1,6 @@
 import subprocess
 import time
-import rosgraph
-import rospy
+import importlib
 from helpers import Singleton
 
 class Process():
@@ -48,6 +47,7 @@ class Process():
 def roscorechecker():
   """Esta função é capaz de dizer se o `roscore` já foi iniciado por outro processo no computador."""
   try:
+    import rosgraph
     rosgraph.Master("/rostopic").getPid()
     return True
   except:
@@ -61,9 +61,18 @@ class RosHandler(metaclass=Singleton):
       "roscore": Process("roscore", aliveChecker=roscorechecker)
     }
     """Processos que o gerenciador suporta"""
+  
+  @classmethod
+  def create(cls):
+    if importlib.util.find_spec('rospy') is None:
+      return None
+
+    else:
+      return cls()
 
   def runProcess(self, processKey):
     """Inicia o processo de chave `processKey` definido em `__processes`"""
+    if self.__processes.get(processKey) is None: return
     self.__processes[processKey].run()
   
   def terminateAll(self):

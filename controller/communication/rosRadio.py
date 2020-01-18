@@ -1,12 +1,10 @@
 from controller.communication import Communication
+from model.paramsPattern import ParamsPattern
 from controller.tools.speedConverter import speeds2motors
 from controller.communication.rosHandler import RosHandler
 from controller.communication.rosHandler import roscorechecker
 from controller.control.NLC import SpeedPair
-from model.paramsPattern import ParamsPattern
-from main_system.msg import robot_msg
 from gi.repository import GLib
-import rospy
 
 class RosRadio(ParamsPattern, Communication):
   """Implementa a comunicação usando o ROS"""
@@ -14,10 +12,27 @@ class RosRadio(ParamsPattern, Communication):
     ParamsPattern.__init__(self, "ROSRadio", {"enable": False}, name="ROS+Rádio", properties={"enable": {"name": "Habilitar ROS"}})
     Communication.__init__(self, world)
     
-    self.rh = RosHandler()
-
-    self.pub = rospy.Publisher("radio_topic", robot_msg, queue_size=1)
-    self.msg = robot_msg()
+    self.rh = RosHandler.create()
+    
+    # O ROS está instalado
+    if self.rh is not None:
+      # Importa a mensagem
+      from main_system.msg import robot_msg
+      
+      # Importa o ROS
+      import rospy
+      
+      # Cria um publisher que receberá as velocidades
+      self.pub = rospy.Publisher("radio_topic", robot_msg, queue_size=1)
+      
+      # Instancia a mensagem
+      self.msg = robot_msg()
+      
+      # Habilita a flag de ROS instalado
+      self.ROSinstalled = True
+      
+    else:
+      self.ROSinstalled = False
 
   def setParam(self, key, value):
     if key == "enable": self.setEnable(value)
@@ -25,6 +40,10 @@ class RosRadio(ParamsPattern, Communication):
 
   def setEnable(self, flag):
     """Atualiza o estado de habilitado e fecha os componentes do ROS caso esteja desabilitando"""
+    
+    # Não habilita nada se o ROS não estiver instalado
+    if not self.ROSinstalled: return
+    
     if flag is False:
       ParamsPattern.setParam(self, "enable", False)
       self.rh.terminateAll()
@@ -40,6 +59,11 @@ class RosRadio(ParamsPattern, Communication):
 
   def send(self, msg):
     """Envia a mensagem ao tópico `radio_topic` do ROS que será lido pelo rádio conectado ao computador."""
+    
+    # Não envia se o ROS não estiver instalado
+    if not self.ROSinstalled:
+      print("ROS não instalado")
+      return
     
     if not self.getParam("enable"): return
 
