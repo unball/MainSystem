@@ -83,7 +83,7 @@ class DebugHLC(ParamsPattern, State):
     with open(filename, "w") as f:
       json.dump(self.debugData, f, indent=4)
 
-  def simulate(self, v, w, dt, r=0.03, L=0.075, motorangaccelmax=35):
+  def simulate(self, v, w, dt=0.033, r=0.03, L=0.075, motorangaccelmax=35):
     v = v#self.lastv + sat(v-self.lastv, motorangaccelmax * r * dt / 2)
     w = w + (np.random.uniform() - 0.5) * (5 * v**2) / 0.5
     w = self.lastw + sat(w-self.lastw, motorangaccelmax * r * dt / L)
