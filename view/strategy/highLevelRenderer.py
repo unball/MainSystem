@@ -17,6 +17,7 @@ class HighLevelRenderer(cv2Renderer):
     self.__mousePosition = (0,0)
     self.__on_click = on_click
     self.__on_scroll = on_scroll
+    self.arrow_size = 15
     
     # Adiciona eventos de mouse e trackpad
     eventBox = self.getEventBox()
@@ -86,17 +87,19 @@ class HighLevelRenderer(cv2Renderer):
     w,h = meters2pixelSize(self.__world, (0.08,0.08), frame.shape)
     Drawing.draw_rectangle(frame, position, (w,h), robot.th, color=robotColor)
     
-  def draw_field(self, frame, field):
+  def draw_field(self, frame, pose, field):
     """Desenha o campo no frame"""
     if field is None: return
     
     # Desenha todo o campo
-    arrow_size = 15
-    for i in range(0, frame.shape[1], arrow_size+2):
-      for j in range(0, frame.shape[0], arrow_size+2):
+    for i in range(0, frame.shape[1], self.arrow_size+2):
+      for j in range(0, frame.shape[0], self.arrow_size+2):
         P = pixel2meters(self.__world, (i,j), frame.shape)
-        Drawing.draw_arrow(frame, (i,j), field.F(P), color=(128,128,128), size=arrow_size, thickness=1)
+        Drawing.draw_arrow(frame, (i,j), field.F(P), color=(128,128,128), size=self.arrow_size, thickness=1)
     
+    # Desenha o campo na posição do robô
+    Drawing.draw_arrow(frame, meters2pixel(self.__world, pose, frame.shape), field.F(pose), color=(0,255,0), size=meters2pixelSize(self.__world, (0.08,0), frame.shape)[0])
+
     # Desenha pontos de interesse do campo
     #for point in field.interestPoints():
     #  Drawing.draw_arrow(frame, meters2pixel(self.__world, point, frame.shape), point[2], color=(128,128,128), size=arrow_size)
@@ -117,7 +120,7 @@ class HighLevelRenderer(cv2Renderer):
     
     # Desenha os robôs e suas trajetórias
     for i,robot in enumerate(self.robots):
-      self.draw_field(frame, robot.field)
+      self.draw_field(frame, robot.pose, robot.field)
       self.draw_robot(frame, robot)
     
     return frame
