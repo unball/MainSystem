@@ -143,9 +143,10 @@ class DebugHLC(ParamsPattern, State):
       self.currentField = self.getParam("selectedField")
 
       if self.currentField == "UVF":
-        self.field = UVF(self.finalPoint, self._controller.world,
+        self.field = UVF(self.finalPoint, self.world,
           h=self.getParam("UVF_h"),
-          n=self.getParam("UVF_n"))
+          n=self.getParam("UVF_n"),
+          avoidGoal=True)
     
     # Define um campo
     robot.field = self.field
@@ -169,7 +170,7 @@ class DebugHLC(ParamsPattern, State):
     if self.world.running:
 
       # Simula nova posição
-      if not self.getParam("runVision"): self.simulate(speeds[0].v, speeds[0].w, dt)
+      if not self.getParam("runVision"): self.simulate(speeds[0].v, speeds[0].w)
 
       # Alimenta dados de debug
       self.debugData["time"].append(time.time()-self.initialTime)
@@ -182,7 +183,7 @@ class DebugHLC(ParamsPattern, State):
       self.debugData["velAng"].append(speeds[0].w)
       self.debugData["visionAng"].append(robot.w)
       #self.debugData["distTarg"].append(norm(robot.pos, robot.controlSystem.currentTarget))
-      self.debugData["distTarg"].append(robot.field.gama(robot.pose))
+      self.debugData["distTarg"].append(robot.field.gamma(robot.pose))
 
       self._controller.communicationSystems.get().send(speeds)
     else: self._controller.communicationSystems.get().sendZero()
