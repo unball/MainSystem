@@ -35,26 +35,32 @@ class UFC(HLC):
     # Computa os erros
     errorAngle = angError(reference, currentPose[2])
 
-    # Velocidade limite de deslizamento
+    # Computa phi
     phi = field.phi(currentPose)
+
+    # Computa omega
+    omega = field.gamma(currentPose) + kw * np.sign(errorAngle) * np.sqrt(np.abs(errorAngle))
+
+    # Velocidade limite de deslizamento
     if phi != 0:
-      v1 = (-kw * np.sqrt(np.abs(errorAngle)) + np.sqrt(kw**2 * np.abs(errorAngle) + 4 * np.abs(phi) * amax)) / (2*np.abs(phi))
-    else:
-      v1 = amax / (kw * np.sqrt(np.abs(errorAngle)))
+      v1 = (-np.abs(omega) + np.sqrt(omega**2 + 4 * np.abs(phi) * amax)) / (2*np.abs(phi))
+    if phi == 0:
+      v1 = amax / np.abs(omega)      
 
     # Velocidade limite das rodas
-    v2 = (2*vmax - L * kw * np.sqrt(np.abs(errorAngle))) / (2 + L * np.abs(phi))
+    v2 = (2*vmax - L * np.abs(omega)) / (2 + L * np.abs(phi))
 
     # Velocidade limite de aproximação
     v3 = kp * norm(currentPose, field.Pb) ** 2 + vref
-    
+
+    # Velocidade linear é menor de todas
     v  = min(v1, v2, v3)
     
     # Satura v caso ultrapasse a mudança máxima permitida
     #if v > lastspeed.v: v = lastspeed.v + sat(v-lastspeed.v, motorangaccelmax * r * interval / 2)
 
     # Lei de controle da velocidade angular
-    w = v * phi + field.gama(currentPose) + kw * np.sign(errorAngle) * np.sqrt(np.abs(errorAngle))
+    w = v * phi + omega
     
     # Satura w caso ultrapasse a mudança máxima permitida
     #w  = lastspeed.w + sat(w-lastspeed.w, motorangaccelmax * r * interval / L)
