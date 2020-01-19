@@ -28,6 +28,7 @@ class DebugHLC(ParamsPattern, State):
       "UVF_n": 1
     })
     
+    self.world = controller.world
     self.finalPoint = None
     self.currentFinalPoint = None
     self.currentField = None
@@ -112,7 +113,7 @@ class DebugHLC(ParamsPattern, State):
     
     # Se a flag de usar visão estiver habilitada, usa o robô no mundo
     if self.getParam("runVision"):
-      self.robot = copy.deepcopy(self._controller.world.robots[0])
+      self.robot = copy.deepcopy(self.world.robots[0])
     
     # Robô de referência
     robot = self.robot
@@ -121,17 +122,17 @@ class DebugHLC(ParamsPattern, State):
     # Condições para recalcular o ponto final
     if self.changePointCondition(robot) and not self.getParam("runVision"):
       finalPoints = [
-       (-self._controller.world.field_x_length/2*0.45, +self._controller.world.field_y_length/2*0.45, 0),
-       (+self._controller.world.field_x_length/2*0.45, +self._controller.world.field_y_length/2*0.45, -np.pi/2),
-       (+self._controller.world.field_x_length/2*0.45, -self._controller.world.field_y_length/2*0.45, np.pi),
-       (-self._controller.world.field_x_length/2*0.45, -self._controller.world.field_y_length/2*0.45, np.pi/2)
+       (-self.world.xmaxmargin, +self.world.ymaxmargin, 0),
+       (+self.world.xmaxmargin, +self.world.ymaxmargin, -np.pi/2),
+       (+self.world.xmaxmargin, -self.world.ymaxmargin, np.pi),
+       (-self.world.xmaxmargin, -self.world.ymaxmargin, np.pi/2)
       ]
       self.finalPoint = finalPoints[self.finalPointIndex % 4]
       self.finalPointIndex += 1
       
     elif self.getParam("runVision"):
-      self.finalPoint = (*self._controller.world.ball.pose[:2], ang(self._controller.world.ball.pose, (self._controller.world.field_x_length/2, 0)))
-      self.finalPoint = (*(np.array(self.finalPoint[:2]) + (0.05+sat(0.01**2/max(norm(self._controller.world.ball.pose[:2], robot.pose),0.0001)**2, 1)) * unit(self.finalPoint[2])), self.finalPoint[2])
+      self.finalPoint = (*self.world.ball.pose[:2], ang(self.world.ball.pose, (self.world.field_x_length/2, 0)))
+      self.finalPoint = (*(np.array(self.finalPoint[:2]) + (0.05+sat(0.01**2/max(norm(self.world.ball.pose[:2], robot.pose),0.0001)**2, 1)) * unit(self.finalPoint[2])), self.finalPoint[2])
 
     # Condições para recomputar o campo
     if self.changeFieldCondition():
@@ -157,7 +158,7 @@ class DebugHLC(ParamsPattern, State):
     
     # Obtém velocidade angular e linear
     if self.getParam("enableManualControl"):
-      if self._controller.world.running: self.v = self.getParam("manualControlSpeedV") * 0.1 + self.v * 0.9
+      if self.world.running: self.v = self.getParam("manualControlSpeedV") * 0.1 + self.v * 0.9
       speeds = [SpeedPair(self.v, self.getParam("manualControlSpeedW"))]
     else:
       highLevelspeed = robot.controlSystem.actuate(reference, robot.pose, robot.field)
@@ -165,7 +166,7 @@ class DebugHLC(ParamsPattern, State):
       speeds = [SpeedPair(highLevelspeed.v,highLevelspeed.w)]
     
     # Envia os dados via rádio
-    if self._controller.world.running:
+    if self.world.running:
 
       # Simula nova posição
       if not self.getParam("runVision"): self.simulate(speeds[0].v, speeds[0].w, dt)
