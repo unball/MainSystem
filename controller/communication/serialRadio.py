@@ -1,5 +1,5 @@
 from controller.communication import Communication
-from controller.tools.speedConverter import speeds2motors
+from controller.tools.speedConverter import speeds2motors, encodeSpeeds
 from model.paramsPattern import ParamsPattern
 import serial
 import time
@@ -40,7 +40,7 @@ class SerialRadio(ParamsPattern, Communication):
     for i,m in enumerate(msg):
 
       # Converte para velocidade nos motores
-      va, vb = speeds2motors(m.v, m.w)
+      va, vb = encodeSpeeds(m.v, m.w)
 
       # Coloca no vetor de dados
       data[i] = va

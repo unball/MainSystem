@@ -29,3 +29,10 @@ def speeds2motors(v: float, w: float) -> (int, int):
   vl *= convertion
   
   return int(vl), int(vr)
+
+def encodeSpeeds(v: float, w: float) -> (int, int):
+  
+  venc = int(v/2 * (2**15-1))
+  wenc = int(w/64 * (2**15-1))
+
+  return venc, wenc
