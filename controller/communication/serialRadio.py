@@ -40,14 +40,14 @@ class SerialRadio(ParamsPattern, Communication):
     for i,m in enumerate(msg):
 
       # Converte para velocidade nos motores
-      va, vb = encodeSpeeds(m.v, m.w)
+      v,w = encodeSpeeds(m.v, m.w)
 
       # Coloca no vetor de dados
-      data[i] = va
-      data[i+5] = vb
+      data[i] = v
+      data[i+5] = w
 
       # Computa o checksum
-      checksum += va + vb
+      checksum += v+w
 
     # Concatena o vetor de dados à mensagem
     for v in data: message += (v).to_bytes(2,byteorder='little', signed=True)
