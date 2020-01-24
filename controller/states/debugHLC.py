@@ -146,7 +146,8 @@ class DebugHLC(ParamsPattern, State):
         self.field = UVF(self.finalPoint, self.world,
           h=self.getParam("UVF_h"),
           n=self.getParam("UVF_n"),
-          avoidGoal=True)
+          avoidGoal=True,
+          pointObstacles=self.world.enemyRobots)
     
     # Define um campo
     robot.field = self.field

@@ -60,15 +60,19 @@ class ParametrosVisao(FrameRenderer):
     
     Drawing.draw_field(self.__world, img_filtered)
     
-    for i in range(message.n_total_robots):
-      if(message.found[i]):
-        x,y = meters2pixel(self.__world, (message.x[i], message.y[i]), img_warpped.shape)
+    for i,allyPose in enumerate(message.allyPoses):
+      if(allyPose[3]):
+        x,y = meters2pixel(self.__world, (allyPose[0], allyPose[1]), img_warpped.shape)
         w,h = meters2pixelSize(self.__world, (0.08,0.08), img_warpped.shape)
-        color = (0,0,255) if i >= message.n_total_robots/2 else (0,255,0)
-        Drawing.draw_rectangle(img_filtered, (x,y), (w,h), message.th[i], color=color)
+        Drawing.draw_rectangle(img_filtered, (x,y), (w,h), allyPose[2], color=(0,255,0))
         #cv2.putText(img_filtered, str(i), (x-10, y+10), cv2.FONT_HERSHEY_TRIPLEX, 1, (0,0,0))
-        if i < message.n_total_robots//2 and message.debug_internalContours[i] is not None:
+        if message.debug_internalContours[i] is not None:
           cv2.drawContours(img_filtered, message.debug_internalContours[i], -1, (255,255,255), -1)
+
+    # Desenha camisa dos inimigos
+    for advExtContour in message.debug_advExtContours:
+      if advExtContour is not None:
+        cv2.drawContours(img_filtered, advExtContour, -1, (0,0,255), -1)
     
     if message.ball_found:
       p = meters2pixel(self.__world, (message.ball_x, message.ball_y), img_warpped.shape)

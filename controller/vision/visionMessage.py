@@ -4,20 +4,18 @@ class VisionMessage():
   def __init__(self, n_robots):
     """Constroi a mensagem da visão com o pior cenário possível: nada identificado e todos os elementos na posição central"""
     
-    self.n_total_robots = 2*n_robots
-    """Número de robôs aliados e adversários"""
+    self.n_robots = n_robots
+    """Número de robôs aliados"""
     
-    self.x = [0]*self.n_total_robots
+    self.allyPoses = [(0,0,0,False)]*self.n_robots
     """Lista com coordenada x dos robôs (aliados e inimigos)"""
+
+    self.advPos = []
     
-    self.y = [0]*self.n_total_robots
-    """Lista com coordenada y dos robôs (aliados e inimigos)"""
-    
-    self.th = [0]*self.n_total_robots
-    """Lista com ângulo dos robôs (aliados e inimigos)"""
-    
-    self.debug_internalContours = [None]*self.nRobots
+    self.debug_internalContours = [None]*self.n_robots
     """Lista os contornos internos de aliados"""
+
+    self.debug_advExtContours = []
     
     self.ball_x = 0
     """Coordenada x da bola"""
@@ -28,32 +26,23 @@ class VisionMessage():
     self.ball_found = False
     """Indica se a bola foi encontrada"""
     
-    self.found = [False]*self.n_total_robots
-    """Lista de booleano que indica se o robô (aliado ou inimigo) foi ou não identificado"""
-    
-    self.advIndex = n_robots
-    """Índice onde estará o próximo robô adversário adicionado"""
-    
   @property
   def nRobots(self):
     """Retorna o número de robôs aliados"""
-    return self.n_total_robots//2
+    return self.n_robots
   
   def setRobot(self, index, pose, internalContours=None):
     """Diz que o robô de índice `index` foi identificado e atualiza sua pose"""
-    if(index < self.n_total_robots):
-      self.x[index] = pose[0]
-      self.y[index] = pose[1]
-      self.th[index] = pose[2]
-      self.found[index] = True
+    if(index < self.n_robots):
+      self.allyPoses[index] = (*pose, True)
     
     if index < self.nRobots:
       self.debug_internalContours[index] = internalContours
     
-  def setEnemyRobot(self, pose):
+  def setEnemyRobot(self, pose, extContour=None):
     """Coloca um robô inimigo como identificado e atualiza sua pose"""
-    self.setRobot(self.advIndex, pose)
-    self.advIndex = self.advIndex + 1
+    self.advPos.append(pose)
+    self.debug_advExtContours.append(extContour)
   
   def setBall(self, pos):
     """Coloca a bola como identificada e atualiza sua posição"""

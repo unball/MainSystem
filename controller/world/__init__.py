@@ -24,7 +24,8 @@ class World():
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
     self.running = False
-    self.robots = [Robot() for i in range(2*self.n_robots)]
+    self.robots = [Robot() for i in range(self.n_robots)]
+    self.enemyRobots = []
     self.ball = Ball()
     self.__referenceTime = 0
     
@@ -32,16 +33,19 @@ class World():
     """Recebe uma mensagem da visão e atualiza as posições e velocidades de robôs e bola"""
   
     # Atualiza cada robô localizado e identificado
-    for i in range(visionMessage.nRobots):
-      if not visionMessage.found[i]: continue
+    for i,allyPose in enumerate(visionMessage.allyPoses):
+      if not allyPose[3]: continue
       
       # O ângulo do robô não pode variar de um loop para outro mais que 70% de pi/2, se isso ocorrer deve ser algum erro da visão
       #if self.robots[i].poseDefined and np.arccos(np.cos(visionMessage.th[i]-self.robots[i].th)) > 0.5*np.pi/2:
       #  theta = self.robots[i].th
       #else:
-      theta = visionMessage.th[i]
+      theta = allyPose[2]
       
-      self.robots[i].update(visionMessage.x[i], visionMessage.y[i], theta)
+      self.robots[i].update(allyPose[0], allyPose[1], theta)
+
+    # Atualiza a lista de robôs adversários
+    self.enemyRobots = visionMessage.advPos
     
     # Atualiza a bola se ela foi localizada
     if visionMessage.ball_found:

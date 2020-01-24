@@ -211,7 +211,7 @@ class MainVision(Vision):
     centerMeters = pixel2meters(self._world, center, component_mask.shape)
     angle = rectangle[-1]
     
-    return center, centerMeters, angle, mainContour
+    return center, centerMeters, angle, mainContours
   
   def definePoly(self, countor):
     """Define se o contorno é mais parecido com um triângulo ou um retângulo"""
@@ -307,7 +307,7 @@ class MainVision(Vision):
       # Camisa tem área pequena
       if camisa is None: continue
       
-      centro, centerMeters, angulo, camisaContour = camisa
+      centro, centerMeters, angulo, camisaContours = camisa
       
       # Máscara dos componentes internos do elemento
       componentTeamMask = componentMask & teamMask
@@ -319,7 +319,7 @@ class MainVision(Vision):
       
       # Adiciona camisa como adversário
       else:
-        mensagem.setEnemyRobot((*centerMeters, angulo*np.pi/180))
+        mensagem.setEnemyRobot((*centerMeters, angulo*np.pi/180), extContour=camisaContours)
     
     return mensagem
     

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from controller.tools import ang, unit, angl
+from controller.tools import ang, unit, angl, angError
 import numpy as np
 
 class Obstacle(ABC):
@@ -16,9 +16,73 @@ class Obstacle(ABC):
     """Calcula o campo gerado no ponto `P` pelo obstáculo"""
     pass
 
+class HorizontalObstacle(Obstacle):
+  def __init__(self, world, Pb: tuple):
+    super().__init__()
+
+    self.world = world
+    self.Pb = Pb
+
+  def d(self, P: tuple) -> float:
+    return np.exp(-(self.world.ymax-abs(P[1]))**2/0.15**2)
+    
+  def F(self, P: tuple) -> float:
+    return (np.arctan((self.Pb[0]-P[0])/0.15)-np.pi/2) * np.sign(P[1])
+
+class LeftObstacle(Obstacle):
+  def __init__(self, world, Pb: tuple):
+    super().__init__()
+
+    self.world = world
+    self.Pb = Pb
+
+  def d(self, P: tuple) -> float:
+    return np.exp(-(self.world.xmax+P[0])**2/0.15**2)
+    
+  def F(self, P: tuple) -> float:
+    return np.arctan((self.Pb[1]-P[1])/0.15)
+
+class RightObstacle(Obstacle):
+  def __init__(self, world, Pb: tuple, avoidGoal=True):
+    super().__init__()
+
+    self.world = world
+    self.Pb = Pb
+    self.avoidGoal = avoidGoal
+
+  def d(self, P: tuple) -> float:
+    return np.exp(-(self.world.xmax-P[0])**2/0.15**2) * (1-np.exp(-(P[1])**2/0.2**2)) if not self.avoidGoal else np.exp(-(self.world.xmax-P[0])**2/0.15**2)
+    
+  def F(self, P: tuple) -> float:
+    return np.arctan((-P[1])/0.02) if not self.avoidGoal else (-np.arctan((self.Pb[1]-P[1])/0.15)-np.pi)
+
+class PointObstacle(Obstacle):
+  def __init__(self, world, Pb: tuple, Po: tuple):
+    super().__init__()
+
+    self.world = world
+    self.Pb = Pb
+    self.Po = Po
+
+  def d(self, P: tuple) -> float:
+    return np.exp(-((P[0]-self.Po[0])**2+(P[1]-self.Po[1])**2)/0.15**2)
+    
+  def F(self, P: tuple) -> float:
+    if angError(ang(P, self.Po), ang(self.Po, self.Pb)) >= 0:
+      return self.CCW(P[0]-self.Po[0], P[1]-self.Po[1])
+    else:
+      return self.CW(P[0]-self.Po[0], P[1]-self.Po[1])
+
+  def CCW(self, x: float, y: float) -> float:
+    return np.arctan2((x+y*(0.2**2-x**2-y**2)), (-y+x*(0.2**2-x**2-y**2)))
+
+  def CW(self, x: float, y: float) -> float:
+    return np.arctan2((-x+y*(0.2**2-x**2-y**2)), (y+x*(0.2**2-x**2-y**2)))
+
+
 class UVF:
   """Classe que implementa um campo UVF"""
-  def __init__(self, Pb: tuple, world, h: float=0.5, n: float=1, avoidGoal=True):
+  def __init__(self, Pb: tuple, world, h: float=0.5, n: float=1, avoidGoal=True, pointObstacles=[]):
 
     self.h = h
     """Distância do ponto guia"""
@@ -32,7 +96,13 @@ class UVF:
     self.Pb = Pb
     """Ponto final"""
 
-    self.avoidGoal = avoidGoal
+    self.obstacles = [
+      HorizontalObstacle(world, Pb),
+      LeftObstacle(world, Pb),
+      RightObstacle(world, Pb, avoidGoal)
+    ]
+
+    for pointObstacle in pointObstacles: self.obstacles.append(PointObstacle(world, Pb, pointObstacle))
 
   def F(self, P: tuple, Pb=None):
     """Calcula o campo no ponto `P`. Recebendo `Pb`, a posição do target final"""
@@ -43,19 +113,17 @@ class UVF:
     targetAngle = ang(P, Pb) - self.n * (ang(P, self.Pg(Pb)) - ang(P, Pb))
     
     # Calcula o campo UVF de desvio de obstáculos
-    x = P[0]
-    y = P[1]
-    f1 = np.exp(-(self.world.ymax-abs(y))**2/0.15**2)
-    f2 = np.exp(-(self.world.xmax+x)**2/0.15**2)
-    f3 = np.exp(-(self.world.xmax-x)**2/0.15**2) * (1-np.exp(-(y)**2/0.2**2)) if not self.avoidGoal else np.exp(-(self.world.xmax-x)**2/0.15**2)
-    avoidanceAngle = angl(
-                     f1 * unit((np.arctan((Pb[0]-x)/0.15)-np.pi/2) * np.sign(y)) + \
-                     f2 * unit((np.arctan((Pb[1]-y)/0.15))) + \
-                     f3 * (unit(((np.arctan((-y)/0.02)))) if not self.avoidGoal else unit((-np.arctan((Pb[1]-y)/0.15)-np.pi)))
-                     )
+    avoidanceVector = np.array([0,0],dtype=np.float)
+    avoidanceWeights = []
+    for obstacle in self.obstacles:
+      fo = obstacle.d(P)
+      avoidanceVector += fo * unit(obstacle.F(P))
+      avoidanceWeights.append(fo)
+
+    avoidanceAngle = angl(avoidanceVector)
     
     # Une os campos
-    f = max([f1,f2,f3])
+    f = max(avoidanceWeights)
     angle = angl(unit(targetAngle) * (1-f) + f * unit(avoidanceAngle))
 
     return angle
