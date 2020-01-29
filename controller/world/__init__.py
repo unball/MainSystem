@@ -1,3 +1,4 @@
+from model.paramsPattern import ParamsPattern
 from controller.world.robot import Robot
 from controller.world.ball import Ball
 import time
@@ -10,16 +11,30 @@ class Field():
   RIGHT = 1
   """Lado aliado está a direita"""
 
-class World():
+class World(ParamsPattern):
   """Classe de mundo que armazena as posições dos robôs, velocidades, posição da bola, limites de campo e escore de jogo."""
   
   def __init__(self):
+    ParamsPattern.__init__(self, "worldConfig", {
+      "UVF_h": 0.5,
+      "UVF_n": 1,
+      "UVF_horRepSize": 0.05,
+      "UVF_horMinDist": 0.1,
+      "UVF_verRepSize": 0.15,
+      "UVF_verGoalSize": 0.2,
+      "UVF_verMinDist": 0.15,
+      "UVF_ponRadius": 0.3,
+      "UVF_ponDistanceRadius": 0.1,
+      "UVF_ponMinAvoidanceAngle": 0.5
+    })
+
     self.field_x_length = 1.66
     self.field_y_length = 1.30
     self.xmax = (self.field_x_length) / 2
     self.ymax = (self.field_y_length) / 2
-    self.xmaxmargin = self.xmax - 0.15
-    self.ymaxmargin = self.ymax - 0.15
+    self.xmaxmargin = self.xmax - 0.2
+    self.ymaxmargin = self.ymax - 0.2
+    self.goalpos = (self.xmax, 0)
     self.goalylength = 0.4
     self.n_robots = 5
     self.fieldSide = Field.RIGHT

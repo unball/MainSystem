@@ -4,6 +4,10 @@ def norm(p0: tuple, p1: tuple):
   """Calcula a distância entre as tuplas `p0` e `p1` no plano"""
   return np.sqrt((p1[0]-p0[0])**2+(p1[1]-p0[1])**2)
 
+def norml(p0: tuple):
+  """Calcula a norma de `p0"""
+  return np.sqrt((p0[0])**2+(p0[1])**2)
+
 def ang(p0: tuple, p1: tuple):
   """Calcula o ângulo entre as tuplas `p0` e `p1` no plano, este ângulo está em \\((-\\pi,\\pi]\\)"""
   return np.arctan2(p1[1]-p0[1], p1[0]-p0[0])
@@ -25,7 +29,7 @@ def fixAngle(angle: float):
 def angError(reference: float, current: float) -> float:
   """Calcula o erro angular entre `reference` e `current` de modo que este erro esteja no intervalo de \\((-\\pi,\\pi]\\) e o sinal do erro indique qual deve ser a orientação para seguir a referência, de modo que positivo é anti-horário e negativo é horário"""
   diff = np.arccos(np.cos(reference-current))
-  sign = 1 if np.sin(reference-current) >= 0 else -1
+  sign = (np.sin(reference-current) >= 0)*2-1
   return sign * diff
     
 def adjustAngle(angle: float) -> float:

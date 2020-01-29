@@ -7,11 +7,11 @@ import time
 class UFC(HLC):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
   def __init__(self, source):
-    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 10, "L": 0.075, "vmax": 0.7, "mu": 0.24, "motorangaccelmax": 999, "r": 0.03, "vref": 0})
+    super().__init__("Univector Field Control", source + "_UFC", {"kw": 1, "kp": 10, "L": 0.075, "vmax": 0.7, "mu": 0.24, "motorangaccelmax": 999, "r": 0.03, "vref": 0, "maxangerror": 1, "tau": 0.1})
 
     self.g = 9.8
 
-  def actuate(self, reference, currentPose, field):
+  def actuate(self, reference, currentPose, field, w0, dt):
     """Lei de controle baseada no livro Springer Tracts in Advanced Robotics - Soccer Robotics para o controle unificado. Esta função implementa a lei:
     $$
     v = \\min(v_1,v_2,v_3)\\\\
@@ -31,6 +31,8 @@ class UFC(HLC):
     motorangaccelmax = self.getParam("motorangaccelmax")
     r = self.getParam("r")
     vref = self.getParam("vref")
+    maxangerror = self.getParam("maxangerror")
+    tau = self.getParam("tau")
       
     # Computa os erros
     errorAngle = angError(reference, currentPose[2])
@@ -39,7 +41,7 @@ class UFC(HLC):
     phi = field.phi(currentPose)
 
     # Computa omega
-    omega = field.gamma(currentPose) + kw * np.sign(errorAngle) * np.sqrt(np.abs(errorAngle))
+    omega = kw * np.sign(errorAngle) * np.sqrt(np.abs(errorAngle)) + field.gamma(currentPose)
 
     # Velocidade limite de deslizamento
     if phi != 0:
@@ -54,13 +56,16 @@ class UFC(HLC):
     v3 = kp * norm(currentPose, field.Pb) ** 2 + vref
 
     # Velocidade linear é menor de todas
-    v  = min(v1, v2, v3)
+    v  = min(v1, v2, v3) * np.exp(-(np.abs(errorAngle)/maxangerror))
     
     # Satura v caso ultrapasse a mudança máxima permitida
     #if v > lastspeed.v: v = lastspeed.v + sat(v-lastspeed.v, motorangaccelmax * r * interval / 2)
 
     # Lei de controle da velocidade angular
     w = v * phi + omega
+
+    # Considera resposta lenta
+    if tau != 0: w = (w - w0 * tau/dt * (1-np.exp(-dt/tau))) / (1-tau/dt * (1-np.exp(-dt/tau)))
     
     # Satura w caso ultrapasse a mudança máxima permitida
     #w  = lastspeed.w + sat(w-lastspeed.w, motorangaccelmax * r * interval / L)

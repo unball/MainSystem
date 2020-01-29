@@ -4,6 +4,7 @@ from view.tools.drawing import Drawing
 from controller.tools.pixel2metric import meters2pixel,pixel2meters,meters2pixelSize
 import numpy as np
 import cv2
+import itertools
 
 class HighLevelRenderer(cv2Renderer):
   def __init__(self, world, robotsGetter=None, on_click=None, on_scroll=None):
@@ -18,6 +19,8 @@ class HighLevelRenderer(cv2Renderer):
     self.__on_click = on_click
     self.__on_scroll = on_scroll
     self.arrow_size = 15
+    self.showField = False
+    self.positions = []
     
     # Adiciona eventos de mouse e trackpad
     eventBox = self.getEventBox()
@@ -84,19 +87,39 @@ class HighLevelRenderer(cv2Renderer):
     robotColor = (255,0,0) if self.cursorDistance(position) < 20 else (0,255,0)
     
     # Desenha o retângulo do robô
-    w,h = meters2pixelSize(self.__world, (0.08,0.08), frame.shape)
+    w,h = meters2pixelSize(self.__world, (0.075,0.075), frame.shape)
     Drawing.draw_rectangle(frame, position, (w,h), robot.th, color=robotColor)
     
   def draw_field(self, frame, pose, field):
     """Desenha o campo no frame"""
     if field is None: return
     
-    # Desenha todo o campo
-    for i in range(0, frame.shape[1], self.arrow_size+2):
-      for j in range(0, frame.shape[0], self.arrow_size+2):
-        P = pixel2meters(self.__world, (i,j), frame.shape)
-        Drawing.draw_arrow(frame, (i,j), field.F(P), color=(128,128,128), size=self.arrow_size, thickness=1)
+    if self.showField:
+      # Desenha todo o campo
+      x = np.arange(0, frame.shape[1], self.arrow_size)
+      y = np.arange(0, frame.shape[0], self.arrow_size)
+      pix = np.array(list(itertools.product(x,y)))
+      P = np.array(pixel2meters(self.__world, pix.T, frame.shape)).T
+      fP = field.F(P.T, retnparray=True)
+
+      for i,p in enumerate(fP):
+        Drawing.draw_arrow(frame, (pix[i][0],pix[i][1]), p, color=(128,128,128), size=self.arrow_size, thickness=1)
+
+    # for i in range(0, frame.shape[1], self.arrow_size+2):
+    #   for j in range(0, frame.shape[0], self.arrow_size+2):
+    #     P = pixel2meters(self.__world, (i,j), frame.shape)
+    #     Drawing.draw_arrow(frame, (i,j), field.F(P), color=(128,128,128), size=self.arrow_size, thickness=1)
     
+    # Desenha o target do campo
+    Drawing.draw_arrow(frame, meters2pixel(self.__world, field.Pb, frame.shape), field.Pb[2], color=(0,255,0), size=meters2pixelSize(self.__world, (0.08,0), frame.shape)[0])
+
+    # Desenha a bola
+    cv2.circle(frame, meters2pixel(self.__world, self.__world.ball.pos, frame.shape), meters2pixelSize(self.__world, (0.015,0), frame.shape)[0], color=(0,0,255), thickness=-1)
+
+    # Desenha obstáculos pontuais
+    for enemy in self.__world.enemyRobots:
+      cv2.circle(frame, meters2pixel(self.__world, enemy, frame.shape), meters2pixelSize(self.__world, (0.010,0), frame.shape)[0], color=(0,255,255), thickness=-1)
+
     # Desenha o campo na posição do robô
     Drawing.draw_arrow(frame, meters2pixel(self.__world, pose, frame.shape), field.F(pose), color=(0,255,0), size=meters2pixelSize(self.__world, (0.08,0), frame.shape)[0])
 
@@ -104,7 +127,8 @@ class HighLevelRenderer(cv2Renderer):
     #for point in field.interestPoints():
     #  Drawing.draw_arrow(frame, meters2pixel(self.__world, point, frame.shape), point[2], color=(128,128,128), size=arrow_size)
     
-    #cv2.polylines(frame,[np.array([meters2pixel(self.__world, trajectory.P(t), frame.shape) for t in np.linspace(0,1)])],False,(255,255,255),1)
+
+    #cv2.polylines(frame,[np.array([meters2pixel(self.__world, pos, frame.shape) for pos in self.positions[-500:]])],False,(255,255,255),1)
   
   def renderer(self):
     """Desenha um frame para o renderizador"""
@@ -122,5 +146,6 @@ class HighLevelRenderer(cv2Renderer):
     for i,robot in enumerate(self.robots):
       self.draw_field(frame, robot.pose, robot.field)
       self.draw_robot(frame, robot)
+      self.positions.append(robot.pos)
     
     return frame

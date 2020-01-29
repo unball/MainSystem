@@ -1,5 +1,6 @@
 from math import pi
 from math import fabs
+import numpy as np
 
 # Constantes físicas do robô
 wheel_reduction = 1
@@ -32,7 +33,7 @@ def speeds2motors(v: float, w: float) -> (int, int):
 
 def encodeSpeeds(v: float, w: float) -> (int, int):
   
-  venc = int(v/2 * (2**15-1))
-  wenc = int(w/64 * (2**15-1))
+  venc = int(v/2 * 32767)
+  wenc = int(w/64 * 32767)
 
-  return venc, wenc
+  return (1 if venc >= 0 else -1) * (abs(venc) % 32767), (1 if wenc >= 0 else -1) * (abs(wenc) % 32767)

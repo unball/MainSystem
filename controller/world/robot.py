@@ -17,7 +17,10 @@ class Robot(Element):
     """Sistema de controle para este robô"""
     
     self.dir = 1
-    """Direção de movimento do robô"""
+    """Direção de movimento do robô, 1 é para frente e -1 é para trás"""
+
+    self.entity = None
+    """Entidade do robô, pode ser Attacker, Goalkeeper, Defender, ..."""
 
   @property
   def field(self):
@@ -38,3 +41,6 @@ class Robot(Element):
   def controlSystem(self, controlSystem):
     """Atualiza o sistema de controle do robô"""
     self.__controlSystem = controlSystem
+
+  def calc_velocities(self, dt, alpha=0.5, thalpha=0.8):
+    super().calc_velocities(dt, alpha=0.5)

@@ -18,11 +18,8 @@ class SerialRadio(ParamsPattern, Communication):
     """Envia a mensagem via barramento serial em `/dev/ttyUSB0`."""
     try:
       if self.serial is None:
-        if os.path.isfile('/dev/ttyUSB0'):
-          self.serial = serial.Serial('/dev/ttyUSB0', 115200)
-          self.serial.timeout = 0.100
-        else:
-          return
+        self.serial = serial.Serial('/dev/ttyUSB0', 115200)
+        self.serial.timeout = 0.100
     except:
       print("Falha ao abrir serial")
       return
@@ -53,7 +50,7 @@ class SerialRadio(ParamsPattern, Communication):
     for v in data: message += (v).to_bytes(2,byteorder='little', signed=True)
 
     # Concatena com o checksum
-    message += (checksum).to_bytes(2,byteorder='little', signed=True)
+    message += ((1 if checksum >= 0 else -1) * (abs(checksum) % 32767)).to_bytes(2,byteorder='little', signed=True)
 
     # Envia
     try:

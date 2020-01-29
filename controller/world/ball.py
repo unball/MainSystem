@@ -7,4 +7,4 @@ class Ball(Element):
     super().__init__()
     
   def calc_velocities(self, dt, alpha=0.5, thalpha=0.8):
-    super().calc_velocities(dt, alpha=0.5)
+    super().calc_velocities(dt, alpha=0.9)

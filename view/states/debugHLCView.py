@@ -32,6 +32,14 @@ class DebugHLCView(LoopThread, StackSelector):
     saveData = builder.get_object("HLCSaveData")
     self.UVF_h = builder.get_object("HLC_UVF_h")
     self.UVF_n = builder.get_object("HLC_UVF_n")
+    self.UVF_horRepSize = builder.get_object("HLC_UVF_horRepSize")
+    self.UVF_horMinDist = builder.get_object("HLC_UVF_horMinDist")
+    self.UVF_verRepSize = builder.get_object("HLC_UVF_verRepSize")
+    self.UVF_verGoalSize = builder.get_object("HLC_UVF_verGoalSize")
+    self.UVF_verMinDist = builder.get_object("HLC_UVF_verMinDist")
+    self.UVF_ponRadius = builder.get_object("HLC_UVF_ponRadius")
+    self.UVF_ponDistanceRadius = builder.get_object("HLC_UVF_ponDistanceRadius")
+    self.UVF_ponMinAvoidanceAngle = builder.get_object("HLC_UVF_ponMinAvoidanceAngle")
     self.UVF_showField = builder.get_object("HLC_UVF_showField")
     self.selectableFinalPoint = builder.get_object("HLCSelectableFinalPoint")
 
@@ -73,9 +81,17 @@ class DebugHLCView(LoopThread, StackSelector):
     # Liga os sinais
     playPause.connect("toggled", self.playPause)
     saveData.connect("clicked", self.saveData)
-    self.UVF_h.connect("value-changed", self.setHLCParam, "UVF_h")
-    self.UVF_n.connect("value-changed", self.setHLCParam, "UVF_n")
-    self.UVF_showField.connect("state-set", self.setHLCParam_state_set, "UVF_showField")
+    self.UVF_h.connect("value-changed", self.setWorldParam, "UVF_h")
+    self.UVF_n.connect("value-changed", self.setWorldParam, "UVF_n")
+    self.UVF_horRepSize.connect("value-changed", self.setWorldParam, "UVF_horRepSize")
+    self.UVF_horMinDist.connect("value-changed", self.setWorldParam, "UVF_horMinDist")
+    self.UVF_verRepSize.connect("value-changed", self.setWorldParam, "UVF_verRepSize")
+    self.UVF_verGoalSize.connect("value-changed", self.setWorldParam, "UVF_verGoalSize")
+    self.UVF_verMinDist.connect("value-changed", self.setWorldParam, "UVF_verMinDist")
+    self.UVF_ponRadius.connect("value-changed", self.setWorldParam, "UVF_ponRadius")
+    self.UVF_ponDistanceRadius.connect("value-changed", self.setWorldParam, "UVF_ponDistanceRadius")
+    self.UVF_ponMinAvoidanceAngle.connect("value-changed", self.setWorldParam, "UVF_ponMinAvoidanceAngle")
+    self.UVF_showField.connect("state-set", self.setShowField)
     self.selectableFinalPoint.connect("state-set", self.setHLCParam_state_set, "selectableFinalPoint")
     self.fieldList.connect("row-activated", self.fieldChooser)
     self.manualControl.connect("state-set", self.setHLCParam_state_set, "enableManualControl")
@@ -84,6 +100,9 @@ class DebugHLCView(LoopThread, StackSelector):
     self.useVisionButton.connect("state-set",  self.setHLCParam_state_set, "runVision")
 
     return mainBox
+
+  def setShowField(self, widget, state):
+    self.__renderer.showField = state
 
   def on_click(self, p):
     finalPoint = (*p, self.__controllerState.finalPoint[2])
@@ -147,6 +166,9 @@ class DebugHLCView(LoopThread, StackSelector):
   def setHLCParam(self, widget, key):
     self.__controller.addEvent(self.__controllerState.setParam, key, widget.get_value())
 
+  def setWorldParam(self, widget, key):
+    self.__controller.addEvent(self.__world.setParam, key, widget.get_value())
+
   def setHLCParam_state_set(self, widget, state, key):
     self.__controller.addEvent(self.__controllerState.setParam, key, state)
 
@@ -163,9 +185,16 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Define valores padrão
     self.selectableFinalPoint.set_state(self.__controllerState.getParam("selectableFinalPoint"))
-    self.UVF_h.set_value(self.__controllerState.getParam("UVF_h"))
-    self.UVF_n.set_value(self.__controllerState.getParam("UVF_n"))
-    self.UVF_showField.set_state(self.__controllerState.getParam("UVF_showField"))
+    self.UVF_h.set_value(self.__world.getParam("UVF_h"))
+    self.UVF_n.set_value(self.__world.getParam("UVF_n"))
+    self.UVF_horRepSize.set_value(self.__world.getParam("UVF_horRepSize"))
+    self.UVF_horMinDist.set_value(self.__world.getParam("UVF_horMinDist"))
+    self.UVF_verRepSize.set_value(self.__world.getParam("UVF_verRepSize"))
+    self.UVF_verGoalSize.set_value(self.__world.getParam("UVF_verGoalSize"))
+    self.UVF_verMinDist.set_value(self.__world.getParam("UVF_verMinDist"))
+    self.UVF_ponRadius.set_value(self.__world.getParam("UVF_ponRadius"))
+    self.UVF_ponDistanceRadius.set_value(self.__world.getParam("UVF_ponDistanceRadius"))
+    self.UVF_ponMinAvoidanceAngle.set_value(self.__world.getParam("UVF_ponMinAvoidanceAngle"))
     self.fieldList.select_row(self.getRowByName(self.fieldList, self.__controllerState.getParam("selectedField")))
     self.manualControl.set_state(self.__controllerState.getParam("enableManualControl"))
     self.manualControlLin.set_value(self.__controllerState.getParam("manualControlSpeedV"))
