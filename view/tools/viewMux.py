@@ -61,6 +61,7 @@ class ViewMux(Gtk.ListBox):
           grid.attach(spin, 1, idx, 1, 1)
           adj = Gtk.Adjustment(element.params[key], 0, 1000, 0.001, 1, 1)
           adj.connect("value-changed", self.updateParam, element, key)
+          adj.set_value(element.params[key])
           spin.set_adjustment(adj)
 
       # Adiciona os filhos
