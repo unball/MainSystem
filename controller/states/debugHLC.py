@@ -74,7 +74,7 @@ class DebugHLC(ParamsPattern, State):
     self.HLCs.select(index)
 
   def changeFieldCondition(self):
-    return (self.loops % 3 == 0) # self.finalPoint != self.currentFinalPoint or self.currentField != self.getParam("selectedField") or self.paramsChanged
+    return (self.loops % 3 == 0) or self.finalPoint != self.currentFinalPoint# or self.currentField != self.getParam("selectedField") or self.paramsChanged
 
   def changePointCondition(self, robot):
      return self.finalPoint is None or (not self.getParam("selectableFinalPoint") and norm(robot.pos, self.finalPoint) < 0.07)
@@ -162,10 +162,9 @@ class DebugHLC(ParamsPattern, State):
           ponMinAvoidanceAngle=self.world.getParam("UVF_ponMinAvoidanceAngle")       
         )
 
-      self.strategy.run()
-    
-    # Define um campo
-    #robot.field = self.field
+      # Define um campo
+      if self.getParam("selectableFinalPoint") == False: self.strategy.run()
+      else: robot.field = self.field
     
     # Obtém o target instantâneo
     reference = robot.field.F(robot.pose)

@@ -1,6 +1,7 @@
 from gi.repository import Gtk
 from pkg_resources import resource_filename
 from view.tools.frameSelector import FrameRenderer
+from view.tools.drawing import Drawing
 from controller.tools import norm
 from controller.tools.pixel2metric import normToAbs
 from model.vision.cortarCampoInternoModel import CortarCampoInternoModel
@@ -23,9 +24,10 @@ class CortarCampoInterno(FrameRenderer):
 
     self.__edgeType = "repulsive"
 
-    self.__edgeColors = {"repulsive": (0,0,255), "goalRepulsive": (0,100,255), "goalAttractive": (0,255,0)}
-
     super().__init__(notebook, "Cortar campo interno")
+
+    if self.__model.done is True:
+      self.__controller.addEvent(self.__controller.world.setEdges, self.getPolygonPoints())
 
   def ui(self):
     """Conteúdo a ser inserido na interface da configuração de cortar campo"""
@@ -84,12 +86,20 @@ class CortarCampoInterno(FrameRenderer):
 
     if self.pointReturnedToStart(point):
       self.__model.done = True
+      self.__controller.addEvent(self.__controller.world.setEdges, self.getPolygonPoints())
     else:
       self.__model.points.append((point, self.__edgeType))
 
   def mouse_over(self, widget, event):
     """Evento quando o mouse sobrepõe o frame, este método atualiza a posição relativa do mouse"""
     self.__current_mouse_position = self.getRelPoint(widget, event)
+
+  def getPolygonPoints(self):
+    if self.__model.done is True:
+      points = self.__model.points + [(self.__model.points[0][0], self.__model.points[-1][1])]
+    else:
+      points = self.__model.points + [(self.__current_mouse_position, self.__edgeType)]
+    return points
 
   def getFrame(self):
     """Produz o frame a ser renderizado pelo modo de configuração do corte do campo interno"""
@@ -99,19 +109,10 @@ class CortarCampoInterno(FrameRenderer):
     frame = self.__visionSystem.warp(frame)
 
     # Defineo que será renderizado
-    if self.__model.done is True:
-      points = self.__model.points + [self.__model.points[0]]
-    else:
-      points = self.__model.points + [(self.__current_mouse_position, self.__edgeType)]
+    points = self.getPolygonPoints()
 
     # Renderiza as arestas do polígono
-    for i in range(len(points)-1):
-      p0 = normToAbs(points[i][0], frame.shape)
-      p1 = normToAbs(points[i+1][0], frame.shape)
-
-      color = self.__edgeColors[points[i+1][1]]
-
-      cv2.line(frame, p0, p1, color, thickness=2)
+    Drawing.draw_polygon(frame, points)
 
     # Renderiza um círculo ao redor do ponto de início
     if self.__model.done is False and self.pointReturnedToStart(self.__current_mouse_position):
@@ -120,9 +121,7 @@ class CortarCampoInterno(FrameRenderer):
 
     # Preenche o polígono
     if self.__model.done is True:
-      mask = np.zeros((*frame.shape[:2],1), np.uint8)
-      pts = np.array([normToAbs(x[0], frame.shape) for x in self.__model.points])
-      cv2.fillConvexPoly(mask, pts, 255)
+      mask = Drawing.get_polygon_mask(frame, points)
       frame = cv2.bitwise_and(frame, frame, mask=mask)
 
     return frame

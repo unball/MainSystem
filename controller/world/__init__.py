@@ -41,6 +41,7 @@ class World(ParamsPattern):
     self.running = False
     self.robots = [Robot() for i in range(self.n_robots)]
     self.enemyRobots = []
+    self.edges = []
     self.ball = Ball()
     self.__referenceTime = 0
     
@@ -85,3 +86,6 @@ class World(ParamsPattern):
       robot.calc_velocities(dt)
     
     self.ball.calc_velocities(dt)
+
+  def setEdges(self, points):
+    self.edges = points

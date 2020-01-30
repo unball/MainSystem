@@ -141,11 +141,17 @@ class HighLevelRenderer(cv2Renderer):
     
     # Desenha os lados de campo
     Drawing.draw_field(self.__world, frame)
+
+    Drawing.draw_polygon(frame, self.__world.edges)
     
     # Desenha os robôs e suas trajetórias
     for i,robot in enumerate(self.robots):
       self.draw_field(frame, robot.pose, robot.field)
       self.draw_robot(frame, robot)
       self.positions.append(robot.pos)
+
+    # Só renderiza a parte interna do campo 
+    mask = Drawing.get_polygon_mask(frame, self.__world.edges)
+    frame = cv2.bitwise_and(frame, frame, mask=mask)
     
     return frame

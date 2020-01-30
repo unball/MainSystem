@@ -1,10 +1,12 @@
-from controller.tools.pixel2metric import meters2pixel
+from controller.tools.pixel2metric import meters2pixel, normToAbs
 from controller.world import Field
 import numpy as np
 import cv2
 
 class Drawing():
   """Esta classe contém diversas funções que fazem desenho de bordas de campo, elipses, retângulos rotacionados, etc"""
+
+  edgeColors = {"repulsive": (0,0,255), "goalRepulsive": (0,100,255), "goalAttractive": (0,255,0)}
   
   def draw_left_rectangle(image, color, thickness=5):
     """Desenha um retângulo que ocupa o lado esquerdo do campo"""
@@ -58,3 +60,19 @@ class Drawing():
     
   def draw_arrow(frame, position: tuple, angle: float, color=(255,255,255), size=20, thickness=2):
     cv2.arrowedLine(frame, position, (position[0]+int(size*np.cos(-angle)), position[1]+int(size*np.sin(-angle))), color, thickness)
+
+  def draw_polygon(frame, points):
+    for i in range(len(points)-1):
+      p0 = normToAbs(points[i][0], frame.shape)
+      p1 = normToAbs(points[i+1][0], frame.shape)
+
+      color = Drawing.edgeColors[points[i+1][1]]
+
+      cv2.line(frame, p0, p1, color, thickness=2)
+    
+  def get_polygon_mask(frame, points):
+      mask = np.zeros((*frame.shape[:2],1), np.uint8)
+      if len(points) == 0: return cv2.bitwise_not(mask)
+      pts = np.array([normToAbs(x[0], frame.shape) for x in points])
+      cv2.fillConvexPoly(mask, pts, 255)
+      return mask
