@@ -55,7 +55,6 @@ class DebugHLC(ParamsPattern, State):
       "velAng": [],
       "visionAng": [],
       "distTarg": [],
-      "distTargRef": [],
       "loopTime": 0,
       "controlV": 0,
       "controlW": 0,
@@ -193,7 +192,6 @@ class DebugHLC(ParamsPattern, State):
     self.debugData["visionAng"].append(robot.w)
     #self.debugData["distTarg"].append(norm(robot.pos, robot.controlSystem.currentTarget))
     self.debugData["distTarg"].append(self.world.ball.vel[0])
-    self.debugData["distTargRef"].append(self.world.ball.vx)
     
     # Envia os dados via rádio
     if self.world.running:

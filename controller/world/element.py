@@ -1,6 +1,9 @@
 from controller.tools import angError
 import numpy as np
 
+def shift(data, array):
+    return [data] + array[1:]
+
 class Element(object):
   """Classe mãe que implementa um elemento de jogo como bola ou robô"""
 
@@ -34,6 +37,9 @@ class Element(object):
     
     self.inst_vy = 0
     """Estimativa da velocidade na direção y"""
+    
+    self.vx_ant = [.0]*10
+    self.vy_ant = [.0]*10
 
     self.inst_ax = 0
     """Estimativa da aceleração na direção x"""
@@ -137,15 +143,21 @@ class Element(object):
   def calc_velocities(self, dt, alpha=0.5, thalpha=0.8, accalpha=0.2):
     """Estima a velocidade do objeto por meio do pose atual, pose anterior e o intervalo de tempo passado `dt`. A velocidade computada é suavizada por uma média exponencial: \\(v[k] = v_{\\text{estimado}} \\cdot \\alpha + v[k-1] \\cdot (1-\\alpha)\\) onde \\(v_{\\text{estimado}} = \\frac{r[k]-r[k-1]}{dt}\\)"""
     
+    vx = (self.inst_x-self.prev_x) / dt
+    vy = (self.inst_y-self.prev_y) / dt
+
+    self.inst_vx = (vx + sum(self.vx_ant)) / 11
+    self.inst_vy = (vy + sum(self.vy_ant)) / 11
     
-    newVelx = ((self.inst_x - self.prev_x)/dt)*alpha + (self.inst_vx)*(1-alpha)
-    newVely = ((self.inst_y - self.prev_y)/dt)*alpha + (self.inst_vy)*(1-alpha)
+    # newVelx = ((self.inst_x - self.prev_x)/dt)*alpha + (self.inst_vx)*(1-alpha)
+    # newVely = ((self.inst_y - self.prev_y)/dt)*alpha + (self.inst_vy)*(1-alpha)
 
-    self.inst_ax = ((newVelx-self.inst_vx)/dt)*accalpha + (self.inst_ax)*(1-accalpha)
-    self.inst_ay = ((newVely-self.inst_vy)/dt)*accalpha + (self.inst_ay)*(1-accalpha)
+    # self.inst_ax = ((newVelx-self.inst_vx)/dt)*accalpha + (self.inst_ax)*(1-accalpha)
+    # self.inst_ay = ((newVely-self.inst_vy)/dt)*accalpha + (self.inst_ay)*(1-accalpha)
 
-    self.inst_vx = newVelx
-    self.inst_vy = newVely
+    # self.inst_vx = newVelx
+    # self.inst_vy = newVely
+
     self.inst_w = (angError(self.inst_th, self.prev_th)/dt)*thalpha + (self.inst_w)*(1-thalpha)
 
   @property
