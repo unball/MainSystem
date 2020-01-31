@@ -35,12 +35,13 @@ class Attacker(Entity):
         # Dados necessários para a decisão
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
+        ab = np.array(self.world.ball.acc.copy())
         rg = np.array(self.world.goalpos)
         rr = np.array(self.robot.pose)
         vr = max(self.robot.velmod, 0.1)
 
         # Bola projetada
-        rbpo = projectBall(rb, vb, rr, vr, rg)
+        rbpo = projectBall(rb, vb, ab, rr, vr, rg, self.world.xmax, self.world.ymax)
 
         # Ângulo da bola até o gol
         ballGoalAngle = ang(rb, rg)
@@ -49,11 +50,11 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver perto da bola, estiver atrás da bola e estiver com ângulo para o gol com erro menor que 50º vai para o gol
-        if norm(rb, rr) < 0.07 and howFrontBall(rb, rr, rg) < -0.03 and abs(angError(ballGoalAngle, robotBallAngle)) < 30*np.pi/180  and abs(angError(ballGoalAngle, rr[2])) < 30*np.pi/180:
+        if norm(rb, rr) < 0.18 and howFrontBall(rb, rr, rg) < -0.03 and abs(angError(ballGoalAngle, robotBallAngle)) < 50*np.pi/180  and abs(angError(ballGoalAngle, rr[2])) < 50*np.pi/180:
             pose = goToGoal(rg, rr)
 
         # Se não, vai para a bola
         else:
-            pose = goToBall(rb, vb, rr, vr, rg, self.world.ymaxmargin)
+            pose = goToBall(rb, vb, ab, rr, vr, rg, self.world.xmax, self.world.ymax)
         # Cria-se o campo com base no pose
         self.robot.field = UVFDefault(self.world, pose)

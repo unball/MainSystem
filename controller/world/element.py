@@ -14,6 +14,12 @@ class Element(object):
     self.inst_th = 0
     """Ângulo atual"""
 
+    self.dprev_x = 0
+    """Posição x anterior anterior"""
+    
+    self.dprev_y = 0
+    """Posição y anterior anterior"""
+
     self.prev_x = 0
     """Posição x anterior"""
     
@@ -28,6 +34,12 @@ class Element(object):
     
     self.inst_vy = 0
     """Estimativa da velocidade na direção y"""
+
+    self.inst_ax = 0
+    """Estimativa da aceleração na direção x"""
+    
+    self.inst_ay = 0
+    """Estimativa da aceleração na direção y"""
     
     self.inst_w = 0
     """Estimativa da velocidade angular"""
@@ -48,6 +60,8 @@ class Element(object):
 
   def update(self, x=0, y=0, th=0):
     """Atualiza a posição do objeto, atualizando também o valor das posições anteriores."""
+    self.dprev_x = self.prev_x
+    self.dprev_y = self.prev_y
     self.prev_x = self.inst_x
     self.prev_y = self.inst_y
     self.prev_th = self.inst_th
@@ -89,6 +103,11 @@ class Element(object):
     return [self.inst_vx, self.inst_vy]
 
   @property
+  def acc(self):
+    """Retorna a aceleração do objeto no formato de lista: \\([a_x, a_y]\\)"""
+    return [self.inst_ax, self.inst_ay]
+
+  @property
   def velmod(self):
     """Retorna o módulo da velocidade do objeto: \\(\\sqrt{v_x^2+v_y^2}\\)"""
     return np.sqrt(self.inst_vx**2+self.inst_vy**2)
@@ -115,10 +134,18 @@ class Element(object):
     """Atualiza a velocidade angular do objeto"""
     self.inst_w = w
 
-  def calc_velocities(self, dt, alpha=0.5, thalpha=0.8):
+  def calc_velocities(self, dt, alpha=0.5, thalpha=0.8, accalpha=0.2):
     """Estima a velocidade do objeto por meio do pose atual, pose anterior e o intervalo de tempo passado `dt`. A velocidade computada é suavizada por uma média exponencial: \\(v[k] = v_{\\text{estimado}} \\cdot \\alpha + v[k-1] \\cdot (1-\\alpha)\\) onde \\(v_{\\text{estimado}} = \\frac{r[k]-r[k-1]}{dt}\\)"""
-    self.inst_vx = ((self.inst_x - self.prev_x)/dt)*alpha + (self.inst_vx)*(1-alpha)
-    self.inst_vy = ((self.inst_y - self.prev_y)/dt)*alpha + (self.inst_vy)*(1-alpha)
+    
+    
+    newVelx = ((self.inst_x - self.prev_x)/dt)*alpha + (self.inst_vx)*(1-alpha)
+    newVely = ((self.inst_y - self.prev_y)/dt)*alpha + (self.inst_vy)*(1-alpha)
+
+    self.inst_ax = ((newVelx-self.inst_vx)/dt)*accalpha + (self.inst_ax)*(1-accalpha)
+    self.inst_ay = ((newVely-self.inst_vy)/dt)*accalpha + (self.inst_ay)*(1-accalpha)
+
+    self.inst_vx = newVelx
+    self.inst_vy = newVely
     self.inst_w = (angError(self.inst_th, self.prev_th)/dt)*thalpha + (self.inst_w)*(1-thalpha)
 
   @property

@@ -30,6 +30,7 @@ class HorizontalObstacle(Obstacle):
     
   def F(self, P: tuple) -> float:
     return (np.arctan((self.Pb[0]-P[0])/self.repulsiveSize)-np.pi/2) * np.sign(P[1])
+    #return -(np.arctan((P[0]-self.Pb[0])/self.repulsiveSize)+np.pi/2)/2 * np.sign(P[1])
 
 class VerticalObstacle(Obstacle):
   def __init__(self, world, Pb: tuple, avoidGoal=True, repulsiveSize: float = 0.15, goalSize: float = 0.2, minDistance: float = 0.15):
@@ -106,8 +107,8 @@ class UVF:
     """Ponto final"""
 
     self.obstacles = [
-      HorizontalObstacle(world, Pb, horRepSize, horMinDist),
-      VerticalObstacle(world, Pb, False, verRepSize, verGoalSize, verMinDist)
+      #HorizontalObstacle(world, Pb, horRepSize, horMinDist),
+      #VerticalObstacle(world, Pb, False, verRepSize, verGoalSize, verMinDist)
     ]
 
     for pointObstacle in pointObstacles: self.obstacles.append(PointObstacle(world, Pb, pointObstacle, ponRadius, ponDistanceRadius, ponMinAvoidanceAngle))

@@ -55,6 +55,7 @@ class DebugHLC(ParamsPattern, State):
       "velAng": [],
       "visionAng": [],
       "distTarg": [],
+      "distTargRef": [],
       "loopTime": 0,
       "controlV": 0,
       "controlW": 0,
@@ -74,7 +75,7 @@ class DebugHLC(ParamsPattern, State):
     self.HLCs.select(index)
 
   def changeFieldCondition(self):
-    return (self.loops % 3 == 0) or self.finalPoint != self.currentFinalPoint# or self.currentField != self.getParam("selectedField") or self.paramsChanged
+    return (self.loops % 1 == 0) #or self.finalPoint != self.currentFinalPoint# or self.currentField != self.getParam("selectedField") or self.paramsChanged
 
   def changePointCondition(self, robot):
      return self.finalPoint is None or (not self.getParam("selectableFinalPoint") and norm(robot.pos, self.finalPoint) < 0.07)
@@ -179,25 +180,26 @@ class DebugHLC(ParamsPattern, State):
       highLevelspeed = robot.controlSystem.actuate(reference, robot.pose, robot.field, self.lastw, dt)
 
       speeds = [SpeedPair(highLevelspeed.v,-highLevelspeed.w)]
+
+    # Alimenta dados de debug
+    self.debugData["time"].append(time.time()-self.initialTime)
+    self.debugData["posX"].append(robot.x)
+    self.debugData["posY"].append(robot.y)
+    self.debugData["posTh"].append(adjustAngle(robot.th))
+    self.debugData["posThRef"].append(adjustAngle(reference))
+    self.debugData["velLin"].append(speeds[0].v)
+    self.debugData["visionLin"].append(robot.velmod)
+    self.debugData["velAng"].append(speeds[0].w)
+    self.debugData["visionAng"].append(robot.w)
+    #self.debugData["distTarg"].append(norm(robot.pos, robot.controlSystem.currentTarget))
+    self.debugData["distTarg"].append(self.world.ball.vel[0])
+    self.debugData["distTargRef"].append(self.world.ball.vx)
     
     # Envia os dados via rádio
     if self.world.running:
 
       # Simula nova posição
       if not self.getParam("runVision"): self.simulate(speeds[0].v, speeds[0].w)
-
-      # Alimenta dados de debug
-      self.debugData["time"].append(time.time()-self.initialTime)
-      self.debugData["posX"].append(robot.x)
-      self.debugData["posY"].append(robot.y)
-      self.debugData["posTh"].append(adjustAngle(robot.th))
-      self.debugData["posThRef"].append(adjustAngle(reference))
-      self.debugData["velLin"].append(speeds[0].v)
-      self.debugData["visionLin"].append(robot.velmod)
-      self.debugData["velAng"].append(speeds[0].w)
-      self.debugData["visionAng"].append(robot.w)
-      #self.debugData["distTarg"].append(norm(robot.pos, robot.controlSystem.currentTarget))
-      self.debugData["distTarg"].append(robot.field.gamma(robot.pose))
 
       self._controller.communicationSystems.get().send(speeds)
     else: self._controller.communicationSystems.get().sendZero()
