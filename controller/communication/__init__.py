@@ -1,9 +1,10 @@
 from controller.control import SpeedPair
 from abc import ABC, abstractmethod
 
-class Communication():
+class Communication(ABC):
   """Classe mãe que define as interfaces do sistema de comunicação"""
   def __init__(self, world):
+    super().__init__()
     self._world = world
 
   @abstractmethod

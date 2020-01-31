@@ -8,11 +8,11 @@ def howPerpBall(rb, rr, rg):
     return np.dot(rr[:2]-rb, unit(angl(rg-rb)+np.pi/2))
 
 def projectBall(rb, vb, ab, rr, vr, rg, xmax, ymax, dt=0.035, vref=0.6):
-    k = howFrontBall(rb, rr, rg) - 0.1
+    k = howFrontBall(rb, rr, rg) - 0.2
 
-    if True or k > 0:
-        t = max(np.roots([norml(vb) ** 2 - vr**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb) ]))
-        if np.iscomplex(t): rbp = rb + norm(rb, rr) / vr * vb
+    if abs(rb[1]) < ymax-0.2 and abs(rb[0]) < xmax-0.2:
+        t = max(np.roots([norml(vb) ** 2 - vref**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb) ]))
+        if np.iscomplex(t): rbp = rb + norm(rb, rr) / vref * vb
         else: rbp = rb + t * vb
     else:
         rbp = rb
@@ -40,7 +40,7 @@ def projectBall(rb, vb, ab, rr, vr, rg, xmax, ymax, dt=0.035, vref=0.6):
     #f = np.exp(-(norm(rb, rr) / (0.095*2))**2) * np.exp(-((rb[0]-rr[0]) / (0.05))**2) if rr[0] < rb[0] else 0
     k = howFrontBall(rb, rr, rg)
     p = howPerpBall(rb, rr, rg)
-    offset = -0.06 * unit(angl(rg-rbp)) + 0.06 * unit(angl(rg-rbp)) * np.exp(-norm(rb, rr)/0.21)
+    offset = 0.03 * unit(angl(rg-rbp)) #+ 0.06 * unit(angl(rg-rbp)) * np.exp(-norm(rb, rr)/0.21)
 
     return rbp + offset
 
