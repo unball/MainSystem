@@ -80,7 +80,8 @@ class cv2Renderer(Gtk.Frame, LoopThread):
     image_converted = cv2.cvtColor(image_data, cv2.COLOR_RGB2BGR)
     image_sized = cv2.resize(image_converted, self.__shape, interpolation=self.__interpolation)
     height, width, depth = image_sized.shape
-    pixbuf = GdkPixbuf.Pixbuf.new_from_data(image_sized.tostring(), GdkPixbuf.Colorspace.RGB, False, 8, width, height, depth*width)
+    pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(GLib.Bytes(image_sized.tobytes()), GdkPixbuf.Colorspace.RGB, False, 8, width, height, depth*width)
+    self.__gtk_image.set_from_pixbuf(None)
     self.__gtk_image.set_from_pixbuf(pixbuf.copy())
     self.__gtk_image.show()
 
