@@ -70,12 +70,12 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Adiciona os gráficos
     self.__plots = {
-      "PlotPosX": (Plotter(), ("posX",)),
-      "PlotPosY": (Plotter(), ("posY",)),
       "PlotPosTh": (Plotter(), ("posTh","posThRef")),
+      "PlotBallVel": (Plotter(), ("velBallMod", "velBallX","velBallY")),
+      "PlotBallAcc": (Plotter(), ("accBallMod", "accBallX","accBallY")),
       "PlotVelLin": (Plotter(), ("visionLin","velLin")),
       "PlotVelAng": (Plotter(), ("visionAng","velAng")),
-      "PlotDistTarg": (Plotter(), ("distTarg",))
+      "PlotRobotVel": (Plotter(), ("velRobotMod", "velRobotX","velRobotY"))
     }
     for el in self.__plots: builder.get_object(el).add(self.__plots[el][0])
 

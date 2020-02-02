@@ -1425,7 +1425,7 @@
                             <property name="label_xalign">0</property>
                             <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkAlignment" id="PlotPosX">
+                              <object class="GtkAlignment" id="PlotPosTh">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
@@ -1437,7 +1437,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Posição x:</property>
+                                <property name="label" translatable="yes">Ângulo:</property>
                               </object>
                             </child>
                           </object>
@@ -1453,7 +1453,7 @@
                             <property name="label_xalign">0</property>
                             <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkAlignment" id="PlotPosY">
+                              <object class="GtkAlignment" id="PlotBallVel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
@@ -1465,7 +1465,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Posição y:</property>
+                                <property name="label" translatable="yes">Velocidade da bola:</property>
                               </object>
                             </child>
                           </object>
@@ -1481,7 +1481,7 @@
                             <property name="label_xalign">0</property>
                             <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkAlignment" id="PlotPosTh">
+                              <object class="GtkAlignment" id="PlotBallAcc">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
@@ -1493,7 +1493,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Ângulo:</property>
+                                <property name="label" translatable="yes">Aceleração da bola:</property>
                               </object>
                             </child>
                           </object>
@@ -1521,7 +1521,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Velocidade linear:</property>
+                                <property name="label" translatable="yes">Velocidade linear (controle):</property>
                               </object>
                             </child>
                           </object>
@@ -1549,7 +1549,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Velocidade angular:</property>
+                                <property name="label" translatable="yes">Velocidade angular (controle):</property>
                               </object>
                             </child>
                           </object>
@@ -1565,7 +1565,7 @@
                             <property name="label_xalign">0</property>
                             <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkAlignment" id="PlotDistTarg">
+                              <object class="GtkAlignment" id="PlotRobotVel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
@@ -1577,7 +1577,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Distância ao target:</property>
+                                <property name="label" translatable="yes">Velocidade do robô:</property>
                               </object>
                             </child>
                           </object>

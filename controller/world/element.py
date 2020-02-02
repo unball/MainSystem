@@ -17,12 +17,6 @@ class Element(object):
     self.inst_th = 0
     """Ângulo atual"""
 
-    self.dprev_x = 0
-    """Posição x anterior anterior"""
-    
-    self.dprev_y = 0
-    """Posição y anterior anterior"""
-
     self.prev_x = 0
     """Posição x anterior"""
     
@@ -32,14 +26,26 @@ class Element(object):
     self.prev_th = 0
     """Ângulo anterior"""
 
+    self.dprev_x = 0
+    """Posição x anterior anterior"""
+    
+    self.dprev_y = 0
+    """Posição y anterior anterior"""
+
     self.inst_vx = 0
     """Estimativa da velocidade na direção x"""
     
     self.inst_vy = 0
     """Estimativa da velocidade na direção y"""
     
+    self.inst_w = 0
+    """Estimativa da velocidade angular"""
+    
     self.vx_ant = [.0]*10
+    """Valores das últimas 10 velocidades na direção x"""
+
     self.vy_ant = [.0]*10
+    """Valores das últimas 10 velocidades na direção y"""
 
     self.inst_ax = 0
     """Estimativa da aceleração na direção x"""
@@ -47,8 +53,11 @@ class Element(object):
     self.inst_ay = 0
     """Estimativa da aceleração na direção y"""
     
-    self.inst_w = 0
-    """Estimativa da velocidade angular"""
+    self.ax_ant = [.0]*10
+    """Valores das últimas 10 acelerações na direção x"""
+
+    self.ay_ant = [.0]*10
+    """Valores das últimas 10 acelerações na direção y"""
     
     self.poseDefined = False
     """Flag que indica se a pose já foi definida alguma vez via `update`"""
@@ -119,6 +128,11 @@ class Element(object):
     return np.sqrt(self.inst_vx**2+self.inst_vy**2)
 
   @property
+  def accmod(self):
+    """Retorna o módulo da aceleração do objeto: \\(\\sqrt{a_x^2+a_y^2}\\)"""
+    return np.sqrt(self.inst_ax**2+self.inst_ay**2)
+
+  @property
   def velang(self):
     """Retorna o ângulo do vetor velocidade do objeto: \\(\\text{arctan2}(v_y, v_x)\\)"""
     return np.arctan2(self.inst_vy, self.inst_vx)
@@ -146,8 +160,20 @@ class Element(object):
     vx = (self.inst_x-self.prev_x) / dt
     vy = (self.inst_y-self.prev_y) / dt
 
+    ax = (self.inst_x-2*self.prev_x+self.dprev_x) / dt**2
+    ay = (self.inst_y-2*self.prev_y+self.dprev_y) / dt**2
+
     self.inst_vx = (vx + sum(self.vx_ant)) / 11
     self.inst_vy = (vy + sum(self.vy_ant)) / 11
+
+    self.vx_ant = shift(vx, self.vx_ant)
+    self.vy_ant = shift(vx, self.vx_ant)
+
+    self.inst_ax = (ax + sum(self.ax_ant)) / 11
+    self.inst_ay = (ay + sum(self.ay_ant)) / 11
+
+    self.ax_ant = shift(ax, self.ax_ant)
+    self.ay_ant = shift(ax, self.ax_ant)
     
     # newVelx = ((self.inst_x - self.prev_x)/dt)*alpha + (self.inst_vx)*(1-alpha)
     # newVely = ((self.inst_y - self.prev_y)/dt)*alpha + (self.inst_vy)*(1-alpha)

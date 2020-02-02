@@ -56,7 +56,15 @@ class DebugHLC(ParamsPattern, State):
       "visionLin": [],
       "velAng": [],
       "visionAng": [],
-      "distTarg": [],
+      "velBallX": [],
+      "velBallY": [],
+      "velBallMod": [],
+      "accBallX": [],
+      "accBallY": [],
+      "accBallMod": [],
+      "velRobotX": [],
+      "velRobotY": [],
+      "velRobotMod": [],
       "loopTime": 0,
       "controlV": 0,
       "controlW": 0,
@@ -105,8 +113,15 @@ class DebugHLC(ParamsPattern, State):
       self.debugData["visionLin"].append(self.robot.velmod)
       self.debugData["velAng"].append(speeds[0].w)
       self.debugData["visionAng"].append(self.robot.w)
-      #self.debugData["distTarg"].append(norm(self.robot.pos, self.robot.controlSystem.currentTarget))
-      self.debugData["distTarg"].append(self.world.ball.vel[0])
+      self.debugData["velBallX"].append(self.world.ball.vel[0])
+      self.debugData["velBallY"].append(self.world.ball.vel[1])
+      self.debugData["velBallMod"].append(self.world.ball.velmod)
+      self.debugData["accBallX"].append(self.world.ball.acc[0])
+      self.debugData["accBallY"].append(self.world.ball.acc[1])
+      self.debugData["accBallMod"].append(self.world.ball.accmod)
+      self.debugData["velRobotX"].append(self.robot.vel[0])
+      self.debugData["velRobotY"].append(self.robot.vel[1])
+      self.debugData["velRobotMod"].append(self.robot.velmod)
 
     # Mais dados de debug
     self.debugData["loopTime"] = (dt*1000)*0.1 + self.debugData["loopTime"]*0.9
