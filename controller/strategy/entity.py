@@ -28,8 +28,9 @@ class Attacker(Entity):
         self.world = world
 
     def directionDecider(self):
-        # Por enquanto sempre vai para frente
-        self.robot.dir = 1
+        # Inverte se o último erro angular foi maior que 160º
+        if abs(self.robot.lastAngError) > 160 * np.pi / 180:
+            self.robot.dir *= -1
 
     def movementDecider(self):
         # Dados necessários para a decisão
@@ -50,11 +51,17 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver perto da bola, estiver atrás da bola e estiver com ângulo para o gol com erro menor que 50º vai para o gol
-        if norm(rb, rr) < 0.18 and howFrontBall(rb, rr, rg) < -0.03 and abs(angError(ballGoalAngle, robotBallAngle)) < 30*np.pi/180  and abs(angError(ballGoalAngle, rr[2])) < 30*np.pi/180:
+        if norm(rb, rr) < 0.18 and howFrontBall(rb, rr, rg) < -0.03 and abs(angError(ballGoalAngle, robotBallAngle)) < 50*np.pi/180  and abs(angError(ballGoalAngle, rr[2])) < 30*np.pi/180:
             pose = goToGoal(rg, rr)
 
         # Se não, vai para a bola
         else:
-            pose = goToBall(rb, vb, ab, rr, vr, rg, self.world.xmax, self.world.ymax)
+            pose = goToBall(rbpo, rg, self.world.ymax)
+        
+        # Decide quais espirais estarão no campo
+        if abs(rb[1]) > self.world.ymaxmargin:
+            direction = -np.sign(rb[1])
+        else: direction = 0
+        
         # Cria-se o campo com base no pose
-        self.robot.field = UVFDefault(self.world, pose)
+        self.robot.field = UVFDefault(self.world, pose, direction)

@@ -21,7 +21,7 @@ class SerialRadio(ParamsPattern, Communication):
         self.serial = serial.Serial('/dev/ttyUSB0', 115200)
         self.serial.timeout = 0.100
     except:
-      print("Falha ao abrir serial")
+      #print("Falha ao abrir serial")
       return
 
     # Início da mensagem

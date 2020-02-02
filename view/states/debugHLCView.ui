@@ -2,10 +2,12 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkAdjustment" id="HLC_UVF_h">
-    <property name="lower">-1000</property>
+  <object class="GtkAdjustment" id="HLC_UVF_Kr">
     <property name="upper">1000</property>
-    <property name="step_increment">0.001</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="HLC_UVF_Kr_single">
+    <property name="upper">1000</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="HLC_UVF_horMinDist">
@@ -16,12 +18,6 @@
   <object class="GtkAdjustment" id="HLC_UVF_horRepSize">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="HLC_UVF_n">
-    <property name="lower">-1000</property>
-    <property name="upper">1000</property>
-    <property name="step_increment">0.001</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="HLC_UVF_ponDistanceRadius">
@@ -37,6 +33,10 @@
   <object class="GtkAdjustment" id="HLC_UVF_ponRadius">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="HLC_UVF_r">
+    <property name="upper">1000</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="HLC_UVF_verGoalSize">
@@ -183,7 +183,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="halign">start</property>
                                 <property name="valign">start</property>
-                                <property name="label" translatable="yes">Distância do ponto de guia ao target:</property>
+                                <property name="label" translatable="yes">Raio:</property>
                                 <attributes>
                                   <attribute name="weight" value="bold"/>
                                 </attributes>
@@ -199,11 +199,9 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="halign">start</property>
-                                <property name="valign">center</property>
-                                <property name="text" translatable="yes">0,001</property>
-                                <property name="adjustment">HLC_UVF_h</property>
+                                <property name="text" translatable="yes">0,000</property>
+                                <property name="adjustment">HLC_UVF_r</property>
                                 <property name="digits">3</property>
-                                <property name="value">0.001</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -225,7 +223,7 @@
                       <packing>
                         <property name="expand">True</property>
                         <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                     <child>
@@ -249,7 +247,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="halign">start</property>
                                 <property name="valign">start</property>
-                                <property name="label" translatable="yes">n:</property>
+                                <property name="label" translatable="yes">Constante de suavização:</property>
                                 <attributes>
                                   <attribute name="weight" value="bold"/>
                                 </attributes>
@@ -266,7 +264,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="halign">start</property>
                                 <property name="text" translatable="yes">0,000</property>
-                                <property name="adjustment">HLC_UVF_n</property>
+                                <property name="adjustment">HLC_UVF_Kr</property>
                                 <property name="digits">3</property>
                               </object>
                               <packing>
@@ -289,7 +287,71 @@
                       <packing>
                         <property name="expand">True</property>
                         <property name="fill">True</property>
-                        <property name="position">2</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="valign">start</property>
+                        <property name="baseline_position">top</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="valign">start</property>
+                            <property name="margin_top">10</property>
+                            <property name="margin_bottom">10</property>
+                            <property name="orientation">vertical</property>
+                            <property name="baseline_position">top</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="halign">start</property>
+                                <property name="valign">start</property>
+                                <property name="label" translatable="yes">Constante de suavização unidirecional:</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"/>
+                                </attributes>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="halign">start</property>
+                                <property name="text" translatable="yes">0,000</property>
+                                <property name="adjustment">HLC_UVF_Kr_single</property>
+                                <property name="digits">3</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <style>
+                          <class name="boxlist"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">5</property>
                       </packing>
                     </child>
                     <style>
@@ -317,7 +379,6 @@
             </child>
             <child>
               <object class="GtkFrame">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="margin_top">5</property>
                 <property name="margin_bottom">5</property>
@@ -500,7 +561,6 @@
             </child>
             <child>
               <object class="GtkFrame">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="valign">start</property>
                 <property name="margin_top">5</property>

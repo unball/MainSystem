@@ -11,7 +11,7 @@ class UFC(HLC):
 
     self.g = 9.8
 
-  def actuate(self, reference, currentPose, field, w0, dt):
+  def actuate(self, reference, currentPose, field, dir):
     """Lei de controle baseada no livro Springer Tracts in Advanced Robotics - Soccer Robotics para o controle unificado. Esta função implementa a lei:
     $$
     v = \\min(v_1,v_2,v_3)\\\\
@@ -65,9 +65,9 @@ class UFC(HLC):
     w = v * phi + omega
 
     # Considera resposta lenta
-    if tau != 0: w = (w - w0 * tau/dt * (1-np.exp(-dt/tau))) / (1-tau/dt * (1-np.exp(-dt/tau)))
+    #if tau != 0: w = (w - w0 * tau/dt * (1-np.exp(-dt/tau))) / (1-tau/dt * (1-np.exp(-dt/tau)))
     
     # Satura w caso ultrapasse a mudança máxima permitida
     #w  = lastspeed.w + sat(w-lastspeed.w, motorangaccelmax * r * interval / L)
     
-    return SpeedPair(v,w)
+    return SpeedPair(v * dir,w)

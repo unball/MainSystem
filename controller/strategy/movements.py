@@ -40,14 +40,11 @@ def projectBall(rb, vb, ab, rr, vr, rg, xmax, ymax, dt=0.035, vref=0.6):
     #f = np.exp(-(norm(rb, rr) / (0.095*2))**2) * np.exp(-((rb[0]-rr[0]) / (0.05))**2) if rr[0] < rb[0] else 0
     k = howFrontBall(rb, rr, rg)
     p = howPerpBall(rb, rr, rg)
-    offset = 0.03 * unit(angl(rg-rbp)) #+ 0.06 * unit(angl(rg-rbp)) * np.exp(-norm(rb, rr)/0.21)
+    offset = -0.03 * unit(angl(rg-rbp)) #+ 0.06 * unit(angl(rg-rbp)) * np.exp(-norm(rb, rr)/0.21)
 
     return rbp + offset
 
-def goToBall(rb, vb, ab, rr, vr, rg, xmax, ymax):
-    # Projeção da bola com base na velocidade + um offset
-    rbpo = projectBall(rb, vb, ab, rr, vr, rg, xmax, ymax)
-
+def goToBall(rbpo, rg, ymax):
     # Ângulo da bola até o gol
     angle = ang(rbpo, rg)
 

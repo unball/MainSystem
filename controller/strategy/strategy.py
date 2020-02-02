@@ -12,7 +12,7 @@ class Strategy:
         self.entityDecider()
 
         # Decisor de direção
-        #self.directionDecider()
+        self.directionDecider()
 
         # Decisor de movimento
         self.movementDecider()

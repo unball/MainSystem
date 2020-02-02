@@ -50,13 +50,15 @@ class Drawing():
     cv2.ellipse(frame, ellipseCenter, ellipseAxis, 0, 0, 360, (100,100,100), 1)
     
   
-  def draw_rectangle(frame, position: tuple, size: tuple, angle: float, color=(0,255,0)):
+  def draw_rectangle(frame, position: tuple, size: tuple, angle: float, rangle=None, color=(0,255,0)):
     """Desenha um retângulo na posição `position` de tamanho `size` e rotacionado de `angle`"""
     rect = (position, size, -angle*180/np.pi)
     box = cv2.boxPoints(rect)
     box = np.int0(box)
     cv2.drawContours(frame,[box],0,color,2)
-    cv2.circle(frame, (int(position[0]+size[0]/2*np.cos(-angle)), int(position[1]+size[0]/2*np.sin(-angle))), 3, (255,255,255), -1)
+    if rangle is not None:
+      cv2.circle(frame, (int(position[0]+size[0]/2*np.cos(-rangle)), int(position[1]+size[0]/2*np.sin(-rangle))), size[0]//10, (255,255,255), -1)
+    cv2.circle(frame, (int(position[0]+size[0]/2*np.cos(-angle)), int(position[1]+size[0]/2*np.sin(-angle))), size[0]//15, (255,0,255), -1)
     
   def draw_arrow(frame, position: tuple, angle: float, color=(255,255,255), size=20, thickness=2):
     cv2.arrowedLine(frame, position, (position[0]+int(size*np.cos(-angle)), position[1]+int(size*np.sin(-angle))), color, thickness)

@@ -16,8 +16,9 @@ class World(ParamsPattern):
   
   def __init__(self):
     ParamsPattern.__init__(self, "worldConfig", {
-      "UVF_h": 0.5,
-      "UVF_n": 1,
+      "UVF_r": 0.05,
+      "UVF_Kr": 15,
+      "UVF_Kr_single": 0.1,
       "UVF_horRepSize": 0.05,
       "UVF_horMinDist": 0.1,
       "UVF_verRepSize": 0.15,

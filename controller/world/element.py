@@ -85,7 +85,7 @@ class Element(object):
   @property
   def pose(self):
     """Retorna a pose \\([x,y,\\theta]\\) do objeto um numpy array."""
-    return np.array([self.inst_x, self.inst_y, self.inst_th])
+    return np.array([self.x, self.y, self.th])
 
   @pos.setter
   def pos(self, x, y):

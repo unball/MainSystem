@@ -53,7 +53,7 @@ class HighLevelRenderer(cv2Renderer):
     self.__mousePosition = (int(event.x), int(event.y))
     if self.__movingRobot is not None:
       position = pixel2meters(self.__world, (int(event.x), int(event.y)), (height, width))
-      self.__movingRobot.update(position[0], position[1], self.__movingRobot.th)
+      self.__movingRobot.update(position[0], position[1], self.__movingRobot.th, rawUpdate=False)
   
   def frameClick(self, widget, event):
     """Executado quando um clique é feito na área de renderização, se um robô estiver perto da área de clique, marca o robô como selecionado"""
@@ -88,7 +88,7 @@ class HighLevelRenderer(cv2Renderer):
     
     # Desenha o retângulo do robô
     w,h = meters2pixelSize(self.__world, (0.075,0.075), frame.shape)
-    Drawing.draw_rectangle(frame, position, (w,h), robot.th, color=robotColor)
+    Drawing.draw_rectangle(frame, position, (w,h), robot.th, rangle=robot.raw_th, color=robotColor)
     
   def draw_field(self, frame, pose, field):
     """Desenha o campo no frame"""
