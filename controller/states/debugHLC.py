@@ -92,7 +92,7 @@ class DebugHLC(ParamsPattern, State):
 
   def runStrategyCondition(self):
     """Condição para rodar a estratégia"""
-    return (self.loops % 1 == 0)
+    return (self.loops % 3 == 0)
   
   def saveData(self, filename):
     """Salva os dados de debug no arquivo `filename`"""
@@ -161,7 +161,7 @@ class DebugHLC(ParamsPattern, State):
 
     # Controle de alto nível
     else:
-      highLevelspeed = self.robot.controlSystem.actuate(reference, self.robot.pose, self.robot.field, self.robot.dir)
+      highLevelspeed = self.robot.controlSystem.actuate(reference, self.robot.pose, self.robot.field, self.robot.dir, self.world.ball.inst_vx, self.world.ball.inst_vy)
       speeds = [SpeedPair(highLevelspeed.v,-highLevelspeed.w)]
 
     # Adiciona dados de debug para gráficos e para salvar

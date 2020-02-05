@@ -51,4 +51,5 @@ def bestAngError(reference: float, current: float, robot) -> float:
     if robot.dir == 1: return err1, 1
     else: return err2, -1
   
-
+def shift(data, array):
+    return [data] + array[:-1]

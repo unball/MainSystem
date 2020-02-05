@@ -2,6 +2,7 @@ from gi.repository import Gdk
 from view.tools.cv2Renderer import cv2Renderer
 from view.tools.drawing import Drawing
 from controller.tools.pixel2metric import meters2pixel,pixel2meters,meters2pixelSize
+from controller.tools import angl
 import numpy as np
 import cv2
 import itertools
@@ -115,6 +116,9 @@ class HighLevelRenderer(cv2Renderer):
 
     # Desenha a bola
     cv2.circle(frame, meters2pixel(self.__world, self.__world.ball.pos, frame.shape), meters2pixelSize(self.__world, (0.015,0), frame.shape)[0], color=(0,0,255), thickness=-1)
+
+    # Desenha a velocidade da bola
+    Drawing.draw_arrow(frame, meters2pixel(self.__world, self.__world.ball.pos, frame.shape), angl(self.__world.ball.vel), color=(0,0,255), size=meters2pixelSize(self.__world, (self.__world.ball.velmod,0), frame.shape)[0])
 
     # Desenha obstáculos pontuais
     for enemy in self.__world.enemyRobots:

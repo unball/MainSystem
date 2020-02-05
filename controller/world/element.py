@@ -1,8 +1,6 @@
-from controller.tools import angError
+from controller.tools import angError, shift
 import numpy as np
 
-def shift(data, array):
-    return [data] + array[1:]
 
 class Element(object):
   """Classe mãe que implementa um elemento de jogo como bola ou robô"""
@@ -163,17 +161,17 @@ class Element(object):
     ax = (self.inst_x-2*self.prev_x+self.dprev_x) / dt**2
     ay = (self.inst_y-2*self.prev_y+self.dprev_y) / dt**2
 
-    self.inst_vx = (vx + sum(self.vx_ant)) / 11
-    self.inst_vy = (vy + sum(self.vy_ant)) / 11
+    self.inst_vx = (vx + sum(self.vx_ant)) / 11.0
+    self.inst_vy = (vy + sum(self.vy_ant)) / 11.0
 
     self.vx_ant = shift(vx, self.vx_ant)
-    self.vy_ant = shift(vx, self.vx_ant)
+    self.vy_ant = shift(vy, self.vy_ant)
 
-    self.inst_ax = (ax + sum(self.ax_ant)) / 11
-    self.inst_ay = (ay + sum(self.ay_ant)) / 11
+    self.inst_ax = (ax + sum(self.ax_ant)) / 11.0
+    self.inst_ay = (ay + sum(self.ay_ant)) / 11.0
 
     self.ax_ant = shift(ax, self.ax_ant)
-    self.ay_ant = shift(ax, self.ax_ant)
+    self.ay_ant = shift(ay, self.ay_ant)
     
     # newVelx = ((self.inst_x - self.prev_x)/dt)*alpha + (self.inst_vx)*(1-alpha)
     # newVely = ((self.inst_y - self.prev_y)/dt)*alpha + (self.inst_vy)*(1-alpha)
