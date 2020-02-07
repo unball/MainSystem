@@ -27,6 +27,7 @@ class Attacker(Entity):
 
         self.world = world
         self.movState = 0
+        self.rg = (0,0)
 
     def directionDecider(self):
         # Inverte se o último erro angular foi maior que 160º
@@ -40,7 +41,11 @@ class Attacker(Entity):
         vb = np.array(self.world.ball.vel.copy())
         ab = np.array(self.world.ball.acc.copy())
         rr = np.array(self.robot.pose)
-        rg = np.array(self.world.goalpos) + [0,0.15 / (np.pi/2) * np.arctan(rr[1] / 0.1)]
+        if self.movState == 0:
+            self.rg = np.array(self.world.goalpos) + [0,0.15 / (np.pi/2) * np.arctan(rb[1] / 0.1)]
+        else:
+            rg = self.rg
+        rg = self.rg
         vr = np.array(self.robot.velmod * unit(self.robot.th))
 
         # Bola projetada com offset
@@ -53,7 +58,7 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
-        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.03 + self.movState*0.03 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.03 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
             pose = goToGoal(rb, rg, rr)
             self.robot.vref = 999
             self.robot.gammavels = (0,0)

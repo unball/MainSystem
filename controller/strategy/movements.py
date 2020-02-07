@@ -7,7 +7,7 @@ def howFrontBall(rb, rr, rg):
 def howPerpBall(rb, rr, rg):
     return np.dot(rr[:2]-rb, unit(angl(rg-rb)+np.pi/2))
 
-def projectBall(rb, vb, rr, rg, limits: tuple, vrref=0.3):
+def projectBall(rb, vb, rr, rg, limits: tuple, vrref=0.25):
     # Bola fora dos limites, retorna a própria posição da bola
     if any(np.abs(rb) > limits):
         return rb
@@ -28,7 +28,7 @@ def projectBall(rb, vb, rr, rg, limits: tuple, vrref=0.3):
         rbp = rb + t * vb
 
     # Acrescenta um offset
-    offset = -0.06 * unit(angl(rg-rbp))
+    offset = -0.06 * unit(angl(rg-rbp)) + 0.015 * unit(angl(rg-rbp) + np.pi/2)
 
     return rbp + offset
 
