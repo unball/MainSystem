@@ -35,6 +35,7 @@ class World(ParamsPattern):
     self.ymax = (self.field_y_length) / 2
     self.xmaxmargin = self.xmax - 0.2
     self.ymaxmargin = self.ymax - 0.2
+    self.marginLimits = (self.xmaxmargin, self.ymaxmargin)
     self.goalpos = (self.xmax, 0)
     self.goalylength = 0.4
     self.n_robots = 5

@@ -18,6 +18,11 @@ class DebugHLCView(LoopThread, StackSelector):
     self.__world = world
     self.__controllerState = None
     self.limit = 250
+    self.replay = False
+    self.reprTime = 0
+    self.beginReplayTime = 0
+    self.running = False
+    self.replayTimeScale = 1
     LoopThread.__init__(self, self.view_worker)
     StackSelector.__init__(self, stack, "configHLC", "HLC")
 
@@ -28,8 +33,10 @@ class DebugHLCView(LoopThread, StackSelector):
     # Elementos internos
     mainBox = builder.get_object("HLCBox")
     renderContainer = builder.get_object("HLCRender")
-    playPause = builder.get_object("HLCPlayPause")
+    self.playPauseButton = builder.get_object("HLCPlayPause")
     saveData = builder.get_object("HLCSaveData")
+    replay = builder.get_object("HLCViewReplay")
+    self.replayTimeScaleAdj = builder.get_object("HLCViewReplayTimeScale")
     self.UVF_r = builder.get_object("HLC_UVF_r")
     self.UVF_Kr = builder.get_object("HLC_UVF_Kr")
     self.UVF_Kr_single = builder.get_object("HLC_UVF_Kr_single")
@@ -62,7 +69,7 @@ class DebugHLCView(LoopThread, StackSelector):
     self.visionWLabel = builder.get_object("HLCvisionW")
     self.visionPoseLabel = builder.get_object("HLCvisionPose")
 
-    self.__renderer = HighLevelRenderer(self.__world, robotsGetter=self.robotsGetter, on_click=self.on_click, on_scroll=self.on_scroll)
+    self.__renderer = HighLevelRenderer(self.__world, robotsGetter=self.robotsGetter, ballGetter=self.ballGetter, on_click=self.on_click, on_scroll=self.on_scroll)
     """Instancia o renderizador, ele é do tipo GtkFrame"""
 
     # Adiciona o renderizador ao GtkBox
@@ -80,8 +87,10 @@ class DebugHLCView(LoopThread, StackSelector):
     for el in self.__plots: builder.get_object(el).add(self.__plots[el][0])
 
     # Liga os sinais
-    playPause.connect("toggled", self.playPause)
+    self.playPauseButton.connect("toggled", self.playPause)
     saveData.connect("clicked", self.saveData)
+    replay.connect("toggled", self.setReplay)
+    self.replayTimeScaleAdj.connect("value-changed", self.setReplayTimeScale)
     self.UVF_r.connect("value-changed", self.setWorldParam, "UVF_r")
     self.UVF_Kr.connect("value-changed", self.setWorldParam, "UVF_Kr")
     self.UVF_Kr_single.connect("value-changed", self.setWorldParam, "UVF_Kr_single")
@@ -137,9 +146,28 @@ class DebugHLCView(LoopThread, StackSelector):
       ydata.append(d)
     return xdata, ydata
 
+  def replayData(self, key, reprTime):
+    idx = np.searchsorted(np.array(self.__controllerState.debugData["replayData"]["time"]), reprTime)
+    if idx >= len(self.__controllerState.debugData["replayData"][key]):
+      self.playPauseButton.set_active(False)
+      idx = 0
+    return self.__controllerState.debugData["replayData"][key][idx]
+
+  def ballGetter(self):
+    if self.__controllerState is None: return []
+    if self.replay:
+      if self.running: self.reprTime = (time.time()-self.beginReplayTime) / self.replayTimeScale
+      return self.replayData("ball", self.reprTime)
+    else:
+      return self.__world.ball
+
   def robotsGetter(self):
     if self.__controllerState is None: return []
-    return [self.__controllerState.robot]
+    if self.replay:
+      if self.running: self.reprTime = (time.time()-self.beginReplayTime) / self.replayTimeScale
+      return [self.replayData("robot", self.reprTime)]
+    else:
+      return [self.__controllerState.robot]
 
   def getRowByName(self, listBox, key):
     for i in range(5):
@@ -148,7 +176,19 @@ class DebugHLCView(LoopThread, StackSelector):
       if row.get_name() == key: return row
 
   def playPause(self, widget):
-    self.__controller.addEvent(self.__world.setRunning, widget.get_active())
+    self.running = widget.get_active()
+    self.beginReplayTime = time.time()
+    if self.replay:
+      self.__controller.addEvent(self.__world.setRunning, False)
+    else:
+      self.__controller.addEvent(self.__world.setRunning, self.running)
+
+  def setReplay(self, widget):
+    self.replay = widget.get_active()
+    self.playPauseButton.set_active(False)
+
+  def setReplayTimeScale(self, widget):
+    self.replayTimeScale = widget.get_value()
 
   def saveData(self, widget):
     dialog = Gtk.FileChooserDialog("Salvar arquivo", None, Gtk.FileChooserAction.SAVE,

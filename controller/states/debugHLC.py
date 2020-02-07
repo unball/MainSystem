@@ -37,6 +37,9 @@ class DebugHLC(ParamsPattern, State):
     self.initialTime = time.time()
     """Tempo inicial a ser usado como origem de tempo dos dados de debug"""
 
+    self.firstLoopRunning = True
+    self.replayInitialTime = 0
+
     self.t = time.time()
     """Tempo do início do loop anterior"""
 
@@ -65,6 +68,7 @@ class DebugHLC(ParamsPattern, State):
       "velRobotX": [],
       "velRobotY": [],
       "velRobotMod": [],
+      "replayData": {"time": [], "robot": [], "ball": []},
       "loopTime": 0,
       "controlV": 0,
       "controlW": 0,
@@ -104,6 +108,7 @@ class DebugHLC(ParamsPattern, State):
 
     if self.world.running:
       # Alimenta dados de debug
+      if self.initialTime is None: self.initialTime = time.time()
       self.debugData["time"].append(time.time()-self.initialTime)
       self.debugData["posX"].append(self.robot.x)
       self.debugData["posY"].append(self.robot.y)
@@ -122,6 +127,17 @@ class DebugHLC(ParamsPattern, State):
       self.debugData["velRobotX"].append(self.robot.vel[0])
       self.debugData["velRobotY"].append(self.robot.vel[1])
       self.debugData["velRobotMod"].append(self.robot.velmod)
+
+      if self.firstLoopRunning:
+        for k in self.debugData["replayData"]: self.debugData["replayData"][k].clear()
+        self.firstLoopRunning = False
+        self.replayInitialTime = time.time()
+      
+      self.debugData["replayData"]["time"].append(time.time()-self.replayInitialTime)
+      self.debugData["replayData"]["robot"].append(copy.deepcopy(self.robot))
+      self.debugData["replayData"]["ball"].append(copy.deepcopy(self.world.ball))
+
+    else: self.firstLoopRunning = True
 
     # Mais dados de debug
     self.debugData["loopTime"] = (dt*1000)*0.1 + self.debugData["loopTime"]*0.9
@@ -161,7 +177,7 @@ class DebugHLC(ParamsPattern, State):
 
     # Controle de alto nível
     else:
-      highLevelspeed = self.robot.controlSystem.actuate(reference, self.robot.pose, self.robot.field, self.robot.dir, self.world.ball.inst_vx, self.world.ball.inst_vy)
+      highLevelspeed = self.robot.controlSystem.actuate(reference, self.robot.pose, self.robot.field, self.robot.dir, self.robot.gammavels, self.robot.vref)
       speeds = [SpeedPair(highLevelspeed.v,-highLevelspeed.w)]
 
     # Adiciona dados de debug para gráficos e para salvar

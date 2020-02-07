@@ -11,7 +11,7 @@ class UFC(HLC):
 
     self.g = 9.8
 
-  def actuate(self, reference, currentPose, field, dir, vx, vy):
+  def actuate(self, reference, currentPose, field, dir, gammavels, vref):
     """Lei de controle baseada no livro Springer Tracts in Advanced Robotics - Soccer Robotics para o controle unificado. Esta função implementa a lei:
     $$
     v = \\min(v_1,v_2,v_3)\\\\
@@ -30,7 +30,6 @@ class UFC(HLC):
     vmax = self.getParam("vmax")
     motorangaccelmax = self.getParam("motorangaccelmax")
     r = self.getParam("r")
-    vref = self.getParam("vref")
     maxangerror = self.getParam("maxangerror")
     tau = self.getParam("tau")
       
@@ -41,7 +40,7 @@ class UFC(HLC):
     phi = field.phi(currentPose)
 
     # Computa omega
-    omega = kw * np.sign(errorAngle) * np.sqrt(np.abs(errorAngle)) + field.gamma(currentPose, vx, vy)
+    omega = kw * np.sign(errorAngle) * np.sqrt(np.abs(errorAngle)) + field.gamma(currentPose, gammavels)
 
     # Velocidade limite de deslizamento
     if phi != 0:

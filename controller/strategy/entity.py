@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall
+from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall
 from controller.strategy.field import UVFDefault
 from controller.tools import ang, angError, norm, unit
 import numpy as np
@@ -26,6 +26,7 @@ class Attacker(Entity):
         super().__init__(robot)
 
         self.world = world
+        self.movState = 0
 
     def directionDecider(self):
         # Inverte se o último erro angular foi maior que 160º
@@ -38,12 +39,12 @@ class Attacker(Entity):
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         ab = np.array(self.world.ball.acc.copy())
-        rg = np.array(self.world.goalpos)
         rr = np.array(self.robot.pose)
+        rg = np.array(self.world.goalpos) + [0,0.15 / (np.pi/2) * np.arctan(rr[1] / 0.1)]
         vr = np.array(self.robot.velmod * unit(self.robot.th))
 
         # Bola projetada com offset
-        rbpo = projectBall(rb, vb, ab, rr, vr, rg, self.world.xmax, self.world.ymax)
+        rbpo = projectBall(rb, vb, rr, rg, self.world.marginLimits)
 
         # Ângulo da bola até o gol
         ballGoalAngle = ang(rb, rg)
@@ -51,13 +52,18 @@ class Attacker(Entity):
         # Ângulo do robô até a bola
         robotBallAngle = ang(rr, rb)
 
-        # Se estiver perto da bola, estiver atrás da bola e estiver com ângulo para o gol com erro menor que 50º vai para o gol
-        if norm(rb, rr) < 0.27 and howFrontBall(rb, rr, rg) < -0.03 and abs(angError(ballGoalAngle, robotBallAngle)) < 50*np.pi/180  and abs(angError(ballGoalAngle, rr[2])) < 30*np.pi/180:
-            pose = goToGoal(rg, rr)
-
+        # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.03 + self.movState*0.03 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
+            pose = goToGoal(rb, rg, rr)
+            self.robot.vref = 999
+            self.robot.gammavels = (0,0)
+            self.movState = 1
         # Se não, vai para a bola
         else:
-            pose = goToBall(rbpo, rg, self.world.ymax)
+            pose = goToBall(rbpo, rg)
+            self.robot.vref = 0
+            self.robot.gammavels = (self.world.ball.inst_vx, self.world.ball.inst_vy)
+            self.movState = 0
         
         # Decide quais espirais estarão no campo
         if abs(rb[1]) > self.world.ymaxmargin:

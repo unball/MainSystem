@@ -26,6 +26,10 @@ class Robot(Element):
 
     self.lastAngError = 0
 
+    self.vref = 0
+
+    self.gammavels = (0,0)
+
   @property
   def field(self):
     """Retorna o campo definida para este robô"""

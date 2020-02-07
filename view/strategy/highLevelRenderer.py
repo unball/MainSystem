@@ -8,12 +8,13 @@ import cv2
 import itertools
 
 class HighLevelRenderer(cv2Renderer):
-  def __init__(self, world, robotsGetter=None, on_click=None, on_scroll=None):
+  def __init__(self, world, robotsGetter=None, ballGetter=None, on_click=None, on_scroll=None):
     super().__init__(worker=self.renderer)
     
     self.__world = world
     
     self.__robotsGetter = robotsGetter
+    self.__ballGetter = ballGetter
     
     self.__movingRobot = None
     self.__mousePosition = (0,0)
@@ -35,6 +36,11 @@ class HighLevelRenderer(cv2Renderer):
   def robots(self):
     if self.__robotsGetter is None: return []
     return self.__robotsGetter()
+
+  @property
+  def ball(self):
+    if self.__ballGetter is None: return self.__world.ball
+    return self.__ballGetter()
   
   def cursorDistance(self, position: tuple):
     """Calcula a distância da posição atual do mouse a `position`"""
@@ -115,10 +121,10 @@ class HighLevelRenderer(cv2Renderer):
     Drawing.draw_arrow(frame, meters2pixel(self.__world, field.Pb, frame.shape), field.Pb[2], color=(0,255,0), size=meters2pixelSize(self.__world, (0.08,0), frame.shape)[0])
 
     # Desenha a bola
-    cv2.circle(frame, meters2pixel(self.__world, self.__world.ball.pos, frame.shape), meters2pixelSize(self.__world, (0.015,0), frame.shape)[0], color=(0,0,255), thickness=-1)
+    cv2.circle(frame, meters2pixel(self.__world, self.ball.pos, frame.shape), meters2pixelSize(self.__world, (0.015,0), frame.shape)[0], color=(0,0,255), thickness=-1)
 
     # Desenha a velocidade da bola
-    Drawing.draw_arrow(frame, meters2pixel(self.__world, self.__world.ball.pos, frame.shape), angl(self.__world.ball.vel), color=(0,0,255), size=meters2pixelSize(self.__world, (self.__world.ball.velmod,0), frame.shape)[0])
+    Drawing.draw_arrow(frame, meters2pixel(self.__world, self.ball.pos, frame.shape), angl(self.ball.vel), color=(0,0,255), size=meters2pixelSize(self.__world, (self.ball.velmod,0), frame.shape)[0])
 
     # Desenha obstáculos pontuais
     for enemy in self.__world.enemyRobots:
