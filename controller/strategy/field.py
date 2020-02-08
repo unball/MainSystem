@@ -80,8 +80,8 @@ class UVF():
     P = np.array(P)
     Pb = np.array(self.Pb)
     return (self.F(P, Pb=Pb+[d,0,0])-self.F(P))/d * v[0] +\
-           (self.F(P, Pb=Pb+[0,d,0])-self.F(P))/d * v[1] #+\
-           #(self.F(P, Pb=Pb+[0,0,d])-self.F(P))/d * dth
+           (self.F(P, Pb=Pb+[0,d,0])-self.F(P))/d * v[1] +\
+           (self.F(P, Pb=Pb+[0,0,d])-self.F(P))/d * v[2]
 
 class UVFDefault(UVF):
   def __init__(self, world, pose, direction):

@@ -77,7 +77,7 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Adiciona os gráficos
     self.__plots = {
-      "PlotPosTh": (Plotter(), ("posTh","posThRef")),
+      "PlotPosTh": (Plotter(), ("posTh","posThRef","posThErr")),
       "PlotBallVel": (Plotter(), ("velBallMod", "velBallX","velBallY")),
       "PlotBallAcc": (Plotter(), ("accBallMod", "accBallX","accBallY")),
       "PlotVelLin": (Plotter(), ("visionLin","velLin")),

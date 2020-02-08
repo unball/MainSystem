@@ -60,15 +60,15 @@ class Attacker(Entity):
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
         if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.03 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
-            pose = goToGoal(rb, rg, rr)
+            pose, gammavels = goToGoal(rg, rr)
             self.robot.vref = 999
-            self.robot.gammavels = (0,0)
+            self.robot.gammavels = gammavels
             self.movState = 1
         # Se não, vai para a bola
         else:
-            pose = goToBall(rbpo, rg)
-            self.robot.vref = 0
-            self.robot.gammavels = (self.world.ball.inst_vx, self.world.ball.inst_vy)
+            pose, gammavels = goToBall(rb, rg, vb)
+            self.robot.vref = 999
+            self.robot.gammavels = gammavels
             self.movState = 0
         
         # Decide quais espirais estarão no campo

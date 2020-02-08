@@ -1,4 +1,4 @@
-from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift
+from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative
 import numpy as np
 
 def howFrontBall(rb, rr, rg):
@@ -32,12 +32,14 @@ def projectBall(rb, vb, rr, rg, limits: tuple, vrref=0.25):
 
     return rbp + offset
 
-def goToBall(rbpo, rg):
+def goToBall(rb, rg, vb):
     # Ângulo da bola até o gol
-    angle = ang(rbpo, rg)
+    angle = ang(rb, rg)
 
-    return np.array([*rbpo[:2], angle])
+    dth = derivative(lambda x : ang((x, rb[1]), rg), rb[0]) * vb[0] + derivative(lambda y : ang((rb[0], y), rg), rb[1]) * vb[1]
+    v = (*vb, dth)
+    return np.array([*rb[:2], angle]), v
 
-def goToGoal(rb, rg, rr):
+def goToGoal(rg, rr):
     # Ponto de destino é a posição do gol com o ângulo do robô até o gol
-    return np.array([*rg[:2], ang(rr, rg)])
+    return np.array([*rg[:2], ang(rr, rg)]), (0,0,0)

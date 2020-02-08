@@ -53,3 +53,6 @@ def bestAngError(reference: float, current: float, robot) -> float:
   
 def shift(data, array):
     return [data] + array[:-1]
+
+def derivative(F, x, d=0.00001, *args):
+  return (F(x+d, *args) - F(x, *args)) / d
