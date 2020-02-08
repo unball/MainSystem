@@ -55,6 +55,7 @@ class DebugHLC(ParamsPattern, State):
       "posY": [],
       "posTh": [],
       "posThRef": [],
+      "posThErr": [],
       "velLin": [],
       "visionLin": [],
       "velAng": [],
@@ -114,6 +115,7 @@ class DebugHLC(ParamsPattern, State):
       self.debugData["posY"].append(self.robot.y)
       self.debugData["posTh"].append(adjustAngle(self.robot.th))
       self.debugData["posThRef"].append(adjustAngle(reference))
+      self.debugData["posThErr"].append(angError(reference, self.robot.th))
       self.debugData["velLin"].append(speeds[0].v)
       self.debugData["visionLin"].append(self.robot.velmod)
       self.debugData["velAng"].append(speeds[0].w)
