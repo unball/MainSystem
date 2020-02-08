@@ -31,9 +31,9 @@ class Attacker(Entity):
 
     def directionDecider(self):
         # Inverte se o último erro angular foi maior que 160º
-        if abs(self.robot.lastAngError) > 160 * np.pi / 180:
-            self.robot.dir *= -1
-        #self.robot.dir = 1
+        # if abs(self.robot.lastAngError) > 160 * np.pi / 180:
+        #     self.robot.dir *= -1
+        self.robot.dir = 1
 
     def movementDecider(self):
         # Dados necessários para a decisão
