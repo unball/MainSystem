@@ -55,7 +55,7 @@ class UFC(HLC):
     v3 = kp * norm(currentPose, field.Pb) ** 2 + vref
 
     # Velocidade linear é menor de todas
-    v  = min(v1, v2, v3) * np.exp(-(np.abs(errorAngle)/maxangerror))
+    v  = max(min(v1, v2, v3), 0) #* np.exp(-(np.abs(errorAngle)/maxangerror))
     
     # Satura v caso ultrapasse a mudança máxima permitida
     #if v > lastspeed.v: v = lastspeed.v + sat(v-lastspeed.v, motorangaccelmax * r * interval / 2)
