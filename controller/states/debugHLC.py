@@ -97,7 +97,7 @@ class DebugHLC(ParamsPattern, State):
 
   def runStrategyCondition(self):
     """Condição para rodar a estratégia"""
-    return (self.loops % 3 == 0)
+    return (self.loops % 1 == 0)
   
   def saveData(self, filename):
     """Salva os dados de debug no arquivo `filename`"""
