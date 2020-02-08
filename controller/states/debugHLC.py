@@ -5,7 +5,7 @@ from controller.world.robot import Robot
 from controller.tools import norm, adjustAngle, ang, sat, unit, angError
 from controller.control import SpeedPair
 from controller.control.UFC import UFC
-from controller.tools.simulator import simulate
+from controller.tools.simulator import simulate, simulateBall
 from model.paramsPattern import ParamsPattern
 from helpers import Mux
 import numpy as np
@@ -188,7 +188,9 @@ class DebugHLC(ParamsPattern, State):
       if self.getParam("runVision"): self._controller.communicationSystems.get().send(speeds)
 
       # Simula nova posição
-      else: simulate(self.robot, speeds[0].v, -speeds[0].w)
+      else:
+        simulate(self.robot, speeds[0].v, -speeds[0].w)
+        simulateBall(self.world.ball)
     
     # Envia zero para o robô
     else: self._controller.communicationSystems.get().sendZero()

@@ -16,3 +16,15 @@ def simulate(robot, v, w, dt=0.033, r=0.03, L=0.075):
         th = robot.th
 
     robot.update(x,y,th,rawUpdate=False)
+
+t = 0
+m = 1
+def simulateBall(ball, dt=0.033):
+    global t
+    global m
+    if abs(t) >= 3: m *= -1
+    t = t + dt * m
+    x = 0.4 * t / 3
+    y = 0.4 * t / 3
+    ball.update(x,y,0)
+    ball.calc_velocities(dt)
