@@ -41,11 +41,12 @@ class Attacker(Entity):
         vb = np.array(self.world.ball.vel.copy())
         ab = np.array(self.world.ball.acc.copy())
         rr = np.array(self.robot.pose)
-        if self.movState == 0:
-            self.rg = np.array(self.world.goalpos) + [0,0.15 / (np.pi/2) * np.arctan(rb[1] / 0.1)]
-        else:
-            rg = self.rg
-        rg = self.rg
+        # if self.movState == 0:
+        #     self.rg = np.array(self.world.goalpos) + [0,0.15 / (np.pi/2) * np.arctan(rb[1] / 0.1)]
+        # else:
+        #     rg = self.rg
+        # rg = self.rg
+        rg = np.array(self.world.goalpos)
         vr = np.array(self.robot.velmod * unit(self.robot.th))
 
         # Bola projetada com offset
