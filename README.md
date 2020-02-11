@@ -11,3 +11,8 @@ Execute o comando
 ### Documentação
 A documentação pode ser gerada com o comando:
 `pdoc --html --force -o doc .`
+
+### Commits que deram certo
+Volte para os commits a seguir caso seja necessário:
+| Id commit |
+| 350782cfe4485b4124a69653eb6bd0ba1301e2c7 |
