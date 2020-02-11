@@ -1,39 +1,65 @@
 from abc import ABC, abstractmethod
-from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall
-from controller.strategy.field import UVFDefault
+from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall, goalkeep
+from controller.strategy.field import UVFDefault, GoalKeeperField
 from controller.tools import ang, angError, norm, unit
 import numpy as np
 
 class Entity(ABC):
-    def __init__(self, robot):
+    def __init__(self, robot, color):
         super().__init__()
 
         self.robot = robot
         """Robô associado a esta entidade"""
 
-    @abstractmethod
+        self.color = color
+
     def directionDecider(self):
         """Altera a propriedade `dir` do robo de acordo com a decisão"""
-        pass
+        # Inverte se o último erro angular foi maior que 160º
+        if abs(self.robot.lastAngError) > 160 * np.pi / 180:
+            self.robot.dir *= -1
 
     @abstractmethod
     def movementDecider(self):
         """Altera a propriedade `field` do robo de acordo com a decisão"""
         pass
 
+class GoalKeeper(Entity):
+    def __init__(self, world, robot):
+        super().__init__(robot, (255,0,0))
+
+        self.world = world
+
+    def directionDecider(self):
+        """Altera a propriedade `dir` do robo de acordo com a decisão"""
+        # Inverte se o último erro angular foi maior que 160º
+        if abs(self.robot.lastAngError) > 90 * np.pi / 180:
+            self.robot.dir *= -1
+
+    def movementDecider(self):
+        # Dados necessários para a decisão
+        rb = np.array(self.world.ball.pos.copy())
+        vb = np.array(self.world.ball.vel.copy())
+        rr = np.array(self.robot.pose)
+        rg = np.array(self.world.goalpos)
+
+        pose = goalkeep(rb, vb, rr, rg)
+        
+        self.robot.gammavels = (0,0,0)
+        self.robot.vref = 0
+        if np.abs(rr[0]-rg[0]+0.2) > 0.07:
+            self.robot.field = GoalKeeperField(pose)
+        else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
+        #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
+
+
 class Attacker(Entity):
     def __init__(self, world, robot):
-        super().__init__(robot)
+        super().__init__(robot, (0,0,255))
 
         self.world = world
         self.movState = 0
         self.rg = (0,0)
-
-    def directionDecider(self):
-        # Inverte se o último erro angular foi maior que 160º
-        # if abs(self.robot.lastAngError) > 160 * np.pi / 180:
-        #     self.robot.dir *= -1
-        self.robot.dir = 1
 
     def movementDecider(self):
         # Dados necessários para a decisão
@@ -47,7 +73,7 @@ class Attacker(Entity):
         #     rg = self.rg
         # rg = self.rg
         rg = np.array(self.world.goalpos)
-        vr = np.array(self.robot.velmod * unit(self.robot.th))
+        vr = np.array(self.robot.lastControlLinVel * unit(self.robot.th))
 
         # Bola projetada com offset
         rbpo = projectBall(rb, vb, rr, rg, self.world.marginLimits)
@@ -60,21 +86,23 @@ class Attacker(Entity):
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
         if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.03 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
-            pose, gammavels = goToGoal(rg, rr)
+            pose, gammavels = goToGoal(rg, rr, vr)
             self.robot.vref = 999
             self.robot.gammavels = gammavels
             self.movState = 1
         # Se não, vai para a bola
         else:
-            pose, gammavels = goToBall(rb, rg, vb)
-            self.robot.vref = 999
+            pose, gammavels = goToBall(rb, rg, vb, self.world.marginLimits)
+            self.robot.vref = 0.2
             self.robot.gammavels = gammavels
             self.movState = 0
         
-        # Decide quais espirais estarão no campo
-        if abs(rb[1]) > self.world.ymaxmargin:
-            direction = -np.sign(rb[1])
-        else: direction = 0
-        
-        # Cria-se o campo com base no pose
-        self.robot.field = UVFDefault(self.world, pose, direction)
+        # Decide quais espirais estarão no campo e compõe o campo
+        #if abs(rb[0]) > self.world.xmaxmargin: self.world.goalpos = (-self.world.goalpos[0], self.world.goalpos[1])
+
+        if any(np.abs(rb) > self.world.marginLimits):
+            self.robot.field = UVFDefault(self.world, (*pose[:2], 0), direction=-np.sign(rb[1]), radius=0)
+        else: 
+            #if howFrontBall(rb, rr, rg) > 0: radius = 0
+            #else: radius = None
+            self.robot.field = UVFDefault(self.world, pose, direction=0)

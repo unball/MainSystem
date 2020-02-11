@@ -87,6 +87,7 @@
       </object>
       <packing>
         <property name="submenu">main</property>
+        <property name="position">1</property>
       </packing>
     </child>
   </object>
@@ -221,11 +222,15 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSwitch" id="HLC_UVF_showField">
+                              <object class="GtkComboBoxText" id="HLC_UVF_showField">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
+                                <property name="can_focus">False</property>
+                                <property name="active_id">-1</property>
+                                <items>
+                                  <item id="-1" translatable="yes">Nenhum</item>
+                                  <item id="0" translatable="yes">Robô 0</item>
+                                  <item id="1" translatable="yes">Robô 1</item>
+                                </items>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

@@ -22,9 +22,9 @@ m = 1
 def simulateBall(ball, dt=0.033):
     global t
     global m
-    if abs(t) >= 3: m *= -1
+    if abs(t) >= 1: m *= -1
     t = t + dt * m
-    x = 0.4 * t / 3
-    y = 0.4 * t / 3
+    x = 0.4 * t
+    y = 0.4 * t
     ball.update(x,y,0)
     ball.calc_velocities(dt)

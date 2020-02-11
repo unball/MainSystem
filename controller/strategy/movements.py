@@ -32,7 +32,15 @@ def projectBall(rb, vb, rr, rg, limits: tuple, vrref=0.25):
 
     return rbp + offset
 
-def goToBall(rb, rg, vb):
+def goToBall(rb, rg, vb, rl):
+    # Acrescenta um offset
+    if any(np.abs(rb) > rl):
+        offset = 0
+    else:
+        offset = -0.06 * unit(angl(rg-rb)) #+ 0.015 * unit(angl(rg-rb) + np.pi/2)
+
+    rb = rb + offset
+    
     # Ângulo da bola até o gol
     angle = ang(rb, rg)
 
@@ -40,6 +48,24 @@ def goToBall(rb, rg, vb):
     v = (*vb, dth)
     return np.array([*rb[:2], angle]), v
 
-def goToGoal(rg, rr):
+def goToGoal(rg, rr, vr):
     # Ponto de destino é a posição do gol com o ângulo do robô até o gol
-    return np.array([*rg[:2], ang(rr, rg)]), (0,0,0)
+    angle = ang(rr, rg)
+    dth = derivative(lambda x : ang((x, rr[1]), rg), rr[0]) * vr[0] + derivative(lambda y : ang((rr[0], y), rg), rr[1]) * vr[1]
+
+    return np.array([*rg[:2], angle]), (0,0,-dth)
+
+
+def goalkeep(rb, vb, rr, rg):
+    xGoal = rg[0]-0.15
+    #testar velocidade minima (=.15?)
+    if ((vb[0]) > .1) and  ((rb[0]) > .15):
+        #verificar se a projeção está no gol
+        #projetando vetor até um xGoal-> y = (xGoal-Xball) * Vyball/Vxball + yBall 
+        ytarget = max(min((((xGoal-rb[0])/vb[0])*vb[1])+rb[1],0.23),-0.23)
+        angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
+        return (xGoal, ytarget, angle)
+    #Se não acompanha o y
+    ytarget = max(min(rb[1],0.23),-0.23)
+    angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
+    return np.array([xGoal, ytarget, angle])

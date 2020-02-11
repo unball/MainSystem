@@ -1,4 +1,4 @@
-from controller.strategy.entity import Attacker
+from controller.strategy.entity import Attacker, GoalKeeper
 
 class Strategy:
     def __init__(self, world, robots):
@@ -18,9 +18,8 @@ class Strategy:
         self.movementDecider()
 
     def entityDecider(self):
-        # Todos são atacantes
-        for robot in self.robots:
-            robot.entity = Attacker(self.world, robot)
+        self.robots[0].entity = Attacker(self.world, self.robots[0])
+        self.robots[1].entity = GoalKeeper(self.world, self.robots[1])
 
     def directionDecider(self):
         for robot in self.robots:

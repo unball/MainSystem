@@ -31,8 +31,8 @@ class DebugHLC(ParamsPattern, State):
     self.world = controller.world
     """Referência para o mundo"""
 
-    self.robot = self.world.robots[0]
-    """Referência para o robô 0"""
+    self.robots = self.world.robots[:2]
+    """Referência para os robôs"""
 
     self.initialTime = time.time()
     """Tempo inicial a ser usado como origem de tempo dos dados de debug"""
@@ -69,7 +69,7 @@ class DebugHLC(ParamsPattern, State):
       "velRobotX": [],
       "velRobotY": [],
       "velRobotMod": [],
-      "replayData": {"time": [], "robot": [], "ball": []},
+      "replayData": {"time": [], "robot": [], "robot1": [], "ball": []},
       "loopTime": 0,
       "controlV": 0,
       "controlW": 0,
@@ -111,24 +111,24 @@ class DebugHLC(ParamsPattern, State):
       # Alimenta dados de debug
       if self.initialTime is None: self.initialTime = time.time()
       self.debugData["time"].append(time.time()-self.initialTime)
-      self.debugData["posX"].append(self.robot.x)
-      self.debugData["posY"].append(self.robot.y)
-      self.debugData["posTh"].append(adjustAngle(self.robot.th))
+      self.debugData["posX"].append(self.robots[0].x)
+      self.debugData["posY"].append(self.robots[0].y)
+      self.debugData["posTh"].append(adjustAngle(self.robots[0].th))
       self.debugData["posThRef"].append(adjustAngle(reference))
-      self.debugData["posThErr"].append(angError(reference, self.robot.th))
-      self.debugData["velLin"].append(speeds[0].v)
-      self.debugData["visionLin"].append(self.robot.velmod)
+      self.debugData["posThErr"].append(angError(reference, self.robots[0].th))
+      self.debugData["velLin"].append(abs(speeds[0].v))
+      self.debugData["visionLin"].append(self.robots[0].velmod)
       self.debugData["velAng"].append(speeds[0].w)
-      self.debugData["visionAng"].append(self.robot.w)
+      self.debugData["visionAng"].append(self.robots[0].w)
       self.debugData["velBallX"].append(self.world.ball.vel[0])
       self.debugData["velBallY"].append(self.world.ball.vel[1])
       self.debugData["velBallMod"].append(self.world.ball.velmod)
       self.debugData["accBallX"].append(self.world.ball.acc[0])
       self.debugData["accBallY"].append(self.world.ball.acc[1])
       self.debugData["accBallMod"].append(self.world.ball.accmod)
-      self.debugData["velRobotX"].append(self.robot.vel[0])
-      self.debugData["velRobotY"].append(self.robot.vel[1])
-      self.debugData["velRobotMod"].append(self.robot.velmod)
+      self.debugData["velRobotX"].append(self.robots[0].vel[0])
+      self.debugData["velRobotY"].append(self.robots[0].vel[1])
+      self.debugData["velRobotMod"].append(self.robots[0].velmod)
 
       if self.firstLoopRunning:
         for k in self.debugData["replayData"]: self.debugData["replayData"][k].clear()
@@ -136,7 +136,8 @@ class DebugHLC(ParamsPattern, State):
         self.replayInitialTime = time.time()
       
       self.debugData["replayData"]["time"].append(time.time()-self.replayInitialTime)
-      self.debugData["replayData"]["robot"].append(copy.deepcopy(self.robot))
+      self.debugData["replayData"]["robot"].append(copy.deepcopy(self.robots[0]))
+      self.debugData["replayData"]["robot1"].append(copy.deepcopy(self.robots[1]))
       self.debugData["replayData"]["ball"].append(copy.deepcopy(self.world.ball))
 
     else: self.firstLoopRunning = True
@@ -145,9 +146,9 @@ class DebugHLC(ParamsPattern, State):
     self.debugData["loopTime"] = (dt*1000)*0.1 + self.debugData["loopTime"]*0.9
     self.debugData["controlV"] = speeds[0].v
     self.debugData["controlW"] = speeds[0].w
-    self.debugData["visionV"] = self.robot.velmod
-    self.debugData["visionW"] = self.robot.w
-    self.debugData["visionPose"] = (*self.robot.pos, self.robot.th*180/np.pi)
+    self.debugData["visionV"] = self.robots[0].velmod
+    self.debugData["visionW"] = self.robots[0].w
+    self.debugData["visionPose"] = (*self.robots[0].pos, self.robots[0].th*180/np.pi)
   
   def update(self):
     """Função de loop do estado debugHLC"""
@@ -163,24 +164,22 @@ class DebugHLC(ParamsPattern, State):
     # Condições para rodar a estratégia
     if self.runStrategyCondition():
       self.strategy.run()
-    
-    # Obtém o target instantâneo
-    reference = self.robot.field.F(self.robot.pose)
-
-    # Atualiza o erro angular do robô
-    self.robot.lastAngError = angError(reference, self.robot.th)
 
     # Define um controle
-    self.robot.controlSystem = self.HLCs.get()
+    self.robots[0].controlSystem = self.HLCs.get()
+    self.robots[1].controlSystem = self.HLCs.get()
     
     # Controle manual
     if self.getParam("enableManualControl"):
-      speeds = [SpeedPair(self.getParam("manualControlSpeedV"), self.getParam("manualControlSpeedW"))]
+      manualSpeed = SpeedPair(self.getParam("manualControlSpeedV"), self.getParam("manualControlSpeedW"))
+      speeds = [manualSpeed, manualSpeed]
 
     # Controle de alto nível
     else:
-      highLevelspeed = self.robot.controlSystem.actuate(reference, self.robot.pose, self.robot.field, self.robot.dir, self.robot.gammavels, self.robot.vref)
-      speeds = [SpeedPair(highLevelspeed.v,-highLevelspeed.w)]
+      speeds = [r.actuate() for r in self.robots]
+    
+    # Obtém o target instantâneo
+    reference = self.robots[0].field.F(self.robots[0].pose)
 
     # Adiciona dados de debug para gráficos e para salvar
     self.appendDebugData(reference, speeds, dt)
@@ -191,10 +190,11 @@ class DebugHLC(ParamsPattern, State):
 
       # Simula nova posição
       else:
-        simulate(self.robot, speeds[0].v, -speeds[0].w)
-        simulateBall(self.world.ball)
+        for robot, speed in zip(self.robots, speeds):
+          simulate(robot, speed.v, -speed.w)
+        #simulateBall(self.world.ball)
     
-    # Envia zero para o robô
+    # Envia zero para os robôs
     else: self._controller.communicationSystems.get().sendZero()
 
     # Garante que o tempo de loop é de no mínimo 33ms

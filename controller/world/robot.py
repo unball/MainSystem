@@ -1,6 +1,7 @@
 from controller.world.element import Element
 from controller.control.UFC import UFC
-from controller.tools import adjustAngle
+from controller.control import SpeedPair
+from controller.tools import adjustAngle, angError
 import numpy as np
 
 class Robot(Element):
@@ -26,9 +27,21 @@ class Robot(Element):
 
     self.lastAngError = 0
 
+    self.lastControlLinVel = 0
+
     self.vref = 0
 
     self.gammavels = (0,0)
+
+  def actuate(self):
+    """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""
+    reference = self.field.F(self.pose)
+
+    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref)
+    self.lastControlLinVel = v
+    self.lastAngError = angError(reference, self.th)
+
+    return SpeedPair(v * self.dir, -w)
 
   @property
   def field(self):

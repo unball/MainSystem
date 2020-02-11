@@ -57,12 +57,16 @@ class SerialRadio(ParamsPattern, Communication):
       self.serial.write(message)
       if waitack:
         response = self.serial.readline().decode()
-        result = list(map(lambda x:int(x), response.replace("\n","").split("\t")))
-        if len(result) != 3: print("ACK de tamanho errado")
-        else:
-          if result[0] != checksum or result[1] != data[0] or result[2] != data[5]:
-            print("Enviado:\t" + str(checksum) + "\t" + str(data[0]) + "\t" + str(data[5]))
-            print("ACK:\t\t" + response)
+        try:
+          result = list(map(lambda x:int(x), response.replace("\n","").split("\t")))
+          if len(result) != 3: print("ACK de tamanho errado")
+          else:
+            if result[0] != checksum or result[1] != data[0] or result[2] != data[5]:
+              print("Enviado:\t" + str(checksum) + "\t" + str(data[0]) + "\t" + str(data[5]))
+              print("ACK:\t\t" + response)
+        except:
+          print("Enviado:\t" + ' '.join([hex(c) for c in list(message)]))
+          print("ACK:\t\t" + '0x42 0x42 0x42 ' + response)
     except Exception as e:
       self.failCount += 1
       print("Falha ao enviar: " + str(self.failCount) + ", " + str(e))

@@ -102,7 +102,7 @@ class DebugHLCView(LoopThread, StackSelector):
     self.UVF_ponRadius.connect("value-changed", self.setWorldParam, "UVF_ponRadius")
     self.UVF_ponDistanceRadius.connect("value-changed", self.setWorldParam, "UVF_ponDistanceRadius")
     self.UVF_ponMinAvoidanceAngle.connect("value-changed", self.setWorldParam, "UVF_ponMinAvoidanceAngle")
-    self.UVF_showField.connect("state-set", self.setShowField)
+    self.UVF_showField.connect("changed", self.setShowField)
     self.selectableFinalPoint.connect("state-set", self.setHLCParam_state_set, "selectableFinalPoint")
     self.fieldList.connect("row-activated", self.fieldChooser)
     self.manualControl.connect("state-set", self.setHLCParam_state_set, "enableManualControl")
@@ -112,8 +112,8 @@ class DebugHLCView(LoopThread, StackSelector):
 
     return mainBox
 
-  def setShowField(self, widget, state):
-    self.__renderer.showField = state
+  def setShowField(self, widget):
+      self.__renderer.showField = int(widget.get_active_id())
 
   def on_click(self, p):
     finalPoint = (*p, self.__controllerState.finalPoint[2])
@@ -165,9 +165,9 @@ class DebugHLCView(LoopThread, StackSelector):
     if self.__controllerState is None: return []
     if self.replay:
       if self.running: self.reprTime = (time.time()-self.beginReplayTime) / self.replayTimeScale
-      return [self.replayData("robot", self.reprTime)]
+      return [self.replayData("robot", self.reprTime), self.replayData("robot1", self.reprTime)]
     else:
-      return [self.__controllerState.robot]
+      return self.__controllerState.robots
 
   def getRowByName(self, listBox, key):
     for i in range(5):
