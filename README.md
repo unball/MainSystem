@@ -14,5 +14,7 @@ A documentação pode ser gerada com o comando:
 
 ### Commits que deram certo
 Volte para os commits a seguir caso seja necessário:
-| Id commit |
-| 350782cfe4485b4124a69653eb6bd0ba1301e2c7 |
+
+| Data | Commit |
+| --- | --- |
+| 11/02/2020 |  <b>MainSystem:</b> 350782cfe4485b4124a69653eb6bd0ba1301e2c7<br/><b>Firmware:</b> f9bc21cbf97e57098c4ab8a8ef0342b736f75f90<br/><b>communication:</b> 93e264f0167502b45f29fa6b460c85405c092676<br/> |
