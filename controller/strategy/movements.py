@@ -57,7 +57,7 @@ def goToGoal(rg, rr, vr):
 
 
 def goalkeep(rb, vb, rr, rg):
-    xGoal = rg[0]-0.15
+    xGoal = rg[0]-0.1
     #testar velocidade minima (=.15?)
     if ((vb[0]) > .1) and  ((rb[0]) > .15):
         #verificar se a projeção está no gol
