@@ -1,4 +1,4 @@
-from controller.strategy.entity import Attacker, GoalKeeper
+from controller.strategy.entity import Attacker, GoalKeeper, Defender
 
 class Strategy:
     def __init__(self, world, robots):
@@ -18,8 +18,12 @@ class Strategy:
         self.movementDecider()
 
     def entityDecider(self):
-        self.robots[0].entity = Attacker(self.world, self.robots[0])
-        self.robots[1].entity = GoalKeeper(self.world, self.robots[1])
+        self.robots[0].entity = Defender(self.world, self.robots[0])
+        self.robots[1].entity = Attacker(self.world, self.robots[1])
+        #TODO: Caso o atacante esteja parado (sem a bola), Defender vira atacante
+        # if self.world.ball.pos[0] < 0:
+        #     self.robots[1].entity = Attacker(self.world, self.robots[1])
+
 
     def directionDecider(self):
         for robot in self.robots:

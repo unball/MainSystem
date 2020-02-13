@@ -31,7 +31,7 @@ class Robot(Element):
 
     self.vref = 0
 
-    self.gammavels = (0,0)
+    self.gammavels = (0,0,0)
 
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""

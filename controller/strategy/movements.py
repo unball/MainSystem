@@ -1,5 +1,6 @@
 from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative
 import numpy as np
+import math
 
 def howFrontBall(rb, rr, rg):
     return np.dot(rr[:2]-rb, unit(angl(rg-rb)))
@@ -57,15 +58,49 @@ def goToGoal(rg, rr, vr):
 
 
 def goalkeep(rb, vb, rr, rg):
-    xGoal = rg[0]-0.1
+    xGoal = rg[0]
     #testar velocidade minima (=.15?)
-    if ((vb[0]) > .1) and  ((rb[0]) > .15):
+    ytarget = (((xGoal-rb[0])/vb[0])*vb[1])+rb[1]
+    if ((vb[0]) > .1): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
         #verificar se a projeção está no gol
         #projetando vetor até um xGoal-> y = (xGoal-Xball) * Vyball/Vxball + yBall 
-        ytarget = max(min((((xGoal-rb[0])/vb[0])*vb[1])+rb[1],0.23),-0.23)
+        ytarget = sat(ytarget, 0.15)
         angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
         return (xGoal, ytarget, angle)
     #Se não acompanha o y
-    ytarget = max(min(rb[1],0.23),-0.23)
+    ytarget = sat(rb[1],0.15)
     angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
     return np.array([xGoal, ytarget, angle])
+
+def followBally(rb, rr):
+    angle = np.pi/2 if rr[1] < rb[1] else -np.pi/2
+    return (0.2, rb[1], angle)
+
+def blockBallElipse(rb, vb, rr):
+    a = 0.3
+    b = 0.45
+    e = np.array([1/a, 1/b])
+    rm = np.array([0.75, 0])
+    
+    d = norml(e*(rr[:2]-rm))
+    #if np.abs(d-1) < 0.5: e = e / d
+
+    finalTarget = np.array([.75, 0])
+
+    vb = rb - finalTarget
+    k = -1/np.sqrt(np.dot(e*vb, e*vb)) * np.sign(vb[0])
+    r = finalTarget + k *(vb)
+    r_ = r-rm
+    o = math.atan2(r_[1], r_[0])
+    t = math.atan2(a*math.sin(o), b*math.cos(o))
+    r_ort = (-a*math.sin(t), b*math.cos(t))
+    r_ort_angle = math.atan2(r_ort[1], r_ort[0])
+    
+    if rr[1] > r[1] and r_ort_angle > 0: r_ort_angle = r_ort_angle+np.pi
+    if rr[1] < r[1] and r_ort_angle < 0: r_ort_angle = r_ort_angle+np.pi
+
+
+    
+    return (r[0], r[1], r_ort_angle)
+
+    return followBally(rb, rr)
