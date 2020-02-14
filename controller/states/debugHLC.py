@@ -31,7 +31,7 @@ class DebugHLC(ParamsPattern, State):
     self.world = controller.world
     """Referência para o mundo"""
 
-    self.robots = self.world.robots[:2]
+    self.robots = self.world.robots[:3]
     """Referência para os robôs"""
 
     self.initialTime = time.time()
@@ -69,7 +69,7 @@ class DebugHLC(ParamsPattern, State):
       "velRobotX": [],
       "velRobotY": [],
       "velRobotMod": [],
-      "replayData": {"time": [], "robot": [], "robot1": [], "ball": []},
+      "replayData": {"time": [], "robot": [], "robot1": [], "robot2": [], "ball": []},
       "loopTime": 0,
       "controlV": 0,
       "controlW": 0,
@@ -138,6 +138,7 @@ class DebugHLC(ParamsPattern, State):
       self.debugData["replayData"]["time"].append(time.time()-self.replayInitialTime)
       self.debugData["replayData"]["robot"].append(copy.deepcopy(self.robots[0]))
       self.debugData["replayData"]["robot1"].append(copy.deepcopy(self.robots[1]))
+      self.debugData["replayData"]["robot2"].append(copy.deepcopy(self.robots[2]))
       self.debugData["replayData"]["ball"].append(copy.deepcopy(self.world.ball))
 
     else: self.firstLoopRunning = True
@@ -172,7 +173,7 @@ class DebugHLC(ParamsPattern, State):
     # Controle manual
     if self.getParam("enableManualControl"):
       manualSpeed = SpeedPair(self.getParam("manualControlSpeedV"), self.getParam("manualControlSpeedW"))
-      speeds = [manualSpeed, manualSpeed]
+      speeds = [manualSpeed, manualSpeed, manualSpeed]
 
     # Controle de alto nível
     else:
