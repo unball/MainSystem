@@ -56,7 +56,6 @@ def goToGoal(rg, rr, vr):
 
     return np.array([*rg[:2], angle]), (0,0,-dth)
 
-
 def goalkeep(rb, vb, rr, rg):
     xGoal = rg[0]
     #testar velocidade minima (=.15?)
@@ -80,15 +79,15 @@ def blockBallElipse(rb, vb, rr):
     a = 0.3
     b = 0.45
     e = np.array([1/a, 1/b])
-    rm = np.array([0.75, 0])
+    rm = np.array([-0.75, 0])
     
     d = norml(e*(rr[:2]-rm))
     #if np.abs(d-1) < 0.5: e = e / d
 
-    finalTarget = np.array([.75, 0])
+    finalTarget = np.array([-.75, 0])
 
     vb = rb - finalTarget
-    k = -1/np.sqrt(np.dot(e*vb, e*vb)) * np.sign(vb[0])
+    k = 1/np.sqrt(np.dot(e*vb, e*vb)) #* np.sign(vb[0])
     r = finalTarget + k *(vb)
     r_ = r-rm
     o = math.atan2(r_[1], r_[0])
@@ -103,4 +102,4 @@ def blockBallElipse(rb, vb, rr):
     
     return (r[0], r[1], r_ort_angle)
 
-    return followBally(rb, rr)
+    #return followBally(rb, rr)
