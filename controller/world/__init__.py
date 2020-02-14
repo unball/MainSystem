@@ -77,6 +77,9 @@ class World(ParamsPattern):
   def setRunning(self, state):
     """Recebe uma flag `state` indicando se o jogo está ou não rodando."""
     self.running = state
+    if state is True:
+      for robot in self.robots:
+        robot.lastTimeAlive = time.time()
     
   def getRobots(self):
     """Retorna os robôs."""
