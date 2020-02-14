@@ -3,6 +3,7 @@ from controller.control.UFC import UFC
 from controller.control import SpeedPair
 from controller.tools import adjustAngle, angError
 import numpy as np
+import time
 
 class Robot(Element):
   """Classe filha que implementa um robô no campo."""
@@ -33,11 +34,18 @@ class Robot(Element):
 
     self.gammavels = (0,0,0)
 
+    self.lastTimeAlive = None
+
+    """Ativa o spin, onde '1' é horário e '-1' é """
+    self.spin = 0
+
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""
+    if self.field is None: return SpeedPair(0,0)
+
     reference = self.field.F(self.pose)
 
-    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref)
+    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref, self.spin)
     self.lastControlLinVel = v
     self.lastAngError = angError(reference, self.th)
 
@@ -94,3 +102,20 @@ class Robot(Element):
       super().update(x, y, th - (np.pi if self.dir == -1 else 0))
 
     return self
+
+  def isAlive(self):
+    """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão""""
+    ctrlVel = np.abs(self.lastControlLinVel)
+
+    if ctrlVel < 0.01:
+      self.lastTimeAlive = time.time()
+      return True
+
+    if self.velmod / ctrlVel < 0.01:
+      if self.lastTimeAlive is not None and time.time()-self.lastTimeAlive > 3:
+        return False
+    else:
+      self.lastTimeAlive = time.time()
+    
+    return True
+    
