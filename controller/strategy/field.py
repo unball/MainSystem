@@ -151,7 +151,7 @@ class UVF():
     P = np.array(P)
     dx = (self.F(P+[d,0,0])-self.F(P))/d
     dy = (self.F(P+[0,d,0])-self.F(P))/d
-    return (dx*np.cos(P[2]) + dy*np.sin(P[2]))
+    return (dx*np.cos(P[2]) + dy*np.sin(P[2])) / 2
 
   def gamma(self, P: tuple, v: tuple, d=0.0001):
     P = np.array(P)
