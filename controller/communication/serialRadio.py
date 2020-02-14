@@ -50,7 +50,8 @@ class SerialRadio(ParamsPattern, Communication):
     for v in data: message += (v).to_bytes(2,byteorder='little', signed=True)
 
     # Concatena com o checksum
-    message += ((1 if checksum >= 0 else -1) * (abs(checksum) % 32767)).to_bytes(2,byteorder='little', signed=True)
+    limitedChecksum = (1 if checksum >= 0 else -1) * (abs(checksum) % 32767)
+    message += (limitedChecksum).to_bytes(2,byteorder='little', signed=True)
 
     # Envia
     try:
@@ -61,12 +62,14 @@ class SerialRadio(ParamsPattern, Communication):
           result = list(map(lambda x:int(x), response.replace("\n","").split("\t")))
           if len(result) != 3: print("ACK de tamanho errado")
           else:
-            if result[0] != checksum or result[1] != data[0] or result[2] != data[5]:
-              print("Enviado:\t" + str(checksum) + "\t" + str(data[0]) + "\t" + str(data[5]))
+            if result[0] != limitedChecksum or result[1] != data[0] or result[2] != data[5]:
+              print("Enviado:\t" + str(limitedChecksum) + "\t" + str(data[0]) + "\t" + str(data[5]))
               print("ACK:\t\t" + response)
         except:
-          print("Enviado:\t" + ' '.join([hex(c) for c in list(message)]))
-          print("ACK:\t\t" + '0x42 0x42 0x42 ' + response)
+          #print("Enviado:\t" + str(data[0]) + " " + str(data[5]) + " " + ' '.join([hex(c) for c in list(message)]))
+          print(data)
+          print(limitedChecksum)
+          print("ACK:\t\t" + response)
     except Exception as e:
       self.failCount += 1
       print("Falha ao enviar: " + str(self.failCount) + ", " + str(e))
