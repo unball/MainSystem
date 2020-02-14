@@ -165,7 +165,7 @@ class DebugHLCView(LoopThread, StackSelector):
     if self.__controllerState is None: return []
     if self.replay:
       if self.running: self.reprTime = (time.time()-self.beginReplayTime) / self.replayTimeScale
-      return [self.replayData("robot", self.reprTime), self.replayData("robot1", self.reprTime)]
+      return [self.replayData("robot", self.reprTime), self.replayData("robot1", self.reprTime), self.replayData("robot2", self.reprTime)]
     else:
       return self.__controllerState.robots
 
