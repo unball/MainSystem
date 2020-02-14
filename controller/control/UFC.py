@@ -11,7 +11,7 @@ class UFC(HLC):
 
     self.g = 9.8
 
-  def actuate(self, reference, currentPose, field, dir, gammavels, vref):
+  def actuate(self, reference, currentPose, field, dir, gammavels, vref, spin=0):
     """Lei de controle baseada no livro Springer Tracts in Advanced Robotics - Soccer Robotics para o controle unificado. Esta função implementa a lei:
     $$
     v = \\min(v_1,v_2,v_3)\\\\
@@ -21,6 +21,10 @@ class UFC(HLC):
     \\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\\\
     \\omega = v \\cdot \\phi + K_{\\omega} \\cdot \\text{sign}(\\theta_e) \\sqrt{|\\theta_e|}
     $$"""
+
+    # Spin
+    if spin != 0:
+      return 0,63.0*spin
 
     # Obtém os parâmetros
     kw = self.getParam("kw")
