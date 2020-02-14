@@ -16,69 +16,13 @@ class Entity(ABC):
     def directionDecider(self):
         """Altera a propriedade `dir` do robo de acordo com a decisão"""
         # Inverte se o último erro angular foi maior que 160º
-        if abs(self.robot.lastAngError) > 120 * np.pi / 180:
+        if abs(self.robot.lastAngError) > 160 * np.pi / 180:
             self.robot.dir *= -1
 
     @abstractmethod
     def movementDecider(self):
         """Altera a propriedade `field` do robo de acordo com a decisão"""
         pass
-
-
-class Defender(Entity):
-    def __init__(self, world, robot):
-        super().__init__(robot, (0,255,0))
-
-        self.world = world
-    
-    def directionDecider(self):
-        """Altera a propriedade 'dir' do robô de acordo com a decisão"""
-        # Inverte se o último erro angular foi maior que 160º
-        if abs(self.robot.lastAngError) > 90 * np.pi / 180:
-            self.robot.dir *= -1
-
-    def movementDecider(self):
-        # Dados necessários para a decisão
-        rb = np.array(self.world.ball.pos.copy())
-        vb = np.array(self.world.ball.vel.copy())
-        rr = np.array(self.robot.pose)
-
-        pose = blockBallElipse(rb, vb, rr)
-
-        self.robot.vref = 0
-        self.robot.field = UVFDefault(self.world, pose, direction = 0)
-
-        #self.robot.field = DefenderField(pose)
-
-
-class GoalKeeper(Entity):
-    def __init__(self, world, robot):
-        super().__init__(robot, (255,0,0))
-
-        self.world = world
-
-    def directionDecider(self):
-        """Altera a propriedade `dir` do robo de acordo com a decisão"""
-        # Inverte se o último erro angular foi maior que 160º
-        if abs(self.robot.lastAngError) > 90 * np.pi / 180:
-            self.robot.dir *= -1
-
-    def movementDecider(self):
-        # Dados necessários para a decisão
-        rb = np.array(self.world.ball.pos.copy())
-        vb = np.array(self.world.ball.vel.copy())
-        rr = np.array(self.robot.pose)
-        rg = np.array(self.world.goalpos)-[0.1,0]
-
-        pose = goalkeep(rb, vb, rr, rg)
-        
-        self.robot.gammavels = (0,0,0)
-        self.robot.vref = 0
-        if np.abs(rr[0]-rg[0]) > 0.04:
-            self.robot.field = GoalKeeperField(pose)
-        else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
-        #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
-
 
 class Attacker(Entity):
     def __init__(self, world, robot):
@@ -133,3 +77,56 @@ class Attacker(Entity):
             #if howFrontBall(rb, rr, rg) > 0: radius = 0
             #else: radius = None
             self.robot.field = UVFDefault(self.world, pose, direction=0)
+
+class Defender(Entity):
+    def __init__(self, world, robot):
+        super().__init__(robot, (0,255,0))
+
+        self.world = world
+    
+    def directionDecider(self):
+        """Altera a propriedade 'dir' do robô de acordo com a decisão"""
+        # Inverte se o último erro angular foi maior que 90º
+        if abs(self.robot.lastAngError) > 90 * np.pi / 180:
+            self.robot.dir *= -1
+
+    def movementDecider(self):
+        # Dados necessários para a decisão
+        rb = np.array(self.world.ball.pos.copy())
+        vb = np.array(self.world.ball.vel.copy())
+        rr = np.array(self.robot.pose)
+
+        pose = blockBallElipse(rb, vb, rr)
+
+        self.robot.vref = 0
+        self.robot.field = UVFDefault(self.world, pose, direction = 0)
+
+        #self.robot.field = DefenderField(pose)
+
+class GoalKeeper(Entity):
+    def __init__(self, world, robot):
+        super().__init__(robot, (255,0,0))
+
+        self.world = world
+
+    def directionDecider(self):
+        """Altera a propriedade `dir` do robo de acordo com a decisão"""
+        # Inverte se o último erro angular foi maior que 160º
+        if abs(self.robot.lastAngError) > 90 * np.pi / 180:
+            self.robot.dir *= -1
+
+    def movementDecider(self):
+        # Dados necessários para a decisão
+        rb = np.array(self.world.ball.pos.copy())
+        vb = np.array(self.world.ball.vel.copy())
+        rr = np.array(self.robot.pose)
+        rg = np.array(self.world.goalpos)-[0.1,0]
+
+        pose = goalkeep(rb, vb, rr, rg)
+        
+        self.robot.gammavels = (0,0,0)
+        self.robot.vref = 0
+        if np.abs(rr[0]-rg[0]) > 0.04:
+            self.robot.field = GoalKeeperField(pose)
+        else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
+        #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
