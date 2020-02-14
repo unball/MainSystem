@@ -110,8 +110,9 @@ class HighLevelRenderer(cv2Renderer):
   def draw_field(self, frame):
     """Desenha o campo no frame"""    
 
-    if self.showField != -1:
-      field = self.robots[self.showField].field
+    field = self.robots[self.showField].field
+
+    if self.showField != -1 and field is not None:
       # Desenha todo o campo
       x = np.arange(0, frame.shape[1], self.arrow_size)
       y = np.arange(0, frame.shape[0], self.arrow_size)
