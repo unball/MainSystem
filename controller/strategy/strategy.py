@@ -30,9 +30,8 @@ class Strategy:
         d1b = np.linalg.norm(r1b)
         a0b = angError(angl(r0b), self.robots[0].th)
         a1b = angError(angl(r1b), self.robots[2].th)
+        return -1
         # Robô 0 é um bom atacante
-        if self.robots[2].isAlive() is False: print("MORREU")
-        else: print("VOLTOU")
         if 2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b):# and self.robots[0].isAlive():
             return 0
         # Robô 1 é um bom atacante
@@ -53,11 +52,11 @@ class Strategy:
         if state != -1:
             self.state = state
         if self.state == 1:
+            self.robots[0].entity = Attacker(self.world, self.robots[0])
+            self.robots[2].entity = Defender(self.world, self.robots[2])
+        else:
             self.robots[0].entity = Defender(self.world, self.robots[0])
             self.robots[2].entity = Attacker(self.world, self.robots[2])
-        else:
-            self.robots[2].entity = Defender(self.world, self.robots[2])
-            self.robots[0].entity = Attacker(self.world, self.robots[0])
 
 
     def directionDecider(self):

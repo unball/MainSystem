@@ -5,17 +5,17 @@ def simulate(robot, v, w, dt=0.033, r=0.03, L=0.075):
     """Esta função implementa um simulador para o robô"""
     if w != 0:
         R = abs(v) / w
-        rc = (robot.x - R * np.sin(robot.th), robot.y + R * np.cos(robot.th))
+        rc = (robot.raw_x - R * np.sin(robot.dir_raw_th), robot.raw_y + R * np.cos(robot.dir_raw_th))
         dth = w * dt
-        x = rc[0] + abs(R) * np.cos(ang(rc, robot.pos) + dth)
-        y = rc[1] + abs(R) * np.sin(ang(rc, robot.pos) + dth)
-        th = adjustAngle(robot.th + dth)
+        x = rc[0] + abs(R) * np.cos(ang(rc, robot.raw_pos) + dth)
+        y = rc[1] + abs(R) * np.sin(ang(rc, robot.raw_pos) + dth)
+        th = adjustAngle(robot.dir_raw_th + dth)
     else:
-        x = robot.x + v * dt * np.cos(robot.th)
-        y = robot.y + v * dt * np.sin(robot.th)
-        th = robot.th
+        x = robot.raw_x + abs(v) * dt * np.cos(robot.dir_raw_th)
+        y = robot.raw_y + abs(v) * dt * np.sin(robot.dir_raw_th)
+        th = robot.dir_raw_th
 
-    robot.update(x,y,th,rawUpdate=False)
+    robot.dir_raw_update(x,y,th)
 
 t = 0
 m = 1

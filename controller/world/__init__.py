@@ -41,10 +41,10 @@ class World(ParamsPattern):
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
     self.running = False
-    self.robots = [Robot() for i in range(self.n_robots)]
+    self.robots = [Robot(self) for i in range(self.n_robots)]
     self.enemyRobots = []
     self.edges = []
-    self.ball = Ball()
+    self.ball = Ball(self)
     self.__referenceTime = 0
     
   def update(self, visionMessage):
@@ -60,14 +60,14 @@ class World(ParamsPattern):
       #else:
       theta = allyPose[2]
       
-      self.robots[i].update(allyPose[0], allyPose[1], theta)
+      self.robots[i].raw_update(allyPose[0], allyPose[1], theta)
 
     # Atualiza a lista de robôs adversários
     self.enemyRobots = visionMessage.advPos
     
     # Atualiza a bola se ela foi localizada
     if visionMessage.ball_found:
-      self.ball.update(visionMessage.ball_x, visionMessage.ball_y)
+      self.ball.raw_update(visionMessage.ball_x, visionMessage.ball_y)
     
     # Computa a velocidade com base no tempo passado desde a última chamada a `update` e atualiza o tempo para o tempo atual.
     dt = time.time() - self.__referenceTime
@@ -94,3 +94,6 @@ class World(ParamsPattern):
 
   def setEdges(self, points):
     self.edges = points
+
+  def setFieldSide(self, side):
+    self.fieldSide = side

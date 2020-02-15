@@ -8,8 +8,8 @@ import time
 class Robot(Element):
   """Classe filha que implementa um robô no campo."""
 
-  def __init__(self, controlSystem=UFC("defaultRobot")):
-    super().__init__()
+  def __init__(self, world, controlSystem=UFC("defaultRobot")):
+    super().__init__(world)
     
     self.step = 0.03
     """Distância ao próximo target da trajetória"""
@@ -49,7 +49,7 @@ class Robot(Element):
     self.lastControlLinVel = v
     self.lastAngError = angError(reference, self.th)
 
-    return SpeedPair(v * self.dir, -w)
+    return SpeedPair(v * self.dir, -w * self.world.fieldSide)
 
   @property
   def field(self):
@@ -77,31 +77,20 @@ class Robot(Element):
   @property
   def th(self):
     """Redefinição de th que leva em consideração a direção do robô."""
+    return adjustAngle(super().th + (np.pi if self.dir == -1 else 0))
+
+  @property
+  def dir_raw_th(self):
     return adjustAngle(self.inst_th + (np.pi if self.dir == -1 else 0))
+
+  def dir_raw_update(self, x=0, y=0, th=0):
+    """Atualiza a posição do objeto, atualizando também o valor das posições anteriores."""
+    super().raw_update(x, y, th - (np.pi if self.dir == -1 else 0))
 
   @th.setter
   def th(self, th):
     """Atualiza o ângulo do objeto diretamente (sem afetar o ângulo anterior)."""
-    self.inst_th = th - (np.pi if self.dir == -1 else 0)
-
-  @property
-  def raw_th(self):
-    """Retorna o theta da visão"""
-    return self.inst_th
-
-  @raw_th.setter
-  def raw_th(self, th):
-    """Atualiza direto a variável que contém o theta da visão"""
-    self.inst_th = th
-
-  def update(self, x=0, y=0, th=0, rawUpdate=True):
-    """Atualiza a posição do objeto, atualizando também o valor das posições anteriores."""
-    if rawUpdate == True:
-      super().update(x, y, th)
-    else:
-      super().update(x, y, th - (np.pi if self.dir == -1 else 0))
-
-    return self
+    self.setTh(th - (np.pi if self.dir == -1 else 0))
 
   def isAlive(self):
     """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
