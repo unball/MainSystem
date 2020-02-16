@@ -72,11 +72,11 @@ class Attacker(Entity):
         #if abs(rb[0]) > self.world.xmaxmargin: self.world.goalpos = (-self.world.goalpos[0], self.world.goalpos[1])
 
         if any(np.abs(rb) > self.world.marginLimits):
-            self.robot.field = UVFDefault(self.world, (*pose[:2], 0), direction=-np.sign(rb[1]), radius=0)
+            self.robot.field = UVFDefault(self.world, (*pose[:2], 0), rr, direction=-np.sign(rb[1]), radius=0)
         else: 
             #if howFrontBall(rb, rr, rg) > 0: radius = 0
             #else: radius = None
-            self.robot.field = UVFDefault(self.world, pose, direction=0)
+            self.robot.field = UVFDefault(self.world, pose, rr, direction=0)
 
 class Defender(Entity):
     def __init__(self, world, robot):
@@ -99,7 +99,7 @@ class Defender(Entity):
         pose = blockBallElipse(rb, vb, rr)
 
         self.robot.vref = 0
-        self.robot.field = UVFDefault(self.world, pose, direction = 0)
+        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0)
 
         #self.robot.field = DefenderField(pose)
 

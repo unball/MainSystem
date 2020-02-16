@@ -72,16 +72,21 @@ class GoalKeeperField():
     return 0
 
 class UVF():
-  def __init__(self, Pb, r, Kr, Kr_single, direction=0):
+  def __init__(self, Pb, Pr, r, Kr, Kr_single, direction=0):
     self.r = r
     self.Kr = Kr
     self.Kr_single = Kr_single
+    self.Ko = 0.12
+    self.dmin = 0.0348
+    self.delta = 0.0457
     self.Pb = Pb
+    self.Pr = Pr
     self.direction = direction
 
-  def F(self, P, Pb=None, retnparray=False):
-    if len(P.shape) == 1: P = np.array([P]).T
+  def TUF(self, P, Pb=None):
+    P = P.copy()
 
+    # Permite uso de Pb alternativo
     if Pb is None: Pb = self.Pb
 
     # Ajusta o sistema de coordenadas
@@ -117,10 +122,39 @@ class UVF():
       uvf = angl(self.M(Pr, -1, self.r, self.Kr_single))
 
     # Ajusta o sistema de coordenadas
-    uvf = uvf + Pb[0][2]
+    return uvf + Pb[0][2]
+
+  def AUF(self, P, Pr, Vr, Po, Vo):
+    # Vetor de deslocamento
+    s = self.Ko * (Vo-Vr)
+
+    # Obstáculo virtual
+    d = norm(Pr, Po)
+    if d >= norml(s):
+      Pvo = Po + s
+    else:
+      Pvo = Po + (d / norml(s)) * s
+
+    return ang(Pvo, P), norm(Pvo, P)
+
+  def F(self, P, Pb=None, retnparray=False):
+    if len(P.shape) == 1: P = np.array([P]).T
+
+    tuf = self.TUF(P, Pb=Pb)
+    auf, R = self.AUF(P, self.Pr, np.array([0,0]), np.array([0,0]), np.array([0,0]))
+
+    c1 = R <= self.dmin
+    c2 = np.bitwise_not(c1)
+
+    uvf = np.zeros_like(P[0])
+    uvf[c1] = auf[c1]
+    uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf
+
+  def G(self, x, delta):
+    return np.exp(-(x/delta)**2/2)
   
   def alpha(self, P, sign, r, Kr):
     #r2 = r/2
@@ -161,10 +195,10 @@ class UVF():
            (self.F(P, Pb=Pb+[0,0,d])-self.F(P))/d * v[2]) / 2
 
 class UVFDefault(UVF):
-  def __init__(self, world, pose, direction, radius=None):
+  def __init__(self, world, pose, robotPose, direction, radius=None):
     if radius is None: radius = world.getParam("UVF_r")
     
-    super().__init__(pose,
+    super().__init__(pose, robotPose,
       r=radius,
       Kr=world.getParam("UVF_Kr"),
       Kr_single=world.getParam("UVF_Kr_single"),
