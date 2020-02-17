@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall, goalkeep, blockBallElipse
-from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField
+from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField, UVFavoidGoalArea
 from controller.tools import ang, angError, norm, unit
 import numpy as np
 
@@ -75,7 +75,11 @@ class Attacker(Entity):
         # Decide quais espirais estarão no campo e compõe o campo
         #if abs(rb[0]) > self.world.xmaxmargin: self.world.goalpos = (-self.world.goalpos[0], self.world.goalpos[1])
 
-        if any(np.abs(rb) > self.world.marginLimits):
+        # Muda o campo no gol caso a bola esteja lá
+        if self.world.ball.insideGoalArea():
+            self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
+
+        elif any(np.abs(rb) > self.world.marginLimits):
             self.robot.field = UVFDefault(self.world, (*pose[:2], 0), rr, direction=-np.sign(rb[1]), radius=0)
         else: 
             #if howFrontBall(rb, rr, rg) > 0: radius = 0
@@ -103,7 +107,8 @@ class Defender(Entity):
         pose = blockBallElipse(rb, vb, rr)
 
         self.robot.vref = 0
-        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0)
+        self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
+        #self.robot.field = UVFDefault(self.world, pose, rr, direction = 0)
 
         #self.robot.field = DefenderField(pose)
 
