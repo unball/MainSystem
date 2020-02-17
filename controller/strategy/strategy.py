@@ -30,13 +30,13 @@ class Strategy:
         d1b = np.linalg.norm(r1b)
         a0b = angError(angl(r0b), self.robots[0].th)
         a1b = angError(angl(r1b), self.robots[2].th)
+        #if self.robots[2].isAlive() is False: print("MORREU")
+        #else: print("VOLTOU")
         # Robô 0 é um bom atacante
-        if self.robots[2].isAlive() is False: print("MORREU")
-        else: print("VOLTOU")
-        if 2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b):# and self.robots[0].isAlive():
+        if (2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b) and self.robots[0].isAlive()) or not self.robots[2].isAlive():
             return 0
         # Robô 1 é um bom atacante
-        elif 2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b):# and self.robots[2].isAlive():
+        elif (2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b) and self.robots[2].isAlive()) or not self.robots[0].isAlive():
             return 1
         else:
         # Mantém o estado
