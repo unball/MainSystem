@@ -49,6 +49,12 @@ class DebugHLCView(LoopThread, StackSelector):
     self.UVF_ponDistanceRadius = builder.get_object("HLC_UVF_ponDistanceRadius")
     self.UVF_ponMinAvoidanceAngle = builder.get_object("HLC_UVF_ponMinAvoidanceAngle")
     self.UVF_showField = builder.get_object("HLC_UVF_showField")
+    self.UVF_invertField = builder.get_object("HLCInvertField")
+    self.robotEntitySelectors = [
+      builder.get_object("HLCRobot0Entity"),
+      builder.get_object("HLCRobot1Entity"),
+      builder.get_object("HLCRobot2Entity")
+    ]
     self.selectableFinalPoint = builder.get_object("HLCSelectableFinalPoint")
 
     self.HLCcontrolList = ViewMux(self.__controller)
@@ -103,17 +109,22 @@ class DebugHLCView(LoopThread, StackSelector):
     self.UVF_ponDistanceRadius.connect("value-changed", self.setWorldParam, "UVF_ponDistanceRadius")
     self.UVF_ponMinAvoidanceAngle.connect("value-changed", self.setWorldParam, "UVF_ponMinAvoidanceAngle")
     self.UVF_showField.connect("changed", self.setShowField)
+    self.UVF_invertField.connect("state-set", self.setWorldFieldSide)
     self.selectableFinalPoint.connect("state-set", self.setHLCParam_state_set, "selectableFinalPoint")
     self.fieldList.connect("row-activated", self.fieldChooser)
     self.manualControl.connect("state-set", self.setHLCParam_state_set, "enableManualControl")
     self.manualControlLin.connect("value-changed", self.setHLCParam, "manualControlSpeedV")
     self.manualControlAng.connect("value-changed", self.setHLCParam, "manualControlSpeedW")
     self.useVisionButton.connect("state-set",  self.setHLCParam_state_set, "runVision")
+    for i,e in enumerate(self.robotEntitySelectors): e.connect("changed", self.setWorldRobotPreferedEntity, i)
 
     return mainBox
 
   def setShowField(self, widget):
       self.__renderer.showField = int(widget.get_active_id())
+
+  def setWorldRobotPreferedEntity(self, widget, i):
+      self.__controller.addEvent(self.__world.setPreferedEntity, i, widget.get_active_id())
 
   def on_click(self, p):
     finalPoint = (*p, self.__controllerState.finalPoint[2])
@@ -213,6 +224,9 @@ class DebugHLCView(LoopThread, StackSelector):
 
   def setHLCParam_state_set(self, widget, state, key):
     self.__controller.addEvent(self.__controllerState.setParam, key, state)
+
+  def setWorldFieldSide(self, widget, state):
+    self.__controller.addEvent(self.__world.setFieldSide, -1 if state else 1)
 
   def fieldChooser(self, widget, row):
     self.__controller.addEvent(self.__controllerState.setParam, "selectedField", row.get_name())

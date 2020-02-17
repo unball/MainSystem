@@ -1,11 +1,14 @@
-from controller.tools import angError, shift
+from controller.tools import angError, shift, angl, unit
 import numpy as np
 
 
 class Element(object):
   """Classe mãe que implementa um elemento de jogo como bola ou robô"""
 
-  def __init__(self):
+  def __init__(self, world):
+    self.world = world
+    """Elemento deve ter uma referência ao mundo"""
+
     self.inst_x = 0
     """Posição x atual"""
     
@@ -72,6 +75,9 @@ class Element(object):
     return info
 
   def update(self, x=0, y=0, th=0):
+    self.raw_update(x * self.world.fieldSide, y, th * self.world.fieldSide)
+
+  def raw_update(self, x=0, y=0, th=0):
     """Atualiza a posição do objeto, atualizando também o valor das posições anteriores."""
     self.dprev_x = self.prev_x
     self.dprev_y = self.prev_y
@@ -82,10 +88,15 @@ class Element(object):
     self.inst_y = y
     self.inst_th = th
     self.poseDefined = True
-    return self
+
 
   @property
   def pos(self):
+    """Retorna a posição \\([x,y]\\) do objeto como uma lista."""
+    return [self.x, self.y]
+
+  @property
+  def raw_pos(self):
     """Retorna a posição \\([x,y]\\) do objeto como uma lista."""
     return [self.inst_x, self.inst_y]
 
@@ -94,30 +105,47 @@ class Element(object):
     """Retorna a pose \\([x,y,\\theta]\\) do objeto um numpy array."""
     return np.array([self.x, self.y, self.th])
 
-  @pos.setter
-  def pos(self, x, y):
-    """Atualiza a posição do objeto diretamente (sem afetar os valores anteriores)."""
-    self.inst_x = x
-    self.inst_y = y
+  @property
+  def raw_pose(self):
+    """Retorna a pose \\([x,y,\\theta]\\) do objeto um numpy array."""
+    return np.array([self.inst_x, self.inst_y, self.inst_th])
 
   @property
   def th(self):
     """Retorna o ângulo do objeto"""
+    thVec = unit(self.inst_th)
+    return angl((thVec[0] * self.world.fieldSide, thVec[1]))
+
+  @property
+  def raw_th(self):
     return self.inst_th
 
-  @th.setter
-  def th(self, th):
-    """Atualiza o ângulo do objeto diretamente (sem afetar o ângulo anterior)."""
+  @raw_th.setter
+  def raw_th(self, th):
+    """Atualiza direto a variável que contém o theta da visão"""
     self.inst_th = th
+
+  def setTh(self, th):
+    """Atualiza o ângulo do objeto diretamente (sem afetar o ângulo anterior)."""
+    thVec = unit(th)
+    self.inst_th = angl((-thVec[0] * self.world.fieldSide, thVec[1]))
 
   @property
   def vel(self):
     """Retorna a velocidade do objeto no formato de lista: \\([v_x, v_y]\\)"""
+    return [self.inst_vx * self.world.fieldSide, self.inst_vy]
+
+  @property
+  def raw_vel(self):
     return [self.inst_vx, self.inst_vy]
 
   @property
   def acc(self):
     """Retorna a aceleração do objeto no formato de lista: \\([a_x, a_y]\\)"""
+    return [self.inst_ax * self.world.fieldSide, self.inst_ay]
+
+  @property
+  def raw_acc(self):
     return [self.inst_ax, self.inst_ay]
 
   @property
@@ -133,18 +161,19 @@ class Element(object):
   @property
   def velang(self):
     """Retorna o ângulo do vetor velocidade do objeto: \\(\\text{arctan2}(v_y, v_x)\\)"""
+    return np.arctan2(self.inst_vy, self.inst_vx * self.world.fieldSide)
+
+  @property
+  def raw_velang(self):
     return np.arctan2(self.inst_vy, self.inst_vx)
-    
-  @vel.setter
-  def vel(self, v):
-    """Atualiza a velocidade do objeto recebendo uma tupla `v` no formato \\((v_x,v_y)\\)"""
-    vx, vy = v
-    self.inst_vx = vx
-    self.inst_vy = vy
 
   @property
   def w(self):
     """Retorna a velocidade angular do objeto"""
+    return self.inst_w * self.world.fieldSide
+
+  @property
+  def raw_w(self):
     return self.inst_w
 
   @w.setter
@@ -187,10 +216,18 @@ class Element(object):
   @property
   def x(self):
     """Retorna a posição \\(x\\) atual do objeto"""
+    return self.inst_x * self.world.fieldSide
+
+  @property
+  def raw_x(self):
     return self.inst_x
 
   @property
   def y(self):
     """Retorna a posição \\(y\\) atual do objeto"""
     return self.inst_y
-
+    
+  @property
+  def raw_y(self):
+    """Retorna a posição \\(y\\) atual do objeto"""
+    return self.inst_y

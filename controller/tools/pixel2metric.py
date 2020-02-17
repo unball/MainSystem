@@ -1,3 +1,5 @@
+from controller.tools import unit, angl
+
 def pixel2meters(world, position, shape):
   """Recebe o mundo, uma posição e o tamanho do frame e converte a coordenada do pixel para uma coordenada no mundo físico com o centro no centro do campo. É a operação inversa do `meters2pixel`"""
   camera_x_length = shape[1]
@@ -47,3 +49,12 @@ def meters2pixelSize(world, size, shape):
 def normToAbs(normPoint, shape):
   """Método que recebe um ponto \\(p=(x,y)\\) em um sistema de coordenadas normalizado \\(0\\leq x,y \\leq 1\\) e passa para um sistema de coordenadas absoluto em pixels de acordo com `shape`: \\(s=(h,w)\\), pela fórmula: \\((w\\cdot x, h\\cdot y)\\)"""
   return (round(normPoint[0]*shape[1]), round(normPoint[1]*shape[0]))
+
+def invertAng(angle, side):
+  if side == 1: return angle
+  vecAng = unit(angle)
+  return angl((-vecAng[0], vecAng[1]))
+
+def invertVec(vec, side):
+  if side == 1: return vec
+  return (-vec[0], vec[1])

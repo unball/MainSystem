@@ -84,11 +84,11 @@ class DebugHLC(ParamsPattern, State):
 
   def setFinalPoint(self, point):
     """Atualiza a posição da bola"""
-    self.world.ball.update(*point)
+    self.world.ball.raw_update(*point)
 
   @property
   def finalPoint(self):
-    return self.world.ball.pose
+    return self.world.ball.raw_pose
 
   def selectHLC(self, index):
     """Muda o controle alto nível selecionado"""
