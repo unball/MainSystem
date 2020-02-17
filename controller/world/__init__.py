@@ -37,7 +37,8 @@ class World(ParamsPattern):
     self.ymaxmargin = self.ymax - 0.15
     self.marginLimits = (self.xmaxmargin, self.ymaxmargin)
     self.goalpos = (self.xmax, 0)
-    self.allyGoalPos = (-self.xmax, 0)
+    self.allyGoalPos = np.array([-self.xmax, 0])
+    self.goalAreaSize = np.array([0.25, 0.35])
     self.goalylength = 0.4
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
