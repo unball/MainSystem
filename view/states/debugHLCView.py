@@ -257,6 +257,7 @@ class DebugHLCView(LoopThread, StackSelector):
     self.manualControlLin.set_value(self.__controllerState.getParam("manualControlSpeedV"))
     self.manualControlAng.set_value(self.__controllerState.getParam("manualControlSpeedW"))
     self.useVisionButton.set_state(self.__controllerState.getParam("runVision"))
+    for i,e in enumerate(self.robotEntitySelectors): self.setWorldRobotPreferedEntity(e, i)
 
     self.__controller.addEvent(self.__controller.setState, self.__controllerState)
     self.__renderer.start()
