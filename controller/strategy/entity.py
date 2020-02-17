@@ -24,6 +24,10 @@ class Entity(ABC):
         """Altera a propriedade `field` do robo de acordo com a decisão"""
         pass
 
+    @property
+    def name(self):
+        return self.__class__.__name__
+
 class Attacker(Entity):
     def __init__(self, world, robot):
         super().__init__(robot, (0,0,255))
@@ -120,7 +124,7 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
-        rg = np.array(self.world.goalpos)-[0.1,0]
+        rg = np.array(self.world.allyGoalPos)+[0.1,0]
 
         pose = goalkeep(rb, vb, rr, rg)
         
