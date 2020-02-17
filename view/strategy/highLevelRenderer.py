@@ -49,7 +49,8 @@ class HighLevelRenderer(cv2Renderer):
   def findNearRobot(self):
     """Encontra um robô na lista de robos que esteja próximo do mouse"""
     width, height = self.getShape()
-    nearRobots = [r for r in self.robots if self.cursorDistance(meters2pixel(self.__world, r.raw_pose, (height, width))) < 20]
+    w,h = meters2pixelSize(self.__world, (0.075,0.075), (height, width))
+    nearRobots = [r for r in self.robots if self.cursorDistance(meters2pixel(self.__world, r.raw_pose, (height, width))) < w]
     if(len(nearRobots) != 0):
       return nearRobots[0]
     else: return None
@@ -85,16 +86,16 @@ class HighLevelRenderer(cv2Renderer):
     """Executado quando um clique é solto, faz o robô selecionado ficar `None`"""
     self.__movingRobot = None
     
-  def draw_robot(self, frame, robot):
+  def draw_robot(self, frame, robot, idx):
     """Desenha um robô e seu target no frame"""
     # Obtém posição em pixels do robô
     position = meters2pixel(self.__world, robot.raw_pose, frame.shape)
+    w,h = meters2pixelSize(self.__world, (0.075,0.075), frame.shape)
     
     # Desenha de outra cor o robô próximo do mouse
-    robotColor = (255,0,0) if self.cursorDistance(position) < 20 else (0,255,0)
+    robotColor = (255,0,0) if self.cursorDistance(position) < w else (0,255,0)
     
     # Desenha o retângulo do robô
-    w,h = meters2pixelSize(self.__world, (0.075,0.075), frame.shape)
     Drawing.draw_rectangle(frame, position, (w,h), robot.raw_th, directionAngle=robot.dir_raw_th, color=robotColor)
 
     if robot.entity is not None:
@@ -106,6 +107,14 @@ class HighLevelRenderer(cv2Renderer):
     
       # Desenha o target do campo
       Drawing.draw_arrow(frame, meters2pixel(self.__world, invertVec(robot.field.Pb, self.__world.fieldSide), frame.shape), invertAng(robot.field.Pb[2], self.__world.fieldSide), color=(0,255,0), size=meters2pixelSize(self.__world, (0.08,0), frame.shape)[0])
+
+    if self.cursorDistance(position) < w:
+      # Escreve o número do robô
+      cv2.putText(frame, str(idx), (int(position[0]+w), int(position[1]+h)), cv2.FONT_HERSHEY_SIMPLEX, 0.08*w/2*0.5, (255,255,255))
+
+      # Escreve a letra da entidade do robô
+      if robot.entity is not None:
+        cv2.putText(frame, str(robot.entity.name[0]), (int(position[0]+w), int(position[1]-h*0.7)), cv2.FONT_HERSHEY_SIMPLEX, 0.08*w/2*0.5, (255,255,255))
     
   def draw_field(self, frame):
     """Desenha o campo no frame"""    
@@ -160,7 +169,7 @@ class HighLevelRenderer(cv2Renderer):
     
     # Desenha os robôs e suas trajetórias
     for i,robot in enumerate(self.robots):
-      self.draw_robot(frame, robot)
+      self.draw_robot(frame, robot, i)
       self.positions.append(robot.pos)
 
     # Só renderiza a parte interna do campo 

@@ -39,6 +39,8 @@ class Robot(Element):
     """Ativa o spin, onde '1' é horário e '-1' é """
     self.spin = 0
 
+    self.preferedEntity = "Atacante"
+
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""
     if self.field is None: return SpeedPair(0,0)
@@ -93,7 +95,11 @@ class Robot(Element):
     self.setTh(th - (np.pi if self.dir == -1 else 0))
 
   def isAlive(self):
+<<<<<<< HEAD
     #"""Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão""""
+=======
+    """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
+>>>>>>> origin/dev_andre
     ctrlVel = np.abs(self.lastControlLinVel)
 
     if ctrlVel < 0.01:

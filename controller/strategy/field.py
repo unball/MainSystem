@@ -141,14 +141,15 @@ class UVF():
     if len(P.shape) == 1: P = np.array([P]).T
 
     tuf = self.TUF(P, Pb=Pb)
-    auf, R = self.AUF(P, self.Pr, np.array([0,0]), np.array([0,0]), np.array([0,0]))
+    # auf, R = self.AUF(P, self.Pr, np.array([0,0]), np.array([0,0]), np.array([0,0]))
 
-    c1 = R <= self.dmin
-    c2 = np.bitwise_not(c1)
+    # c1 = R <= self.dmin
+    # c2 = np.bitwise_not(c1)
 
-    uvf = np.zeros_like(P[0])
-    uvf[c1] = auf[c1]
-    uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
+    # uvf = np.zeros_like(P[0])
+    # uvf[c1] = auf[c1]
+    # uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
+    uvf = tuf
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf

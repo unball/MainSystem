@@ -37,6 +37,7 @@ class World(ParamsPattern):
     self.ymaxmargin = self.ymax - 0.15
     self.marginLimits = (self.xmaxmargin, self.ymaxmargin)
     self.goalpos = (self.xmax, 0)
+    self.allyGoalPos = (-self.xmax, 0)
     self.goalylength = 0.4
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
@@ -97,3 +98,6 @@ class World(ParamsPattern):
 
   def setFieldSide(self, side):
     self.fieldSide = side
+
+  def setPreferedEntity(self, robotIndex, entityPref):
+    self.robots[robotIndex].preferedEntity = entityPref
