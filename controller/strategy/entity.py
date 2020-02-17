@@ -60,7 +60,7 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
-        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.03 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
             pose, gammavels = goToGoal(rg, rr, vr)
             self.robot.vref = 999
             self.robot.gammavels = gammavels

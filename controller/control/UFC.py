@@ -65,7 +65,7 @@ class UFC(HLC):
     #if v > lastspeed.v: v = lastspeed.v + sat(v-lastspeed.v, motorangaccelmax * r * interval / 2)
 
     # Lei de controle da velocidade angular
-    w = v * sat(phi, 10) + sat(omega, 10)
+    w = v * phi + omega
 
     # Considera resposta lenta
     #if tau != 0: w = (w - w0 * tau/dt * (1-np.exp(-dt/tau))) / (1-tau/dt * (1-np.exp(-dt/tau)))
