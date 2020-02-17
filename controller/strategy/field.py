@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from controller.tools import ang, unit, angl, angError, norml, norm
+from controller.tools import ang, unit, angl, angError, norml, norm, insideRect
 import numpy as np
 
 class DefenderField():
@@ -140,6 +140,12 @@ class UVF():
   def F(self, P, Pb=None, retnparray=False):
     if len(P.shape) == 1: P = np.array([P]).T
 
+    uvf = self.th(P, Pb)
+
+    if uvf.size == 1 and not(retnparray): return uvf[0]
+    return uvf
+
+  def th(self, P, Pb):
     tuf = self.TUF(P, Pb=Pb)
     # auf, R = self.AUF(P, self.Pr, np.array([0,0]), np.array([0,0]), np.array([0,0]))
 
@@ -149,10 +155,7 @@ class UVF():
     # uvf = np.zeros_like(P[0])
     # uvf[c1] = auf[c1]
     # uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
-    uvf = tuf
-
-    if uvf.size == 1 and not(retnparray): return uvf[0]
-    return uvf
+    return tuf
 
   def G(self, x, delta):
     return np.exp(-(x/delta)**2/2)
@@ -186,14 +189,14 @@ class UVF():
     P = np.array(P)
     dx = (self.F(P+[d,0,0])-self.F(P))/d
     dy = (self.F(P+[0,d,0])-self.F(P))/d
-    return (dx*np.cos(P[2]) + dy*np.sin(P[2])) / 2
+    return (dx*np.cos(P[2]) + dy*np.sin(P[2])) #/ 2
 
   def gamma(self, P: tuple, v: tuple, d=0.0001):
     P = np.array(P)
     Pb = np.array(self.Pb)
     return ((self.F(P, Pb=Pb+[d,0,0])-self.F(P))/d * v[0] +\
            (self.F(P, Pb=Pb+[0,d,0])-self.F(P))/d * v[1] +\
-           (self.F(P, Pb=Pb+[0,0,d])-self.F(P))/d * v[2]) / 2
+           (self.F(P, Pb=Pb+[0,0,d])-self.F(P))/d * v[2]) #/ 2
 
 class UVFDefault(UVF):
   def __init__(self, world, pose, robotPose, direction, radius=None):
@@ -205,3 +208,27 @@ class UVFDefault(UVF):
       Kr_single=world.getParam("UVF_Kr_single"),
       direction=direction   
     )
+
+class UVFavoidGoalArea(UVF):
+  def __init__(self, world, pose, robotPose, radius=None):
+    if radius is None: radius = world.getParam("UVF_r")
+    self.rm = world.allyGoalPos
+    self.s = world.goalAreaSize + [0.05,0.05]
+    super().__init__(pose, robotPose,
+      r=radius,
+      Kr=world.getParam("UVF_Kr"),
+      Kr_single=world.getParam("UVF_Kr_single"),
+      direction=0
+    )
+  
+  def F(self, P, Pb=None, retnparray=False):
+    if len(P.shape) == 1: P = np.array([P]).T
+
+    c1 = np.bitwise_and(np.abs(P[0]-self.rm[0]) < self.s[0], np.abs(P[1]-self.rm[1]) < self.s[1])
+    c2 = np.bitwise_not(c1)
+    uvf = np.zeros_like(P[0])
+    uvf[c1] = 0
+    uvf[c2] = super().th(P.T[c2].T,Pb)
+
+    if uvf.size == 1 and not(retnparray): return uvf[0]
+    return uvf
