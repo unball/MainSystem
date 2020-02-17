@@ -102,7 +102,10 @@ def blockBallElipse(rb, vb, rr, rm):
     return (r[0], r[1], r_ort_angle)
 
     #return followBally(rb, rr)
+<<<<<<< HEAD
 
 def mirrorPosition(rr, rb, rg):
     angle = -1 * ang(rb, rg)
     return (rr[0]-.1, -1 * rr[1], angle)
+=======
+>>>>>>> 1f149a1... Botão de auto position (ainda não funciona)
