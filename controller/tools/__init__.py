@@ -56,3 +56,9 @@ def shift(data, array):
 
 def derivative(F, x, d=0.00001, *args):
   return (F(x+d, *args) - F(x, *args)) / d
+
+def insideEllipse(r, a, b, rm):
+    return ((r[0]-rm[0])/a)**2+((r[1]-rm[1])/b)**2 < 1
+
+def insideRect(r, rm, s):
+  return np.all(r-rm < s)
