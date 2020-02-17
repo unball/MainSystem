@@ -93,7 +93,7 @@ class Robot(Element):
     self.setTh(th - (np.pi if self.dir == -1 else 0))
 
   def isAlive(self):
-    """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
+    #"""Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão""""
     ctrlVel = np.abs(self.lastControlLinVel)
 
     if ctrlVel < 0.01:
