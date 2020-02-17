@@ -20,6 +20,10 @@ def sat(x: float, amp: float):
   """Satura um número real `x` entre `amp` e `-amp`"""
   return max(min(x, amp), -amp)
 
+def filt(x: float, amp: float):
+  if np.abs(x) > np.abs(amp): return 0
+  else: return x
+
 def fixAngle(angle: float):
   if abs(angle) > np.pi/2:
     return (angle + np.pi/2) % (np.pi) - np.pi/2
