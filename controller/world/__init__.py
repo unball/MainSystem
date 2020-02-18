@@ -72,8 +72,8 @@ class World(ParamsPattern):
       self.ball.raw_update(visionMessage.ball_x, visionMessage.ball_y)
     
     # Computa a velocidade com base no tempo passado desde a última chamada a `update` e atualiza o tempo para o tempo atual.
-    dt = time.time() - self.__referenceTime
-    self.calc_velocities(dt)
+    self.dt = time.time() - self.__referenceTime
+    self.calc_velocities(self.dt)
     self.__referenceTime = time.time()
     
   def setRunning(self, state):
