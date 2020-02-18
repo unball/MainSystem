@@ -48,6 +48,7 @@ class World(ParamsPattern):
     self.edges = []
     self.ball = Ball(self)
     self.__referenceTime = 0
+    self.dt = 0
     
   def update(self, visionMessage):
     """Recebe uma mensagem da visão e atualiza as posições e velocidades de robôs e bola"""
