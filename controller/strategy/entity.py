@@ -107,8 +107,8 @@ class Defender(Entity):
         pose = blockBallElipse(rb, vb, rr)
 
         self.robot.vref = 0
-        self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
-        #self.robot.field = UVFDefault(self.world, pose, rr, direction = 0)
+        #self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
+        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
 
         #self.robot.field = DefenderField(pose)
 
