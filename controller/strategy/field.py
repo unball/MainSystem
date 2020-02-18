@@ -90,7 +90,7 @@ class GoalKeeperField(Field):
     return 0
 
 class UVF(Field):
-  def __init__(self, Pb, Pr, r, Kr, Kr_single, direction=0):
+  def __init__(self, Pb, Pr, r, Kr, Kr_single, direction=0, spiral=True):
     super().__init__(Pb)
     self.r = r
     self.Kr = Kr
@@ -100,6 +100,7 @@ class UVF(Field):
     self.delta = 0.0457
     self.Pr = Pr
     self.direction = direction
+    self.spiral = spiral
 
   def TUF(self, P, Pb=None):
     P = P.copy()
@@ -192,8 +193,10 @@ class UVF(Field):
     # y = P.T[c2].T[1]
     # angle[c2] = np.arctan2(x*sign + 15 *(r-x**2) * y, -y*sign)
     # angle[c3] = 0#np.arctan2(x*sign + 15 *(r-x**2) * y, -y*sign)
-    #angle[c2] = 0
-    angle[c2] = angl(P.T[c2].T) + sign * np.pi/2 * np.sqrt(norml(P.T[c2].T) / r)
+    if self.spiral:
+      angle[c2] = angl(P.T[c2].T) + sign * np.pi/2 * np.sqrt(norml(P.T[c2].T) / r)
+    else:
+       angle[c2] = 0
 
     return angle
 
@@ -204,14 +207,14 @@ class UVF(Field):
     return unit(self.alpha(P, sign, r, Kr))
 
 class UVFDefault(UVF):
-  def __init__(self, world, pose, robotPose, direction, radius=None):
+  def __init__(self, world, pose, robotPose, direction, radius=None, spiral=True):
     if radius is None: radius = world.getParam("UVF_r")
     
     super().__init__(pose, robotPose,
       r=radius,
       Kr=world.getParam("UVF_Kr"),
       Kr_single=world.getParam("UVF_Kr_single"),
-      direction=direction   
+      direction=direction, spiral = spiral
     )
 
 class UVFavoidGoalArea(UVF):
