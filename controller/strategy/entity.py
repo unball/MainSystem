@@ -108,9 +108,9 @@ class Defender(Entity):
 
         self.robot.vref = 0
         #self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
-        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
+        #self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
 
-        #self.robot.field = DefenderField(pose)
+        self.robot.field = DefenderField(pose)
 
 class GoalKeeper(Entity):
     def __init__(self, world, robot):
