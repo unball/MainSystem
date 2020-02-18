@@ -78,10 +78,10 @@ class GoalKeeperField(Field):
     c1 = P[1] >= self.y
     c2 = np.bitwise_not(c1)
 
-    #uvf = np.zeros_like(P[0])
-    #uvf[c1] = -np.pi/2
-    #uvf[c2] = np.pi/2
-    uvf = ang(P, self.Pb)
+    uvf = np.zeros_like(P[0])
+    uvf[c1] = -np.pi/2
+    uvf[c2] = np.pi/2
+    #uvf = ang(P, self.Pb)
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf

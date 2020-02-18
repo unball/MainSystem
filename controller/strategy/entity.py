@@ -129,13 +129,15 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
-        rg = np.array(self.world.allyGoalPos)+[0.1,0]
+        rg = np.array(self.world.allyGoalPos)+[0.15,0]
 
-        pose = goalkeep(rb, vb, rr, rg)
         
         self.robot.gammavels = (0,0,0)
         self.robot.vref = 0
-        if np.abs(rr[0]-rg[0]) > 0.04:
+        if np.abs(rr[0]-rg[0]) > 0.16:
+            pose = goalkeep(rb, vb, rr, rg)
+            self.robot.field = UVFDefault(self.world, pose, rr, direction=0, spiral=False)
+        else: 
+            pose = goalkeep(rb, vb, rr, (rr[0], rg[1]))
             self.robot.field = GoalKeeperField(pose)
-        else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
-        #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
+        #self.robot.field = UVFDefault(self.world, (rr[0], *pose[1:3]), rr, direction=0, spiral=False)
