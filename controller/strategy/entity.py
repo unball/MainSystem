@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall, goalkeep, blockBallElipse
-from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField
+from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField, UVFavoidGoalArea
 from controller.tools import ang, angError, norm, unit
 import numpy as np
 
@@ -23,6 +23,10 @@ class Entity(ABC):
     def movementDecider(self):
         """Altera a propriedade `field` do robo de acordo com a decisão"""
         pass
+
+    @property
+    def name(self):
+        return self.__class__.__name__
 
 class Attacker(Entity):
     def __init__(self, world, robot):
@@ -56,7 +60,7 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
-        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.03 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
             pose, gammavels = goToGoal(rg, rr, vr)
             self.robot.vref = 999
             self.robot.gammavels = gammavels
@@ -71,7 +75,11 @@ class Attacker(Entity):
         # Decide quais espirais estarão no campo e compõe o campo
         #if abs(rb[0]) > self.world.xmaxmargin: self.world.goalpos = (-self.world.goalpos[0], self.world.goalpos[1])
 
-        if any(np.abs(rb) > self.world.marginLimits):
+        # Muda o campo no gol caso a bola esteja lá
+        if self.world.ball.insideGoalArea():
+            self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
+
+        elif any(np.abs(rb) > self.world.marginLimits):
             self.robot.field = UVFDefault(self.world, (*pose[:2], 0), rr, direction=-np.sign(rb[1]), radius=0)
         else: 
             #if howFrontBall(rb, rr, rg) > 0: radius = 0
@@ -99,7 +107,8 @@ class Defender(Entity):
         pose = blockBallElipse(rb, vb, rr)
 
         self.robot.vref = 0
-        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0)
+        #self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
+        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
 
         #self.robot.field = DefenderField(pose)
 
@@ -120,7 +129,7 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
-        rg = np.array(self.world.goalpos)-[0.1,0]
+        rg = np.array(self.world.allyGoalPos)+[0.1,0]
 
         pose = goalkeep(rb, vb, rr, rg)
         

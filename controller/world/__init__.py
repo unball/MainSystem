@@ -37,6 +37,8 @@ class World(ParamsPattern):
     self.ymaxmargin = self.ymax - 0.15
     self.marginLimits = (self.xmaxmargin, self.ymaxmargin)
     self.goalpos = (self.xmax, 0)
+    self.allyGoalPos = np.array([-self.xmax, 0])
+    self.goalAreaSize = np.array([0.25, 0.35])
     self.goalylength = 0.4
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
@@ -46,6 +48,7 @@ class World(ParamsPattern):
     self.edges = []
     self.ball = Ball(self)
     self.__referenceTime = 0
+    self.dt = 0
     
   def update(self, visionMessage):
     """Recebe uma mensagem da visão e atualiza as posições e velocidades de robôs e bola"""
@@ -70,8 +73,8 @@ class World(ParamsPattern):
       self.ball.raw_update(visionMessage.ball_x, visionMessage.ball_y)
     
     # Computa a velocidade com base no tempo passado desde a última chamada a `update` e atualiza o tempo para o tempo atual.
-    dt = time.time() - self.__referenceTime
-    self.calc_velocities(dt)
+    self.dt = time.time() - self.__referenceTime
+    self.calc_velocities(self.dt)
     self.__referenceTime = time.time()
     
   def setRunning(self, state):
@@ -97,3 +100,6 @@ class World(ParamsPattern):
 
   def setFieldSide(self, side):
     self.fieldSide = side
+
+  def setPreferedEntity(self, robotIndex, entityPref):
+    self.robots[robotIndex].preferedEntity = entityPref

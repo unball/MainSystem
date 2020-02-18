@@ -1,10 +1,35 @@
 from abc import ABC, abstractmethod
-from controller.tools import ang, unit, angl, angError, norml, norm
+from controller.tools import ang, unit, angl, angError, norml, norm, sat, filt, insideRect
 import numpy as np
 
-class DefenderField():
-  def __init__(self, Pb, a=0.3, b=0.45, center=[0.75, 0]):
+class Field(ABC):
+  def __init__(self, Pb):
+    super().__init__()
     self.Pb = Pb
+
+  @abstractmethod
+  def F(self, P, Pb=None, retnparray=False):
+    pass
+
+  def phi(self, P: tuple, d=0.00001):
+    """Calcula o ângulo \\(\\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\) usado para o controle"""
+    P = np.array(P)
+    dx = filt((self.F(P+[d,0,0])-self.F(P))/d, 100)
+    dy = filt((self.F(P+[0,d,0])-self.F(P))/d, 100)
+    return (dx*np.cos(P[2]) + dy*np.sin(P[2])) / 2
+
+  def gamma(self, P: tuple, v: tuple, d=0.00001):
+    P = np.array(P)
+    Pb = np.array(self.Pb)
+    dx = filt((self.F(P, Pb=Pb+[d,0,0])-self.F(P))/d, 100)
+    dy = filt((self.F(P, Pb=Pb+[0,d,0])-self.F(P))/d, 100)
+    dth = filt((self.F(P, Pb=Pb+[0,0,d])-self.F(P))/d, 100)
+    return (dx * v[0] + dy * v[1] + dth * v[2]) / 2
+
+  
+class DefenderField(Field):
+  def __init__(self, Pb, a=0.3, b=0.45, center=[0.75, 0]):
+    super().__init__(Pb)
     self.a = a
     self.b = b
     self.center = np.array(center)
@@ -41,10 +66,10 @@ class DefenderField():
   def gamma(self, P: tuple, v: tuple, d=0.0001):
     return 0
 
-class GoalKeeperField():
+class GoalKeeperField(Field):
   def __init__(self, Pb):
+    super().__init__(Pb)
     self.y = Pb[1]
-    self.Pb = Pb
 
   def F(self, P, Pb=None, retnparray=False):
     if len(P.shape) == 1: P = np.array([P]).T
@@ -60,28 +85,22 @@ class GoalKeeperField():
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf
-
-  def phi(self, P: tuple, d=0.00001):
-    """Calcula o ângulo \\(\\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\) usado para o controle"""
-    P = np.array(P)
-    dx = (self.F(P+[d,0,0])-self.F(P))/d
-    dy = (self.F(P+[0,d,0])-self.F(P))/d
-    return (dx*np.cos(P[2]) + dy*np.sin(P[2]))
     
   def gamma(self, P: tuple, v: tuple, d=0.0001):
     return 0
 
-class UVF():
-  def __init__(self, Pb, Pr, r, Kr, Kr_single, direction=0):
+class UVF(Field):
+  def __init__(self, Pb, Pr, r, Kr, Kr_single, direction=0, spiral=True):
+    super().__init__(Pb)
     self.r = r
     self.Kr = Kr
     self.Kr_single = Kr_single
     self.Ko = 0.12
     self.dmin = 0.0348
     self.delta = 0.0457
-    self.Pb = Pb
     self.Pr = Pr
     self.direction = direction
+    self.spiral = spiral
 
   def TUF(self, P, Pb=None):
     P = P.copy()
@@ -140,18 +159,22 @@ class UVF():
   def F(self, P, Pb=None, retnparray=False):
     if len(P.shape) == 1: P = np.array([P]).T
 
-    tuf = self.TUF(P, Pb=Pb)
-    auf, R = self.AUF(P, self.Pr, np.array([0,0]), np.array([0,0]), np.array([0,0]))
-
-    c1 = R <= self.dmin
-    c2 = np.bitwise_not(c1)
-
-    uvf = np.zeros_like(P[0])
-    uvf[c1] = auf[c1]
-    uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
+    uvf = self.th(P, Pb)
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf
+
+  def th(self, P, Pb):
+    tuf = self.TUF(P, Pb=Pb)
+    # auf, R = self.AUF(P, self.Pr, np.array([0,0]), np.array([0,0]), np.array([0,0]))
+
+    # c1 = R <= self.dmin
+    # c2 = np.bitwise_not(c1)
+
+    # uvf = np.zeros_like(P[0])
+    # uvf[c1] = auf[c1]
+    # uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
+    return tuf
 
   def G(self, x, delta):
     return np.exp(-(x/delta)**2/2)
@@ -170,7 +193,10 @@ class UVF():
     # y = P.T[c2].T[1]
     # angle[c2] = np.arctan2(x*sign + 15 *(r-x**2) * y, -y*sign)
     # angle[c3] = 0#np.arctan2(x*sign + 15 *(r-x**2) * y, -y*sign)
-    angle[c2] = 0
+    if self.spiral:
+      angle[c2] = angl(P.T[c2].T) + sign * np.pi/2 * np.sqrt(norml(P.T[c2].T) / r)
+    else:
+       angle[c2] = 0
 
     return angle
 
@@ -180,27 +206,37 @@ class UVF():
   def M(self, P, sign, r, Kr):
     return unit(self.alpha(P, sign, r, Kr))
 
-  def phi(self, P: tuple, d=0.00001):
-    """Calcula o ângulo \\(\\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\) usado para o controle"""
-    P = np.array(P)
-    dx = (self.F(P+[d,0,0])-self.F(P))/d
-    dy = (self.F(P+[0,d,0])-self.F(P))/d
-    return (dx*np.cos(P[2]) + dy*np.sin(P[2])) / 2
-
-  def gamma(self, P: tuple, v: tuple, d=0.0001):
-    P = np.array(P)
-    Pb = np.array(self.Pb)
-    return ((self.F(P, Pb=Pb+[d,0,0])-self.F(P))/d * v[0] +\
-           (self.F(P, Pb=Pb+[0,d,0])-self.F(P))/d * v[1] +\
-           (self.F(P, Pb=Pb+[0,0,d])-self.F(P))/d * v[2]) / 2
-
 class UVFDefault(UVF):
-  def __init__(self, world, pose, robotPose, direction, radius=None):
+  def __init__(self, world, pose, robotPose, direction, radius=None, spiral=True):
     if radius is None: radius = world.getParam("UVF_r")
     
     super().__init__(pose, robotPose,
       r=radius,
       Kr=world.getParam("UVF_Kr"),
       Kr_single=world.getParam("UVF_Kr_single"),
-      direction=direction   
+      direction=direction, spiral = spiral
     )
+
+class UVFavoidGoalArea(UVF):
+  def __init__(self, world, pose, robotPose, radius=None):
+    if radius is None: radius = world.getParam("UVF_r")
+    self.rm = world.allyGoalPos
+    self.s = world.goalAreaSize + [0.05,0.05]
+    super().__init__(pose, robotPose,
+      r=radius,
+      Kr=world.getParam("UVF_Kr"),
+      Kr_single=world.getParam("UVF_Kr_single"),
+      direction=0
+    )
+  
+  def F(self, P, Pb=None, retnparray=False):
+    if len(P.shape) == 1: P = np.array([P]).T
+
+    c1 = np.bitwise_and(np.abs(P[0]-self.rm[0]) < self.s[0], np.abs(P[1]-self.rm[1]) < self.s[1])
+    c2 = np.bitwise_not(c1)
+    uvf = np.zeros_like(P[0])
+    uvf[c1] = 0
+    uvf[c2] = super().th(P.T[c2].T,Pb)
+
+    if uvf.size == 1 and not(retnparray): return uvf[0]
+    return uvf

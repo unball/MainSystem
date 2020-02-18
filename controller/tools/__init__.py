@@ -20,6 +20,10 @@ def sat(x: float, amp: float):
   """Satura um número real `x` entre `amp` e `-amp`"""
   return max(min(x, amp), -amp)
 
+def filt(x: float, amp: float):
+  if np.abs(x) > np.abs(amp): return 0
+  else: return x
+
 def fixAngle(angle: float):
   if abs(angle) > np.pi/2:
     return (angle + np.pi/2) % (np.pi) - np.pi/2
@@ -56,3 +60,9 @@ def shift(data, array):
 
 def derivative(F, x, d=0.00001, *args):
   return (F(x+d, *args) - F(x, *args)) / d
+
+def insideEllipse(r, a, b, rm):
+    return ((r[0]-rm[0])/a)**2+((r[1]-rm[1])/b)**2 < 1
+
+def insideRect(r, rm, s):
+  return np.all(r-rm < s)

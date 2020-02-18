@@ -39,6 +39,8 @@ class Robot(Element):
     """Ativa o spin, onde '1' é horário e '-1' é """
     self.spin = 0
 
+    self.preferedEntity = "Atacante"
+
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""
     if self.field is None: return SpeedPair(0,0)

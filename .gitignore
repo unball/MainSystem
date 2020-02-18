@@ -133,3 +133,4 @@ config.json
 *.ui~
 doc/*
 *.html
+.vscode/
