@@ -35,6 +35,7 @@ class Attacker(Entity):
         self.world = world
         self.movState = 0
         self.rg = (0,0)
+        #self.ref = (0,0,0)
 
     def movementDecider(self):
         # Dados necessários para a decisão
@@ -60,11 +61,14 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
-        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
+            # if self.movState == 0:
+            #     self.ref = (*(rr[:2] + 1000*unit(rr[2])), robotBallAngle)
             pose, gammavels = goToGoal(rg, rr, vr)
             self.robot.vref = 999
             self.robot.gammavels = gammavels
             self.movState = 1
+            #pose = self.ref
         # Se não, vai para a bola
         else:
             pose, gammavels = goToBall(rb, rg, vb, self.world.marginLimits)
