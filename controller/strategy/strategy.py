@@ -1,4 +1,4 @@
-from controller.strategy.entity import Attacker, GoalKeeper, Defender
+from controller.strategy.entity import Attacker, GoalKeeper, Defender, MidFielder
 from controller.tools import angl, angError, norm, unit
 import numpy as np
 
@@ -49,14 +49,16 @@ class Strategy:
                 robot.entity = GoalKeeper(self.world, robot)
             elif robot.preferedEntity == "AtacanteZagueiro":
                 dynamicAttackerDefenderRobots.append(robot)
+            elif robot.preferedEntity == "Meio Campo":
+                robot.entity = MidFielder(self.world, robot)
                 
         #self.robots[0].entity = Defender(self.world, self.robots[0])
         #self.robots[1].entity = Attacker(self.world, self.robots[1])
         #TODO: Caso o atacante esteja parado (sem a bola), Defender vira atacante
         # if self.world.ball.pos[0] < 0:
         #     self.robots[1].entity = Attacker(self.world, self.robots[1])
-        if len(dynamicAttackerDefenderRobots) == 2:
-            self.attackerDefenderDecider(*dynamicAttackerDefenderRobots)
+        ##if len(dynamicAttackerDefenderRobots) == 2:
+        ##    self.attackerDefenderDecider(*dynamicAttackerDefenderRobots)
 
     def attackerDefenderDecider(self, robot1, robot2):
         state = self.goodPositionToAttack(robot1, robot2)

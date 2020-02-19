@@ -103,3 +103,7 @@ def blockBallElipse(rb, vb, rr):
     return (r[0], r[1], r_ort_angle)
 
     #return followBally(rb, rr)
+
+def mirrorPosition(rr, rb, rg):
+    angle = -1 * ang(rb, rg)
+    return(rr[0]-.1, -1 * rr[1], angle)

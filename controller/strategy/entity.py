@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall, goalkeep, blockBallElipse
+from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall, goalkeep, blockBallElipse, mirrorPosition
 from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField, UVFavoidGoalArea
 from controller.tools import ang, angError, norm, unit
 import numpy as np
@@ -139,3 +139,26 @@ class GoalKeeper(Entity):
             self.robot.field = GoalKeeperField(pose)
         else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
         #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
+
+class MidFielder(Attacker, Entity):
+    def __init__(self, world, robot):
+        super().__init__(robot, (255,255,0))
+        
+        self.world = world
+
+    def directionDecider(self):
+        """Altera a propriedade 'dir' do robô de acordo com a decisão"""
+        # Inverte se o último erro angular foi maior que 90º
+        if abs(self.robot.lastAngError) > 90 * np.pi / 180:
+            self.robot.dir *= -1
+
+    def movementDecider(self, Attacker):
+        # Dados necessários para a decisão
+        rr = np.array(Attacker().robot.pose)
+        rb = np.array(self.world.ball.pos.copy())
+        rg = np.array(self.world.goalpos)
+
+        pose = mirrorPosition(rr, rb, rg)
+
+        self.robot.vref = 0
+        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
