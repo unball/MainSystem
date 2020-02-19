@@ -35,6 +35,7 @@ class Attacker(Entity):
         self.world = world
         self.movState = 0
         self.rg = (0,0)
+        #self.ref = (0,0,0)
 
     def movementDecider(self):
         # Dados necessários para a decisão
@@ -60,11 +61,14 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
-        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*50)*np.pi/180:
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
+            # if self.movState == 0:
+            #     self.ref = (*(rr[:2] + 1000*unit(rr[2])), robotBallAngle)
             pose, gammavels = goToGoal(rg, rr, vr)
             self.robot.vref = 999
             self.robot.gammavels = gammavels
             self.movState = 1
+            #pose = self.ref
         # Se não, vai para a bola
         else:
             pose, gammavels = goToBall(rb, rg, vb, self.world.marginLimits)
@@ -108,9 +112,9 @@ class Defender(Entity):
 
         self.robot.vref = 0
         #self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
-        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
+        #self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
 
-        #self.robot.field = DefenderField(pose)
+        self.robot.field = DefenderField(pose)
 
 class GoalKeeper(Entity):
     def __init__(self, world, robot):
@@ -129,16 +133,18 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
-        rg = np.array(self.world.allyGoalPos)+[0.1,0]
+        rg = np.array(self.world.allyGoalPos)+[0.15,0]
 
-        pose = goalkeep(rb, vb, rr, rg)
         
         self.robot.gammavels = (0,0,0)
         self.robot.vref = 0
-        if np.abs(rr[0]-rg[0]) > 0.04:
+        if np.abs(rr[0]-rg[0]) > 0.16:
+            pose = goalkeep(rb, vb, rr, rg)
+            self.robot.field = UVFDefault(self.world, pose, rr, direction=0, spiral=False)
+        else: 
+            pose = goalkeep(rb, vb, rr, (rr[0], rg[1]))
             self.robot.field = GoalKeeperField(pose)
-        else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
-        #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
+        #self.robot.field = UVFDefault(self.world, (rr[0], *pose[1:3]), rr, direction=0, spiral=False)
 
 class MidFielder(Attacker, Entity):
     def __init__(self, world, robot):

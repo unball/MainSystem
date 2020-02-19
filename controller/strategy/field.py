@@ -28,7 +28,7 @@ class Field(ABC):
 
   
 class DefenderField(Field):
-  def __init__(self, Pb, a=0.3, b=0.45, center=[0.75, 0]):
+  def __init__(self, Pb, a=0.3, b=0.45, center=[-0.75, 0]):
     super().__init__(Pb)
     self.a = a
     self.b = b
@@ -58,10 +58,6 @@ class DefenderField(Field):
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf
-
-  def phi(self, P: tuple, d=0.00001):
-    """Calcula o ângulo \\(\\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\) usado para o controle"""
-    return 0
     
   def gamma(self, P: tuple, v: tuple, d=0.0001):
     return 0
@@ -78,10 +74,10 @@ class GoalKeeperField(Field):
     c1 = P[1] >= self.y
     c2 = np.bitwise_not(c1)
 
-    #uvf = np.zeros_like(P[0])
-    #uvf[c1] = -np.pi/2
-    #uvf[c2] = np.pi/2
-    uvf = ang(P, self.Pb)
+    uvf = np.zeros_like(P[0])
+    uvf[c1] = -np.pi/2
+    uvf[c2] = np.pi/2
+    #uvf = ang(P, self.Pb)
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf
