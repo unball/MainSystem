@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from controller.strategy.movements import goToBall, goToGoal, projectBall, howFrontBall, howPerpBall, goalkeep, blockBallElipse, mirrorPosition
 from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField, UVFavoidGoalArea
-from controller.tools import ang, angError, norm, unit
+from controller.tools import ang, angError, norm, unit, projectLine
 import numpy as np
 
 class Entity(ABC):
@@ -62,6 +62,7 @@ class Attacker(Entity):
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
         if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
+        #if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(angError(robotBallAngle, rr[2])) < (30+self.movState*60)*np.pi/180 and np.abs(projectLine(rr[:2], unit(rr[2]), rg[0])) <= 0.25:
             # if self.movState == 0:
             #     self.ref = (*(rr[:2] + 1000*unit(rr[2])), robotBallAngle)
             pose, gammavels = goToGoal(rg, rr, vr)
