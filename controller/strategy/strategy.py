@@ -57,8 +57,8 @@ class Strategy:
         #TODO: Caso o atacante esteja parado (sem a bola), Defender vira atacante
         # if self.world.ball.pos[0] < 0:
         #     self.robots[1].entity = Attacker(self.world, self.robots[1])
-        ##if len(dynamicAttackerDefenderRobots) == 2:
-        ##    self.attackerDefenderDecider(*dynamicAttackerDefenderRobots)
+        if len(dynamicAttackerDefenderRobots) == 2:
+            self.attackerDefenderDecider(*dynamicAttackerDefenderRobots)
 
     def attackerDefenderDecider(self, robot1, robot2):
         state = self.goodPositionToAttack(robot1, robot2)
