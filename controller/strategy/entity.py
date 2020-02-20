@@ -140,12 +140,13 @@ class GoalKeeper(Entity):
         
         self.robot.gammavels = (0,0,0)
         self.robot.vref = 0
-        if np.abs(rr[0]-rg[0]) > 0.16:
+        
+        if np.abs(rr[0]-rg[0]) > 0.12:
             pose = goalkeep(rb, vb, rr, rg)
             self.robot.field = UVFDefault(self.world, pose, rr, direction=0, spiral=False)
         else: 
             pose = goalkeep(rb, vb, rr, (rr[0], rg[1]))
-            self.robot.field = GoalKeeperField(pose)
+            self.robot.field = GoalKeeperField(pose, rg[0])
         #self.robot.field = UVFDefault(self.world, (rr[0], *pose[1:3]), rr, direction=0, spiral=False)
 
 class MidFielder(Attacker, Entity):
