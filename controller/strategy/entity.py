@@ -150,21 +150,16 @@ class GoalKeeper(Entity):
         #else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
         #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
 
-class MidFielder(Attacker, Entity):
-    def __init__(self, world, robot):
+class MidFielder(Entity):
+    def __init__(self, world, robot, attackerRobot):
         super().__init__(robot, (255,255,0))
         
+        self.attacker = attackerRobot
         self.world = world
 
-    def directionDecider(self):
-        """Altera a propriedade 'dir' do robô de acordo com a decisão"""
-        # Inverte se o último erro angular foi maior que 90º
-        if abs(self.robot.lastAngError) > 90 * np.pi / 180:
-            self.robot.dir *= -1
-
-    def movementDecider(self, Attacker):
+    def movementDecider(self):
         # Dados necessários para a decisão
-        rr = np.array(Attacker().robot.pose)
+        rr = np.array(self.attacker.pose.copy())
         rb = np.array(self.world.ball.pos.copy())
         rg = np.array(self.world.goalpos)
 

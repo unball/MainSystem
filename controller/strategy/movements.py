@@ -105,4 +105,8 @@ def blockBallElipse(rb, vb, rr, rm):
 
 def mirrorPosition(rr, rb, rg):
     angle = -1 * ang(rb, rg)
+<<<<<<< HEAD
     return(rr[0]-.1, -1 * rr[1], angle)
+=======
+    return (rr[0]-.1, -1 * rr[1], angle)
+>>>>>>> e21e36b... Entidade do Meio de campo
