@@ -169,6 +169,7 @@ class DebugHLC(ParamsPattern, State):
     # Define um controle
     self.robots[0].controlSystem = self.HLCs.get()
     self.robots[1].controlSystem = self.HLCs.get()
+    self.robots[2].controlSystem = self.HLCs.get()
     
     # Controle manual
     if self.getParam("enableManualControl"):

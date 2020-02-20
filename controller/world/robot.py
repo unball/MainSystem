@@ -39,7 +39,9 @@ class Robot(Element):
     """Ativa o spin, onde '1' é anti-horário e '-1' é horário"""
     self.spin = 0
 
-    self.preferedEntity = "Atacante"
+    self.preferedEntity = ""
+
+    self.size = 0.075
 
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""

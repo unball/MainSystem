@@ -1,4 +1,4 @@
-from controller.strategy.entity import Attacker, GoalKeeper, Defender
+from controller.strategy.entity import Attacker, GoalKeeper, Defender, MidFielder
 from controller.tools import angl, angError, norm, unit
 import numpy as np
 
@@ -40,8 +40,11 @@ class Strategy:
 
     def entityDecider(self):
         dynamicAttackerDefenderRobots = []
+        dynamicAttackerMidFilderRobots = []
+        #attacker = None
         for robot in self.robots:
             if robot.preferedEntity == "Atacante":
+                #attacker = robot
                 robot.entity = Attacker(self.world, robot)
             elif robot.preferedEntity == "Zagueiro":
                 robot.entity = Defender(self.world, robot)
@@ -49,6 +52,15 @@ class Strategy:
                 robot.entity = GoalKeeper(self.world, robot)
             elif robot.preferedEntity == "AtacanteZagueiro":
                 dynamicAttackerDefenderRobots.append(robot)
+            elif robot.preferedEntity == "AtacanteMeioCampo":
+                dynamicAttackerMidFilderRobots.append(robot)
+
+        # for robot in self.robots:
+        #     if robot.preferedEntity == "Meio Campo":
+        #         if attacker is not None:
+        #             robot.entity = MidFielder(self.world, robot, attacker)
+        #         else:
+        #             robot.entity = Attacker(self.world, robot)
                 
         #self.robots[0].entity = Defender(self.world, self.robots[0])
         #self.robots[1].entity = Attacker(self.world, self.robots[1])
@@ -57,6 +69,9 @@ class Strategy:
         #     self.robots[1].entity = Attacker(self.world, self.robots[1])
         if len(dynamicAttackerDefenderRobots) == 2:
             self.attackerDefenderDecider(*dynamicAttackerDefenderRobots)
+        
+        if len(dynamicAttackerMidFilderRobots) == 2:
+            self.attackerMidFilederDecider(*dynamicAttackerMidFilderRobots)
 
     def attackerDefenderDecider(self, robot1, robot2):
         state = self.goodPositionToAttack(robot1, robot2)
@@ -67,6 +82,17 @@ class Strategy:
             robot2.entity = Defender(self.world, robot2)
         else:
             robot1.entity = Defender(self.world, robot1)
+            robot2.entity = Attacker(self.world, robot2)
+
+    def attackerMidFilederDecider(self, robot1, robot2):
+        state = self.goodPositionToAttack(robot1, robot2)
+        if state != -1:
+            self.state = state
+        if self.state == 0:
+            robot1.entity = Attacker(self.world, robot1)
+            robot2.entity = MidFielder(self.world, robot2, robot1)
+        else:
+            robot1.entity = MidFielder(self.world, robot1, robot2)
             robot2.entity = Attacker(self.world, robot2)
 
     def directionDecider(self):

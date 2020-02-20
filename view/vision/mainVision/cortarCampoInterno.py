@@ -5,6 +5,7 @@ from view.tools.drawing import Drawing
 from controller.tools import norm
 from controller.tools.pixel2metric import normToAbs
 from model.vision.cortarCampoInternoModel import CortarCampoInternoModel
+from controller.vision.mainVision import MainVision
 import cv2
 import numpy as np
 
@@ -87,6 +88,7 @@ class CortarCampoInterno(FrameRenderer):
     if self.pointReturnedToStart(point):
       self.__model.done = True
       self.__controller.addEvent(self.__controller.world.setEdges, self.getPolygonPoints())
+      self.__visionSystem.updateInternalPolygon(self.getPolygonPoints())
     else:
       self.__model.points.append((point, self.__edgeType))
 
@@ -121,7 +123,7 @@ class CortarCampoInterno(FrameRenderer):
 
     # Preenche o polígono
     if self.__model.done is True:
-      mask = Drawing.get_polygon_mask(frame, points)
+      mask = MainVision.get_polygon_mask(frame, points)
       frame = cv2.bitwise_and(frame, frame, mask=mask)
 
     return frame

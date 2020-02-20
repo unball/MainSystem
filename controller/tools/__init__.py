@@ -67,3 +67,6 @@ def insideEllipse(r, a, b, rm):
 
 def insideRect(r, rm, s):
   return np.all(r-rm < s)
+
+def projectLine(r, v, xline):
+  return ((xline-r[0])/v[0])*v[1] + r[1]

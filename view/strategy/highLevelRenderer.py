@@ -3,6 +3,7 @@ from view.tools.cv2Renderer import cv2Renderer
 from view.tools.drawing import Drawing
 from controller.tools.pixel2metric import meters2pixel,pixel2meters,meters2pixelSize,invertAng,invertVec
 from controller.tools import angl, unit
+from controller.vision.mainVision import MainVision
 import numpy as np
 import cv2
 import itertools
@@ -173,7 +174,7 @@ class HighLevelRenderer(cv2Renderer):
       self.positions.append(robot.pos)
 
     # Só renderiza a parte interna do campo 
-    mask = Drawing.get_polygon_mask(frame, self.__world.edges)
+    mask = MainVision.get_polygon_mask(frame, self.__world.edges)
     frame = cv2.bitwise_and(frame, frame, mask=mask)
     
     return frame

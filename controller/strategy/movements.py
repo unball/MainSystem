@@ -1,4 +1,4 @@
-from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative, insideEllipse
+from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative, projectLine, insideEllipse
 import numpy as np
 import math
 
@@ -59,7 +59,7 @@ def goToGoal(rg, rr, vr):
 def goalkeep(rb, vb, rr, rg):
     xGoal = rg[0]
     #testar velocidade minima (=.15?)
-    ytarget = (((xGoal-rb[0])/vb[0])*vb[1])+rb[1]
+    ytarget = projectLine(rb, vb, xGoal)
     if ((vb[0]) < -0.1): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
         #verificar se a projeção está no gol
         #projetando vetor até um xGoal-> y = (xGoal-Xball) * Vyball/Vxball + yBall 
@@ -75,7 +75,7 @@ def followBally(rb, rr):
     angle = np.pi/2 if rr[1] < rb[1] else -np.pi/2
     return (0.2, rb[1], angle)
 
-def blockBallElipse(rb, vb, rr):
+def blockBallElipse(rb, vb, rr, rm):
     a = 0.3
     b = 0.45
     e = np.array([1/a, 1/b])
@@ -85,7 +85,7 @@ def blockBallElipse(rb, vb, rr):
     d = norml(e*(rr[:2]-rm))
     #if np.abs(d-1) < 0.5: e = e / d
 
-    finalTarget = np.array([-.75, 0])
+    finalTarget = rm
 
     vb = rb - finalTarget
     k = 1/np.sqrt(np.dot(e*vb, e*vb)) #* np.sign(vb[0])
@@ -105,3 +105,12 @@ def blockBallElipse(rb, vb, rr):
     return (r[0], r[1], r_ort_angle), spin
 
     #return followBally(rb, rr)
+
+def mirrorPosition(rr, vr, rb, rg):
+    angle = -1 * ang(rb, rg)
+
+    dx = vr[0]
+    dy = -vr[1]
+    dth = 0
+
+    return (rr[0]-.1, -1 * rr[1], angle), (dx, dy, dth)
