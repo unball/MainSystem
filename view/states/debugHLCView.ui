@@ -2399,6 +2399,7 @@ th: 0 º</property>
                                                       <item id="Goleiro" translatable="yes">Goleiro</item>
                                                       <item id="Meio Campo" translatable="yes">Meio Campo</item>
                                                       <item id="Zagueiro" translatable="yes">Zagueiro</item>
+                                                      <item id="AtacanteMeioCampo" translatable="yes">Atacante / Meio Campo</item>
                                                     </items>
                                                   </object>
                                                   <packing>
@@ -2527,6 +2528,7 @@ th: 0 º</property>
                                                       <item id="Atacante" translatable="yes">Atacante</item>
                                                       <item id="Meio Campo" translatable="yes">Meio Campo</item>
                                                       <item id="Zagueiro" translatable="yes">Zagueiro</item>
+                                                      <item id="AtacanteMeioCampo" translatable="yes">Atacante / Meio Campo</item>
                                                     </items>
                                                   </object>
                                                   <packing>
@@ -2656,6 +2658,7 @@ th: 0 º</property>
                                                       <item id="Goleiro" translatable="yes">Goleiro</item>
                                                       <item id="Meio Campo" translatable="yes">Meio Campo</item>
                                                       <item id="Zagueiro" translatable="yes">Zagueiro</item>
+                                                      <item id="AtacanteMeioCampo" translatable="yes">Atacante / Meio Campo</item>
                                                     </items>
                                                   </object>
                                                   <packing>
