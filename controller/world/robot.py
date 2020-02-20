@@ -36,7 +36,7 @@ class Robot(Element):
 
     self.lastTimeAlive = None
 
-    """Ativa o spin, onde '1' é horário e '-1' é """
+    """Ativa o spin, onde '1' é horário e '-1' é anti-horário #TODO: CERTEZA?"""
     self.spin = 0
 
     self.preferedEntity = "Atacante"
