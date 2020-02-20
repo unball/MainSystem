@@ -75,16 +75,15 @@ def followBally(rb, rr):
     angle = np.pi/2 if rr[1] < rb[1] else -np.pi/2
     return (0.2, rb[1], angle)
 
-def blockBallElipse(rb, vb, rr):
+def blockBallElipse(rb, vb, rr, rm):
     a = 0.3
     b = 0.45
     e = np.array([1/a, 1/b])
-    rm = np.array([-0.75, 0])
     
     d = norml(e*(rr[:2]-rm))
     #if np.abs(d-1) < 0.5: e = e / d
 
-    finalTarget = np.array([-.75, 0])
+    finalTarget = rm
 
     vb = rb - finalTarget
     k = 1/np.sqrt(np.dot(e*vb, e*vb)) #* np.sign(vb[0])

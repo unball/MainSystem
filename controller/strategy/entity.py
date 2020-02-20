@@ -108,8 +108,9 @@ class Defender(Entity):
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
+        rg = np.array(self.world.rg)
 
-        pose = blockBallElipse(rb, vb, rr)
+        pose = blockBallElipse(rb, vb, rr, rg)
 
         self.robot.vref = 0
         #self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
@@ -134,7 +135,7 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
-        rg = np.array(self.world.allyGoalPos)+[0.15,0]
+        rg = np.array(self.world.rg) + [self.robot.size / 2, 0]
 
         
         self.robot.gammavels = (0,0,0)
