@@ -1,4 +1,4 @@
-from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative
+from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative, projectLine
 import numpy as np
 import math
 
@@ -59,7 +59,7 @@ def goToGoal(rg, rr, vr):
 def goalkeep(rb, vb, rr, rg):
     xGoal = rg[0]
     #testar velocidade minima (=.15?)
-    ytarget = (((xGoal-rb[0])/vb[0])*vb[1])+rb[1]
+    ytarget = projectLine(rb, vb, xGoal)
     if ((vb[0]) < -0.1): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
         #verificar se a projeção está no gol
         #projetando vetor até um xGoal-> y = (xGoal-Xball) * Vyball/Vxball + yBall 
