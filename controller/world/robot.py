@@ -39,7 +39,7 @@ class Robot(Element):
     """Ativa o spin, onde '1' é horário e '-1' é """
     self.spin = 0
 
-    self.preferedEntity = "Atacante"
+    self.preferedEntity = ""
 
     self.size = 0.075
 
