@@ -108,7 +108,8 @@ class Defender(Entity):
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
 
-        pose = blockBallElipse(rb, vb, rr)
+        pose, spin = blockBallElipse(rb, vb, rr)
+        self.robot.spin = spin
 
         self.robot.vref = 0
         #self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
