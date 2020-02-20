@@ -71,10 +71,3 @@ class Drawing():
       color = Drawing.edgeColors[points[i+1][1]]
 
       cv2.line(frame, p0, p1, color, thickness=2)
-    
-  def get_polygon_mask(frame, points):
-      mask = np.zeros((*frame.shape[:2],1), np.uint8)
-      if len(points) == 0: return cv2.bitwise_not(mask)
-      pts = np.array([normToAbs(x[0], frame.shape) for x in points])
-      cv2.fillConvexPoly(mask, pts, 255)
-      return mask
