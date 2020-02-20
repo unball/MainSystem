@@ -156,14 +156,39 @@ class MidFielder(Entity):
         
         self.attacker = attackerRobot
         self.world = world
+        self.movState = 0
 
     def movementDecider(self):
         # Dados necessários para a decisão
-        rr = np.array(self.attacker.pose.copy())
+        rr = np.array(self.robot.pose.copy())
+        vr = np.array(self.robot.lastControlLinVel * unit(self.robot.th))
+        ra = np.array(self.attacker.pose.copy())
+        va = np.array(self.attacker.lastControlLinVel * unit(self.attacker.th))
         rb = np.array(self.world.ball.pos.copy())
         rg = np.array(self.world.goalpos)
 
-        pose = mirrorPosition(rr, rb, rg)
+        # Ângulo da bola até o gol
+        ballGoalAngle = ang(rb, rg)
 
-        self.robot.vref = 0
+        # Ângulo do robô até a bola
+        robotBallAngle = ang(rr, rb)
+        
+        # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
+        #if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(angError(robotBallAngle, rr[2])) < (30+self.movState*60)*np.pi/180 and np.abs(projectLine(rr[:2], unit(rr[2]), rg[0])) <= 0.25:
+            # if self.movState == 0:
+            #     self.ref = (*(rr[:2] + 1000*unit(rr[2])), robotBallAngle)
+            pose, gammavels = goToGoal(rg, rr, vr)
+            self.robot.vref = 999
+            self.robot.gammavels = gammavels
+            self.movState = 1
+            #pose = self.ref
+        # Se não, vai para a bola
+        else:
+
+            pose, gammavels = mirrorPosition(ra, va, rb, rg)
+
+            self.robot.vref = 0
+            self.robot.gammavels = gammavels
+        
         self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)

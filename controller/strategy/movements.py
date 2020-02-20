@@ -103,6 +103,11 @@ def blockBallElipse(rb, vb, rr, rm):
 
     #return followBally(rb, rr)
 
-def mirrorPosition(rr, rb, rg):
+def mirrorPosition(rr, vr, rb, rg):
     angle = -1 * ang(rb, rg)
-    return (rr[0]-.1, -1 * rr[1], angle)
+
+    dx = vr[0]
+    dy = -vr[1]
+    dth = 0
+
+    return (rr[0]-.1, -1 * rr[1], angle), (dx, dy, dth)
