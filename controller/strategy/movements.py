@@ -1,4 +1,4 @@
-from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative
+from controller.tools import ang, angl, unit, angError, norm, norml, sat, shift, derivative, insideEllipse
 import numpy as np
 import math
 
@@ -80,6 +80,7 @@ def blockBallElipse(rb, vb, rr):
     b = 0.45
     e = np.array([1/a, 1/b])
     rm = np.array([-0.75, 0])
+    spin = 0
     
     d = norml(e*(rr[:2]-rm))
     #if np.abs(d-1) < 0.5: e = e / d
@@ -98,8 +99,9 @@ def blockBallElipse(rb, vb, rr):
     if rr[1] > r[1] and r_ort_angle > 0: r_ort_angle = r_ort_angle+np.pi
     if rr[1] < r[1] and r_ort_angle < 0: r_ort_angle = r_ort_angle+np.pi
 
-
+    if not insideEllipse(rb, a, b, rm) and norm(rr, rb) < 0.06:
+        spin = 1 if rr[1] < rb[1] else -1
     
-    return (r[0], r[1], r_ort_angle)
+    return (r[0], r[1], r_ort_angle), spin
 
     #return followBally(rb, rr)
