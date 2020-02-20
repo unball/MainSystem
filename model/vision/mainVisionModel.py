@@ -16,7 +16,8 @@ class MainVisionModel(ModelContext):
       "cont_rect_area_ratio": ("cont_rect_area_ratio", 0.75),
       "min_internal_area_contour": ("min_internal_area_contour", 10),
       "min_external_area_contour": ("min_external_area_contour", 10),
-      "stability_param": ("stability_param", 0.99)
+      "stability_param": ("stability_param", 0.99),
+      "internalPolygonPoints": ("internalPolygonPoints", [])
     })
     """Variáveis armazenadas no modelo"""
     

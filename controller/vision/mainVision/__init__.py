@@ -57,6 +57,9 @@ class MainVision(Vision):
   def minExternalAreaContour(self):
     """Retorna a variável `min_external_area_contour` que contém a área mínima do contorno externo aceitável. Se for detectado um contorno de área menor que essa, esse contorno será filtrado."""
     return self.__model.min_external_area_contour
+
+  def updateInternalPolygon(self, points):
+    self.__model.internalPolygonPoints = points
   
   def atualizarPretoHSV(self, value, index):
     """Atualiza o valor do limite HSV de índice `index` para segmentação dos elementos."""
@@ -95,6 +98,13 @@ class MainVision(Vision):
     """Atualiza o parâmetro de área mínima do contorno externo."""
     self.__model.min_external_area_contour = value
   
+  def get_polygon_mask(frame, points):
+      mask = np.zeros((*frame.shape[:2],1), np.uint8)
+      if len(points) == 0: return cv2.bitwise_not(mask)
+      pts = np.array([normToAbs(x[0], frame.shape) for x in points])
+      cv2.fillConvexPoly(mask, pts, 255)
+      return mask
+
   def crop(frame, p0, p1):
     """Método de classe que corta um frame dados dois pontos \\(p_0=(x_0,y_0)\\), \\(p_1=(x_1,y_1)\\) que definem as coordenadas inicial e final desde que \\(x_0<x_1\\) e \\(y_0<y_1\\)"""
     
@@ -152,7 +162,10 @@ class MainVision(Vision):
   
   def obterMascaraElementos(self,img):
     """Retorna uma máscara do que não é fundo"""
-    return cv2.inRange(img, np.array(self.__model.preto_hsv[0:3]), np.array(self.__model.preto_hsv[3:6]))
+    fgMask = cv2.inRange(img, np.array(self.__model.preto_hsv[0:3]), np.array(self.__model.preto_hsv[3:6]))
+    if len(self.__model.internalPolygonPoints) != 0: 
+      fgMask &= MainVision.get_polygon_mask(img, self.__model.internalPolygonPoints)[:,:,0]
+    return fgMask
     
   def obterMascaraTime(self, img):
     """Retorna uma máscara dos detalhes da camisa do time"""
