@@ -86,7 +86,7 @@ class GoalKeeperField(Field):
     return 0
 
 class UVF(Field):
-  def __init__(self, Pb, Pr, r, Kr, Kr_single, direction=0, spiral=True):
+  def __init__(self, Pb, Pr, r, Kr, Kr_single, direction=0, spiral=True, singleObstacle=False, Vr=np.array([0,0]), Po=np.array([0,0]), Vo=np.array([0,0])):
     super().__init__(Pb)
     self.r = r
     self.Kr = Kr
@@ -97,6 +97,10 @@ class UVF(Field):
     self.Pr = Pr
     self.direction = direction
     self.spiral = spiral
+    self.singleObstacle = singleObstacle
+    self.Vr = Vr
+    self.Po = Po
+    self.Vo = Vo
 
   def TUF(self, P, Pb=None):
     P = P.copy()
@@ -146,9 +150,9 @@ class UVF(Field):
     # Obstáculo virtual
     d = norm(Pr, Po)
     if d >= norml(s):
-      Pvo = Po + s
+      Pvo = Po[:2] + s
     else:
-      Pvo = Po + (d / norml(s)) * s
+      Pvo = Po[:2] + (d / norml(s)) * s
 
     return ang(Pvo, P), norm(Pvo, P)
 
@@ -162,15 +166,22 @@ class UVF(Field):
 
   def th(self, P, Pb):
     tuf = self.TUF(P, Pb=Pb)
-    # auf, R = self.AUF(P, self.Pr, np.array([0,0]), np.array([0,0]), np.array([0,0]))
 
-    # c1 = R <= self.dmin
-    # c2 = np.bitwise_not(c1)
+    # Cria obstáculo pontual
+    if self.singleObstacle:
+      auf, R = self.AUF(P, self.Pr, self.Vr, self.Po, self.Vo)
 
-    # uvf = np.zeros_like(P[0])
-    # uvf[c1] = auf[c1]
-    # uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
-    return tuf
+      c1 = R <= self.dmin
+      c2 = np.bitwise_not(c1)
+
+      uvf = np.zeros_like(P[0])
+      uvf[c1] = auf[c1]
+      uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
+    
+    else:
+      uvf = tuf
+    
+    return uvf
 
   def G(self, x, delta):
     return np.exp(-(x/delta)**2/2)
@@ -203,14 +214,16 @@ class UVF(Field):
     return unit(self.alpha(P, sign, r, Kr))
 
 class UVFDefault(UVF):
-  def __init__(self, world, pose, robotPose, direction, radius=None, spiral=True):
+  def __init__(self, world, pose, robotPose, direction, radius=None, spiral=True, singleObstacle=False, Vr=np.array([0,0]), Po=np.array([0,0]), Vo=np.array([0,0])):
     if radius is None: radius = world.getParam("UVF_r")
     
     super().__init__(pose, robotPose,
       r=radius,
       Kr=world.getParam("UVF_Kr"),
       Kr_single=world.getParam("UVF_Kr_single"),
-      direction=direction, spiral = spiral
+      direction=direction, spiral = spiral,
+      singleObstacle=singleObstacle,
+      Vr=Vr, Po=Po, Vo=Vo
     )
 
 class UVFavoidGoalArea(UVF):
