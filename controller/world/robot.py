@@ -43,6 +43,8 @@ class Robot(Element):
 
     self.size = 0.075
 
+    self.spinTime = 0
+
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""
     if self.field is None: return SpeedPair(0,0)
@@ -104,8 +106,8 @@ class Robot(Element):
       self.lastTimeAlive = time.time()
       return True
 
-    if self.velmod / ctrlVel < 0.01:
-      if self.lastTimeAlive is not None and time.time()-self.lastTimeAlive > 3:
+    if self.velmod / ctrlVel < 0.15:
+      if self.lastTimeAlive is not None and time.time()-self.lastTimeAlive > 1:
         return False
     else:
       self.lastTimeAlive = time.time()

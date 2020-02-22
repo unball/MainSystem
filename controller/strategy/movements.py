@@ -38,7 +38,7 @@ def goToBall(rb, rg, vb, rl):
     if any(np.abs(rb) > rl):
         offset = 0
     else:
-        offset = -0.06 * unit(angl(rg-rb)) #+ 0.015 * unit(angl(rg-rb) + np.pi/2)
+        offset = -0 * unit(angl(rg-rb)) #+ 0.015 * unit(angl(rg-rb) + np.pi/2)
 
     rb = rb + offset
     
