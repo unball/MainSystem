@@ -117,12 +117,13 @@ class UVF(Field):
     P[:2] = np.matmul(rotMatrix, P[:2])
 
     # Campo UVF
-    uvf = np.zeros(P[0].size)
+    uvf = np.zeros_like(P[0])
 
     # Regiões do campo
     c1 = np.abs(P[1]) <= self.r
     c2 = P[1] < -self.r
     c3 = P[1] > self.r
+
     
     # Peso das espirais
     yl = -P[1][c1] + self.r
@@ -145,6 +146,38 @@ class UVF(Field):
     # Ajusta o sistema de coordenadas
     return uvf + Pb[0][2]
 
+  def TUF_one(self, P, Pb=None):
+    P = P.copy()
+
+    # Permite uso de Pb alternativo
+    if Pb is None: Pb = self.Pb
+
+    # Ajusta o sistema de coordenadas
+    P[:2] = P[:2]-Pb[:2]
+    rotMatrix = np.array([[np.cos(Pb[2]), np.sin(Pb[2])],[-np.sin(Pb[2]), np.cos(Pb[2])]])
+    P[:2] = np.matmul(rotMatrix, P[:2])
+
+    # Peso das espirais
+    yl = -P[1] + self.r
+    yr = +P[1] + self.r
+
+    # Centros das espirais
+    Pl = [P[0], P[1]-self.r]
+    Pr = [P[0], P[1]+self.r]
+
+    # Campo UVF
+    if self.direction == 0:
+      if np.abs(P[1]) <= self.r:
+        return angl((yl*self.N_one(Pr, -1) + yr*self.N_one(Pl, +1)) / (2*self.r)) + Pb[2]
+      elif P[1] < -self.r:
+        return angl(self.N_one(Pr, -1)) + Pb[2]
+      else:
+        return angl(self.N_one(Pl, +1)) + Pb[2]
+    elif self.direction == 1:
+      return angl(self.M_one(Pl, +1, self.r, self.Kr_single)) + Pb[2]
+    else:
+      return angl(self.M_one(Pr, -1, self.r, self.Kr_single)) + Pb[2]
+
   def AUF(self, P, Pr, Vr, Po, Vo):
     # Vetor de deslocamento
     s = self.Ko * (Vo-Vr)
@@ -159,7 +192,7 @@ class UVF(Field):
     return ang(Pvo, P), norm(Pvo, P)
 
   def F(self, P, Pb=None, retnparray=False):
-    if len(P.shape) == 1: P = np.array([P]).T
+    if len(P.shape) == 1: return self.th_one(P, Pb)
 
     uvf = self.th(P, Pb)
 
@@ -180,6 +213,22 @@ class UVF(Field):
       uvf[c1] = auf[c1]
       uvf[c2] = auf[c2] * self.G(R[c2]-self.dmin, self.delta) + tuf[c2] * (1-self.G(R[c2]-self.dmin, self.delta))
     
+    else:
+      uvf = tuf
+    
+    return uvf
+
+  def th_one(self, P, Pb):
+    tuf = self.TUF_one(P, Pb=Pb)
+
+    # # Cria obstáculo pontual
+    if self.singleObstacle:
+      auf, R = self.AUF(P, self.Pr, self.Vr, self.Po, self.Vo)
+
+      if R <= self.dmin:
+        uvf = auf
+      else:
+        uvf = auf * self.G(R-self.dmin, self.delta) + tuf * (1-self.G(R-self.dmin, self.delta))    
     else:
       uvf = tuf
     
@@ -208,12 +257,28 @@ class UVF(Field):
        angle[c2] = 0
 
     return angle
+  
+  def alpha_one(self, P, sign, r, Kr):
+    #r2 = r/2
+    if norml(P) >= r:
+      return angl(P) + sign * np.pi/2 * (2 - (r+Kr) / (norml(P) + Kr))
+    else:
+      if self.spiral:
+        return angl(P) + sign * np.pi/2 * np.sqrt(norml(P) / r)
+      else:
+        return 0
 
   def N(self, P, sign):
     return unit(self.alpha(P, sign, self.r, self.Kr))
 
+  def N_one(self, P, sign):
+    return unit(self.alpha_one(P, sign, self.r, self.Kr))
+
   def M(self, P, sign, r, Kr):
     return unit(self.alpha(P, sign, r, Kr))
+
+  def M_one(self, P, sign, r, Kr):
+    return unit(self.alpha_one(P, sign, r, Kr))
 
 class UVFDefault(UVF):
   def __init__(self, world, pose, robotPose, direction, radius=None, spiral=True, singleObstacle=False, Vr=np.array([0,0]), Po=np.array([0,0]), Vo=np.array([0,0])):

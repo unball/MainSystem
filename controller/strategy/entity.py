@@ -3,6 +3,7 @@ from controller.strategy.movements import goToBall, goToGoal, projectBall, howFr
 from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField, UVFavoidGoalArea
 from controller.tools import ang, angError, norm, unit, projectLine
 import numpy as np
+import time
 
 class Entity(ABC):
     def __init__(self, robot, color):
