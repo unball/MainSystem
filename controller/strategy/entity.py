@@ -3,6 +3,7 @@ from controller.strategy.movements import goToBall, goToGoal, projectBall, howFr
 from controller.strategy.field import UVFDefault, GoalKeeperField, DefenderField, UVFavoidGoalArea
 from controller.tools import ang, angError, norm, unit, projectLine
 import numpy as np
+import time
 
 class Entity(ABC):
     def __init__(self, robot, color):
@@ -38,6 +39,15 @@ class Attacker(Entity):
         self.ref = (0,0,0)
 
     def movementDecider(self):
+        if not self.robot.isAlive(): 
+            self.robot.spin = 1
+            self.robot.spinTime = time.time()
+            print("MORREU")
+            return
+        
+        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 1:
+            self.robot.spin = 0
+
         # Dados necessários para a decisão
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
@@ -61,8 +71,8 @@ class Attacker(Entity):
         robotBallAngle = ang(rr, rb)
 
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
-        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
-           #if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(angError(robotBallAngle, rr[2])) < (30+self.movState*60)*np.pi/180 and np.abs(projectLine(rr[:2], unit(rr[2]), rg[0])) <= 0.25:
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.1 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
+            #if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(angError(robotBallAngle, rr[2])) < (30+self.movState*60)*np.pi/180 and np.abs(projectLine(rr[:2], unit(rr[2]), rg[0])) <= 0.25:
             # if self.movState == 0:
             #     self.ref = (*(rr[:2] + 1000*unit(rr[2])), rr[2])
             pose, gammavels = goToGoal(rg, rr, vr)
@@ -81,8 +91,9 @@ class Attacker(Entity):
         #if abs(rb[0]) > self.world.xmaxmargin: self.world.goalpos = (-self.world.goalpos[0], self.world.goalpos[1])
 
         # Muda o campo no gol caso a bola esteja lá
-        # if self.world.ball.insideGoalArea():
-        #     self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
+        if self.world.ball.insideGoalArea():
+            self.robot.vref = 0
+            self.robot.field = UVFDefault(self.world, rr, rr, direction=-np.sign(rb[1]), radius=0)
 
         if any(np.abs(rb) > self.world.marginLimits):
             self.robot.field = UVFDefault(self.world, (*pose[:2], 0), rr, direction=-np.sign(rb[1]), radius=0)
@@ -113,6 +124,7 @@ class Defender(Entity):
         pose = blockBallElipse(rb, vb, rr, rg)
 
         self.robot.vref = 0
+        self.robot.gammavels = (0,0,0)
         #self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
         #self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
 
@@ -146,7 +158,7 @@ class GoalKeeper(Entity):
             self.robot.field = UVFDefault(self.world, pose, rr, direction=0, spiral=False)
         else: 
             pose = goalkeep(rb, vb, rr, (rr[0], rg[1]))
-            self.robot.field = GoalKeeperField(pose)
+            self.robot.field = GoalKeeperField(pose, rg[0])
         #self.robot.field = UVFDefault(self.world, (rr[0], *pose[1:3]), rr, direction=0, spiral=False)
         #else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
         #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
@@ -160,22 +172,34 @@ class MidFielder(Entity):
         self.movState = 0
 
     def movementDecider(self):
+        if not self.robot.isAlive(): 
+            self.robot.spin = 1
+            self.robot.spinTime = time.time()
+            print("MORREU")
+            return
+        
+        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 1:
+            self.robot.spin = 0
+
+        
         # Dados necessários para a decisão
-        rr = np.array(self.robot.pose.copy())
-        vr = np.array(self.robot.lastControlLinVel * unit(self.robot.th))
         ra = np.array(self.attacker.pose.copy())
         va = np.array(self.attacker.lastControlLinVel * unit(self.attacker.th))
         rb = np.array(self.world.ball.pos.copy())
+        vb = np.array(self.world.ball.vel.copy())
+        ab = np.array(self.world.ball.acc.copy())
+        rr = np.array(self.robot.pose)
         rg = np.array(self.world.goalpos)
+        vr = np.array(self.robot.lastControlLinVel * unit(self.robot.th))
 
         # Ângulo da bola até o gol
         ballGoalAngle = ang(rb, rg)
 
         # Ângulo do robô até a bola
         robotBallAngle = ang(rr, rb)
-        
+
         # Se estiver atrás da bola, estiver em uma faixa de distância "perpendicular" da bola, estiver com ângulo para o gol com erro menor que 30º vai para o gol
-        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.05 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
+        if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(howPerpBall(rb, rr, rg)) < 0.045 + self.movState*0.1 and abs(angError(ballGoalAngle, rr[2])) < (30+self.movState*60)*np.pi/180:
         #if howFrontBall(rb, rr, rg) < -0.03*(1-self.movState) and abs(angError(robotBallAngle, rr[2])) < (30+self.movState*60)*np.pi/180 and np.abs(projectLine(rr[:2], unit(rr[2]), rg[0])) <= 0.25:
             # if self.movState == 0:
             #     self.ref = (*(rr[:2] + 1000*unit(rr[2])), robotBallAngle)
@@ -186,10 +210,21 @@ class MidFielder(Entity):
             #pose = self.ref
         # Se não, vai para a bola
         else:
-
-            pose, gammavels = mirrorPosition(ra, va, rb, rg)
-
-            self.robot.vref = 0
+            pose, gammavels = goToBall(rb, rg, vb, self.world.marginLimits)
+            self.robot.vref = 999
             self.robot.gammavels = gammavels
+            self.movState = 0
         
-        self.robot.field = UVFDefault(self.world, pose, rr, direction = 0, spiral = False)
+        # Decide quais espirais estarão no campo e compõe o campo
+        #if abs(rb[0]) > self.world.xmaxmargin: self.world.goalpos = (-self.world.goalpos[0], self.world.goalpos[1])
+
+        # Muda o campo no gol caso a bola esteja lá
+        if self.world.ball.insideGoalArea():
+            self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
+
+        elif any(np.abs(rb) > self.world.marginLimits):
+            self.robot.field = UVFDefault(self.world, (*pose[:2], 0), rr, direction=-np.sign(rb[1]), radius=0, singleObstacle=True, Vr=vr, Po=ra, Vo=va)
+        else: 
+            #if howFrontBall(rb, rr, rg) > 0: radius = 0
+            #else: radius = None
+            self.robot.field = UVFDefault(self.world, pose, rr, direction=0, singleObstacle=True, Vr=vr, Po=ra, Vo=va)

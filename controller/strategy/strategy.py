@@ -29,10 +29,12 @@ class Strategy:
         a0b = angError(angl(r0b), robot1.th)
         a1b = angError(angl(r1b), robot2.th)
         # Robô 0 é um bom atacante
-        if not robot2.isAlive() or (2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b)):
+        if (2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b)):
+        #if not robot2.isAlive() or (2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b)):
             return 0
         # Robô 1 é um bom atacante
-        elif not robot1.isAlive() or (2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b)):
+        #elif not robot1.isAlive() or (2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b)):
+        elif (2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b)):
             return 1
         else:
         # Mantém o estado
