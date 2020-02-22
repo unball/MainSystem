@@ -16,6 +16,7 @@ class Ball(Element):
     return insideRect(self.pos, self.world.allyGoalPos, self.world.goalAreaSize)
 
   @property
-  def pos(self):
+  def pos(self, step=3):
     """Retorna a posição \\([x,y]\\) do objeto como uma lista."""
-    return [self.x+self.inst_vx*self.world.dt*3, self.y+self.inst_vy*self.world.dt*3]
+    vx, vy = self.vel
+    return [self.x+vx*self.world.dt*step, self.y+vy*self.world.dt*step]
