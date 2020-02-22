@@ -39,6 +39,15 @@ class Attacker(Entity):
         #self.ref = (0,0,0)
 
     def movementDecider(self):
+        if not self.robot.isAlive(): 
+            self.robot.spin = 1
+            self.robot.spinTime = time.time()
+            print("MORREU")
+            return
+        
+        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 1:
+            self.robot.spin = 0
+
         # Dados necessários para a decisão
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
@@ -161,6 +170,16 @@ class MidFielder(Entity):
         self.movState = 0
 
     def movementDecider(self):
+        if not self.robot.isAlive(): 
+            self.robot.spin = 1
+            self.robot.spinTime = time.time()
+            print("MORREU")
+            return
+        
+        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 1:
+            self.robot.spin = 0
+
+        
         # Dados necessários para a decisão
         ra = np.array(self.attacker.pose.copy())
         va = np.array(self.attacker.lastControlLinVel * unit(self.attacker.th))
