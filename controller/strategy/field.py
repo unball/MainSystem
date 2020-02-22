@@ -39,7 +39,7 @@ class DefenderField(Field):
 
     P[:2] = (P[:2].T - self.center).T
 
-    d = np.abs(np.sqrt(P[0]**2 / self.a ** 2 + P[1]**2 / self.b ** 2) - 1) > 0.5
+    d = np.abs(np.sqrt(P[0]**2 / self.a ** 2 + P[1]**2 / self.b ** 2) - 1) > 0.9
 
     x1 = P[0] / self.a
     x2 = P[1] / self.b
