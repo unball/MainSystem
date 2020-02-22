@@ -94,8 +94,8 @@ class UVF(Field):
     self.Kr = Kr
     self.Kr_single = Kr_single
     self.Ko = 0.12
-    self.dmin = 0.0348
-    self.delta = 0.0457
+    self.dmin = 0.0748
+    self.delta = 0.0857
     self.Pr = Pr
     self.direction = direction
     self.spiral = spiral
