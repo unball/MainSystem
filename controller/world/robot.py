@@ -41,7 +41,7 @@ class Robot(Element):
 
     self.preferedEntity = ""
 
-    self.size = 0.075
+    self.size = 0.080
 
     self.spinTime = 0
 
