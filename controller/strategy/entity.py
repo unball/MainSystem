@@ -39,7 +39,7 @@ class Attacker(Entity):
         self.ref = (0,0,0)
 
     def movementDecider(self):
-        if not self.robot.isAlive(): 
+        if not self.robot.isAlive() and self.world.running: 
             self.robot.spin = 1
             self.robot.spinTime = time.time()
             print("MORREU")
@@ -172,7 +172,7 @@ class MidFielder(Entity):
         self.movState = 0
 
     def movementDecider(self):
-        if not self.robot.isAlive(): 
+        if not self.robot.isAlive() and self.world.running: 
             self.robot.spin = 1
             self.robot.spinTime = time.time()
             print("MORREU")
