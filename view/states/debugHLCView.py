@@ -33,6 +33,7 @@ class DebugHLCView(LoopThread, StackSelector):
     # Elementos internos
     mainBox = builder.get_object("HLCBox")
     renderContainer = builder.get_object("HLCRender")
+    self.enableDebug = builder.get_object("HLCDebugEnable")
     self.playPauseButton = builder.get_object("HLCPlayPause")
     saveData = builder.get_object("HLCSaveData")
     replay = builder.get_object("HLCViewReplay")
@@ -94,6 +95,7 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Liga os sinais
     self.playPauseButton.connect("toggled", self.playPause)
+    self.enableDebug.connect("state-set", self.setHLCParam_state_set, "enableDebug")
     saveData.connect("clicked", self.saveData)
     replay.connect("toggled", self.setReplay)
     self.replayTimeScaleAdj.connect("value-changed", self.setReplayTimeScale)
@@ -241,6 +243,7 @@ class DebugHLCView(LoopThread, StackSelector):
 
     # Define valores padrão
     self.selectableFinalPoint.set_state(self.__controllerState.getParam("selectableFinalPoint"))
+    self.enableDebug.set_state(self.__controllerState.getParam("enableDebug"))
     self.UVF_r.set_value(self.__world.getParam("UVF_r"))
     self.UVF_Kr.set_value(self.__world.getParam("UVF_Kr"))
     self.UVF_Kr_single.set_value(self.__world.getParam("UVF_Kr_single"))
