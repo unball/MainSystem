@@ -43,10 +43,10 @@ class Strategy:
     def entityDecider(self):
         dynamicAttackerDefenderRobots = []
         dynamicAttackerMidFilderRobots = []
-        #attacker = None
+        firstAttacker = None
         for robot in self.robots:
             if robot.preferedEntity == "Atacante":
-                #attacker = robot
+                if firstAttacker is None: firstAttacker = robot
                 robot.entity = Attacker(self.world, robot)
             elif robot.preferedEntity == "Zagueiro":
                 robot.entity = Defender(self.world, robot)
@@ -57,12 +57,10 @@ class Strategy:
             elif robot.preferedEntity == "AtacanteMeioCampo":
                 dynamicAttackerMidFilderRobots.append(robot)
 
-        # for robot in self.robots:
-        #     if robot.preferedEntity == "Meio Campo":
-        #         if attacker is not None:
-        #             robot.entity = MidFielder(self.world, robot, attacker)
-        #         else:
-        #             robot.entity = Attacker(self.world, robot)
+        # Define um meio campo se houver um atacante
+        if firstAttacker is not None:
+            for robot in [r for r in self.robots if r.preferedEntity == "Meio Campo"]:
+                robot.entity = MidFielder(self.world, robot, firstAttacker)
                 
         #self.robots[0].entity = Defender(self.world, self.robots[0])
         #self.robots[1].entity = Attacker(self.world, self.robots[1])
