@@ -8,7 +8,7 @@ import time
 class Robot(Element):
   """Classe filha que implementa um robô no campo."""
 
-  def __init__(self, world, controlSystem=UFC("defaultRobot")):
+  def __init__(self, world, worldIdx, controlSystem=UFC("defaultRobot")):
     super().__init__(world)
     
     self.step = 0.03
@@ -44,6 +44,8 @@ class Robot(Element):
     self.size = 0.080
 
     self.spinTime = 0
+
+    self.meanId = worldIdx
 
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""

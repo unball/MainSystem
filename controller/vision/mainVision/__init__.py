@@ -2,6 +2,7 @@ from controller.vision import Vision
 from controller.vision.visionMessage import VisionMessage
 from model.vision.mainVisionModel import MainVisionModel
 from controller.tools.pixel2metric import pixel2meters, meters2pixel, normToAbs
+from controller.tools import norm
 from view.tools.drawing import Drawing
 import cv2
 import numpy as np
@@ -22,7 +23,7 @@ class MainVision(Vision):
     
     self.__angles = np.array([0, 90, 180, -90, -180])
     """Contém uma lista que corrige o ângulo do vetor que liga o centro de massa do detalhe ao centro de massa da camisa para o ângulo que o robô anda para frente"""
-    
+
   @property
   def preto_hsv(self):
     """Retorna o valor dos limites HSV para segmentação dos elementos"""
@@ -239,9 +240,12 @@ class MainVision(Vision):
     .. todo:: Falta fazer usar o centro como base para saber se o candidato é ou não razoável
     Retorna o identificador com base no centro do robô e na identificação instantânea da camisa (devida somente ao frame atual) e retorna qual deve ser o identificador mais provável.
     """
-    return candidate
+    if not self.usePastPositions: return candidate
+    
+    nearestIdx = np.argmin([norm(x.pos, center) for x in self._world.robots[:3]])
+    return nearestIdx
   
-  def detectarTime(self, componentTeamMask, center, rectangleAngle):
+  def detectarTime(self, componentTeamMask, center, rectangleAngle, centerMeters):
     """Com base na máscara do detalhe do time extrai identifica qual é o robô aliado e obtém o ângulo total"""
     
     # Encontra os contornos internos com área maior que um certo limiar e ordena
@@ -276,7 +280,7 @@ class MainVision(Vision):
     candidato = (0 if poligono == 3 else 2) + countInternalContours -1
     if candidato >= self._world.n_robots: return None
     
-    identificador = self.obterIdentificador(center, candidato)
+    identificador = self.obterIdentificador(centerMeters, candidato)
     
     return identificador, estimatedAngle, internalContours
   
@@ -311,6 +315,8 @@ class MainVision(Vision):
     # Encontra componentes conectados e aplica operações de abertura e dilatação
     components = self.obterComponentesConectados(fgMaskNoBall)
     
+    #print([x.meanId for x in self._world.robots])
+
     # Itera por cada elemento conectado
     for componentMask in components:
         
@@ -326,7 +332,7 @@ class MainVision(Vision):
       componentTeamMask = componentMask & teamMask
       
       # Tenta identificar um aliado
-      aliado = self.detectarTime(componentTeamMask, centro, angulo)
+      aliado = self.detectarTime(componentTeamMask, centro, angulo, centerMeters)
       if aliado is not None:
         mensagem.setRobot(aliado[0], (*centerMeters, aliado[1]*np.pi/180), internalContours=aliado[2])
       

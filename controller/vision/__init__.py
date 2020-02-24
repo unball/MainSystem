@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import time
+import numpy as np
 
 from controller.vision.cameras import CameraHandler
 from controller.vision.visionMessage import VisionMessage
@@ -15,6 +16,9 @@ class Vision(ABC):
     
     self._world = world
     """Mantém referência ao mundo"""
+
+    self.usePastPositions = False
+    self.lastCandidateUse = 0
   
   @abstractmethod
   def process(self, frame):
@@ -32,6 +36,14 @@ class Vision(ABC):
     frame = self.cameraHandler.getFrame()
     if frame is None: return self.giveUpAndWait()
     
+    # Renova a identificação a cada 2 segundos
+    if time.time()-self.lastCandidateUse > 100 and np.all([x.spin == 0 for x in self._world.robots]):
+      self.usePastPositions = False
+    
     self._world.update(self.process(frame))
+
+    if self.usePastPositions is False:
+      self.usePastPositions = True
+      self.lastCandidateUse = time.time()
     
     return True

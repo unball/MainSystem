@@ -44,7 +44,7 @@ class World(ParamsPattern):
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
     self.running = False
-    self.robots = [Robot(self) for i in range(self.n_robots)]
+    self.robots = [Robot(self, i) for i in range(self.n_robots)]
     self.enemyRobots = []
     self.edges = []
     self.ball = Ball(self)
