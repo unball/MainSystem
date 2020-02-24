@@ -205,6 +205,7 @@ class MidFielder(Entity):
             self.robot.vref = 999
             self.robot.gammavels = gammavels
             self.movState = 1
+            singleObstacle = False
             #pose = self.ref
         # Se não, vai para a bola
         else:
@@ -212,6 +213,7 @@ class MidFielder(Entity):
             self.robot.vref = 999
             self.robot.gammavels = gammavels
             self.movState = 0
+            singleObstacle = True
         
         # Decide quais espirais estarão no campo e compõe o campo
         #if abs(rb[0]) > self.world.xmaxmargin: self.world.goalpos = (-self.world.goalpos[0], self.world.goalpos[1])
@@ -221,8 +223,8 @@ class MidFielder(Entity):
             self.robot.field = UVFavoidGoalArea(self.world, pose, rr)
 
         elif any(np.abs(rb) > self.world.marginLimits):
-            self.robot.field = UVFDefault(self.world, (*pose[:2], 0), rr, direction=-np.sign(rb[1]), radius=0, singleObstacle=True, Vr=vr, Po=ra, Vo=va)
+            self.robot.field = UVFDefault(self.world, (*pose[:2], 0), rr, direction=-np.sign(rb[1]), radius=0, singleObstacle=singleObstacle, Vr=vr, Po=ra, Vo=va)
         else: 
             #if howFrontBall(rb, rr, rg) > 0: radius = 0
             #else: radius = None
-            self.robot.field = UVFDefault(self.world, pose, rr, direction=0, singleObstacle=True, Vr=vr, Po=ra, Vo=va)
+            self.robot.field = UVFDefault(self.world, pose, rr, direction=0, singleObstacle=singleObstacle, Vr=vr, Po=ra, Vo=va)
