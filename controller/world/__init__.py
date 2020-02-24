@@ -84,6 +84,7 @@ class World(ParamsPattern):
     if state is True:
       for robot in self.robots:
         robot.lastTimeAlive = time.time()
+        robot.spin = 0
     
   def getRobots(self):
     """Retorna os robôs."""

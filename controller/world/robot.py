@@ -102,7 +102,7 @@ class Robot(Element):
     """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
     ctrlVel = np.abs(self.lastControlLinVel)
 
-    if ctrlVel < 0.01:
+    if ctrlVel < 0.01 or not self.world.running:
       self.lastTimeAlive = time.time()
       return True
 
