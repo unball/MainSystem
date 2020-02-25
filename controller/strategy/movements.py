@@ -98,9 +98,11 @@ def blockBallElipse(rb, vb, rr, rm):
     if rr[1] > r[1] and r_ort_angle > 0: r_ort_angle = r_ort_angle+np.pi
     if rr[1] < r[1] and r_ort_angle < 0: r_ort_angle = r_ort_angle+np.pi
 
-    if not insideEllipse(rb, a, b, rm) and norm(rr, rb) < 0.09:
-        spin = 1 if rr[1] < rb[1] else -1
-    
+    #if not insideEllipse(rb, a, b, rm) and norm(rr, rb) < 0.09:
+    #    spin = 1 if rr[1] < rb[1] else -1
+    if norm(rb, rm) > norm(rr, rm) and rb[0] > rr[0] and norm(rr, rb) < 0.09:
+        spin = 1 if rr[1] > rb[1] else -1
+
     return (r[0], r[1], r_ort_angle), spin
 
     #return followBally(rb, rr)
