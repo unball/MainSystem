@@ -54,7 +54,7 @@ class Robot(Element):
 
     reference = self.field.F(self.pose)
 
-    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref, self.getSpin())
+    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref, self.getSpin(), mu=self.entity.mu)
     self.lastControlLinVel = v
     self.lastAngError = angError(reference, self.th)
 
