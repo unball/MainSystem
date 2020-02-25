@@ -267,12 +267,6 @@ class MainVision(Vision):
     
     cX = M["m10"] / M["m00"]
     cY = M["m01"] / M["m00"]
-    
-    # Calcula o ângulo com base no vetor entre o centro do contorno principal e o centro da camisa
-    calculatedAngle = 180.0/np.pi *np.arctan2(-(center[1]-cY), center[0]-cX)
-    partialAngles =  -rectangleAngle + self.__angles
-    estimatedAngle = partialAngles[np.abs(calculatedAngle - partialAngles).argmin()]
-    
     # Define qual o polígono da figura principal
     poligono = self.definePoly(mainShape)
     
@@ -281,6 +275,14 @@ class MainVision(Vision):
     if candidato >= self._world.n_robots: return None
     
     identificador = self.obterIdentificador(centerMeters, candidato)
+
+    # Calcula o ângulo com base no vetor entre o centro do contorno principal e o centro da camisa
+    calculatedAngle = 180.0/np.pi *np.arctan2(-(center[1]-cY), center[0]-cX)
+    if identificador == 1:
+      calculatedAngle = calculatedAngle - 45.0
+    partialAngles =  -rectangleAngle + self.__angles
+    estimatedAngle = partialAngles[np.abs(calculatedAngle - partialAngles).argmin()]
+      
     
     return identificador, estimatedAngle, internalContours
   
