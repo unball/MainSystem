@@ -38,7 +38,7 @@ def goToBall(rb, rg, vb, rl):
     if any(np.abs(rb) > rl):
         offset = 0
     else:
-        offset = -0.06 * unit(angl(rg-rb)) #+ 0.015 * unit(angl(rg-rb) + np.pi/2)
+        offset = -0 * unit(angl(rg-rb)) #+ 0.015 * unit(angl(rg-rb) + np.pi/2)
 
     rb = rb + offset
     
@@ -63,11 +63,11 @@ def goalkeep(rb, vb, rr, rg):
     if ((vb[0]) < -0.1): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
         #verificar se a projeção está no gol
         #projetando vetor até um xGoal-> y = (xGoal-Xball) * Vyball/Vxball + yBall 
-        ytarget = sat(ytarget, 0.15)
+        ytarget = sat(ytarget, 0.20)
         angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
         return (xGoal, ytarget, angle)
     #Se não acompanha o y
-    ytarget = sat(rb[1],0.15)
+    ytarget = sat(rb[1],0.20)
     angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
     return np.array([xGoal, ytarget, angle])
 

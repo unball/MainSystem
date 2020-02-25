@@ -25,7 +25,8 @@ class DebugHLC(ParamsPattern, State):
       "selectedField": "UVF",
       "selectableFinalPoint": False,
       "runVision": True,
-      "selectedHLCcontrol": 0
+      "selectedHLCcontrol": 0,
+      "enableDebug": True
     })
 
     self.world = controller.world
@@ -107,9 +108,10 @@ class DebugHLC(ParamsPattern, State):
   def appendDebugData(self, reference, speeds, dt):
     """Alimenta os dados de debug com o estado atual das variáveis"""
 
-    if self.world.running:
+    if self.world.running and self.getParam("enableDebug"):
       # Alimenta dados de debug
       if self.initialTime is None: self.initialTime = time.time()
+
       self.debugData["time"].append(time.time()-self.initialTime)
       self.debugData["posX"].append(self.robots[0].x)
       self.debugData["posY"].append(self.robots[0].y)
@@ -145,11 +147,13 @@ class DebugHLC(ParamsPattern, State):
 
     # Mais dados de debug
     self.debugData["loopTime"] = (dt*1000)*0.1 + self.debugData["loopTime"]*0.9
-    self.debugData["controlV"] = speeds[0].v
-    self.debugData["controlW"] = speeds[0].w
-    self.debugData["visionV"] = self.robots[0].velmod
-    self.debugData["visionW"] = self.robots[0].w
-    self.debugData["visionPose"] = (*self.robots[0].pos, self.robots[0].th*180/np.pi)
+
+    if self.getParam("enableDebug"):
+      self.debugData["controlV"] = speeds[0].v
+      self.debugData["controlW"] = speeds[0].w
+      self.debugData["visionV"] = self.robots[0].velmod
+      self.debugData["visionW"] = self.robots[0].w
+      self.debugData["visionPose"] = (*self.robots[0].pos, self.robots[0].th*180/np.pi)
   
   def update(self):
     """Função de loop do estado debugHLC"""
@@ -193,14 +197,14 @@ class DebugHLC(ParamsPattern, State):
       # Simula nova posição
       else:
         for robot, speed in zip(self.robots, speeds):
-          simulate(robot, speed.v, -speed.w)
+          simulate(robot, speed.v, -speed.w, dt=dt)
         #simulateBall(self.world.ball)
     
     # Envia zero para os robôs
     else: self._controller.communicationSystems.get().sendZero()
 
-    # Garante que o tempo de loop é de no mínimo 33ms
-    time.sleep(max(0.033-(time.time()-self.t), 0))
+    # Garante que o tempo de loop é de no mínimo 16ms
+    time.sleep(max(0.016-(time.time()-self.t), 0))
 
     # Incrementa o número de loops
     self.loops += 1

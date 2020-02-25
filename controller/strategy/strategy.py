@@ -29,10 +29,12 @@ class Strategy:
         a0b = angError(angl(r0b), robot1.th)
         a1b = angError(angl(r1b), robot2.th)
         # Robô 0 é um bom atacante
-        if not robot2.isAlive() or (2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b)):
+        if (2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b)):
+        #if not robot2.isAlive() or (2*d0b < d1b and abs(a0b) < np.pi / 4 and abs(a0b) < abs(a1b)):
             return 0
         # Robô 1 é um bom atacante
-        elif not robot1.isAlive() or (2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b)):
+        #elif not robot1.isAlive() or (2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b)):
+        elif (2*d1b < d0b and abs(a1b) < np.pi / 4 and abs(a1b) < abs(a0b)):
             return 1
         else:
         # Mantém o estado
@@ -41,10 +43,10 @@ class Strategy:
     def entityDecider(self):
         dynamicAttackerDefenderRobots = []
         dynamicAttackerMidFilderRobots = []
-        #attacker = None
+        firstAttacker = None
         for robot in self.robots:
             if robot.preferedEntity == "Atacante":
-                #attacker = robot
+                if firstAttacker is None: firstAttacker = robot
                 robot.entity = Attacker(self.world, robot)
             elif robot.preferedEntity == "Zagueiro":
                 robot.entity = Defender(self.world, robot)
@@ -55,12 +57,10 @@ class Strategy:
             elif robot.preferedEntity == "AtacanteMeioCampo":
                 dynamicAttackerMidFilderRobots.append(robot)
 
-        # for robot in self.robots:
-        #     if robot.preferedEntity == "Meio Campo":
-        #         if attacker is not None:
-        #             robot.entity = MidFielder(self.world, robot, attacker)
-        #         else:
-        #             robot.entity = Attacker(self.world, robot)
+        # Define um meio campo se houver um atacante
+        if firstAttacker is not None:
+            for robot in [r for r in self.robots if r.preferedEntity == "Meio Campo"]:
+                robot.entity = MidFielder(self.world, robot, firstAttacker)
                 
         #self.robots[0].entity = Defender(self.world, self.robots[0])
         #self.robots[1].entity = Attacker(self.world, self.robots[1])

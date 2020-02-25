@@ -16,6 +16,7 @@ def simulate(robot, v, w, dt=0.033, r=0.03, L=0.075):
         th = robot.dir_raw_th
 
     robot.dir_raw_update(x,y,th)
+    robot.calc_velocities(dt)
 
 t = 0
 m = 1

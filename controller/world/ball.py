@@ -15,7 +15,8 @@ class Ball(Element):
     """Retorna se a bola está na área do gol aliado ou não"""
     return insideRect(self.pos, self.world.allyGoalPos, self.world.goalAreaSize)
 
-  @property
-  def pos(self):
-    """Retorna a posição \\([x,y]\\) do objeto como uma lista."""
-    return [self.x+self.inst_vx*self.world.dt*3, self.y+self.inst_vy*self.world.dt*3]
+  # @property
+  # def pos(self, step=3):
+  #   """Retorna a posição \\([x,y]\\) do objeto como uma lista."""
+  #   vx, vy = self.vel
+  #   return [self.x+vx*self.world.dt*step, self.y+vy*self.world.dt*step]
