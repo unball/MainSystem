@@ -11,7 +11,7 @@ class UFC(HLC):
 
     self.g = 9.8
 
-  def actuate(self, reference, currentPose, field, dir, gammavels, vref, spin=0):
+  def actuate(self, reference, currentPose, field, dir, gammavels, vref, spin=0, mu=.12):
     """Lei de controle baseada no livro Springer Tracts in Advanced Robotics - Soccer Robotics para o controle unificado. Esta função implementa a lei:
     $$
     v = \\min(v_1,v_2,v_3)\\\\
@@ -30,7 +30,7 @@ class UFC(HLC):
     kw = self.getParam("kw")
     kp = self.getParam("kp")
     L = self.getParam("L")
-    amax = self.getParam("mu") * self.g
+    amax = mu*self.g#self.getParam("mu") * self.g
     vmax = self.getParam("vmax")
     motorangaccelmax = self.getParam("motorangaccelmax")
     r = self.getParam("r")
