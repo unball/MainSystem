@@ -44,7 +44,7 @@ class Attacker(Entity):
             self.robot.spinTime = time.time()
             return
         
-        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 1:
+        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 0.5:
             self.robot.spin = 0
 
         # Dados necessários para a decisão
@@ -176,10 +176,9 @@ class MidFielder(Entity):
             self.robot.spinTime = time.time()
             return
         
-        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 1:
+        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 0.5:
             self.robot.spin = 0
 
-        
         # Dados necessários para a decisão
         ra = np.array(self.attacker.pose.copy())
         va = np.array(self.attacker.lastControlLinVel * unit(self.attacker.th))
