@@ -117,7 +117,7 @@ class Element(object):
   def th(self):
     """Retorna o ângulo do objeto"""
     thVec = unit(self.inst_th)
-    return angl((thVec[0] * self.world.fieldSide, thVec[1])) + self.timeStep * self.w * self.world.dt
+    return angl((thVec[0] * self.world.fieldSide, thVec[1])) #+ self.timeStep * self.w * self.world.dt
 
   @property
   def raw_th(self):
@@ -227,7 +227,7 @@ class Element(object):
   @property
   def x(self):
     """Retorna a posição \\(x\\) atual do objeto"""
-    return self.inst_x * self.world.fieldSide + self.timeStep * self.vx * self.world.dt
+    return self.inst_x * self.world.fieldSide #+ self.timeStep * self.vx * self.world.dt
 
   @property
   def raw_x(self):
@@ -236,7 +236,7 @@ class Element(object):
   @property
   def y(self):
     """Retorna a posição \\(y\\) atual do objeto"""
-    return self.inst_y + self.timeStep * self.vy * self.world.dt
+    return self.inst_y #+ self.timeStep * self.vy * self.world.dt
     
   @property
   def raw_y(self):

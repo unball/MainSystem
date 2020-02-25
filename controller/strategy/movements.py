@@ -79,7 +79,6 @@ def blockBallElipse(rb, vb, rr, rm):
     a = 0.3
     b = 0.45
     e = np.array([1/a, 1/b])
-    rm = np.array([-0.75, 0])
     spin = 0
     
     d = norml(e*(rr[:2]-rm))
