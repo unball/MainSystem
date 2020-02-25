@@ -2436,6 +2436,7 @@ th: 0 º</property>
                                                       <item id="Meio Campo" translatable="yes">Meio Campo</item>
                                                       <item id="Zagueiro" translatable="yes">Zagueiro</item>
                                                       <item id="AtacanteMeioCampo" translatable="yes">Atacante / Meio Campo</item>
+                                                      <item id="MeioCampoZagueiro" translatable="yes">Meio Campo/ Zagueiro</item>
                                                     </items>
                                                   </object>
                                                   <packing>
@@ -2565,6 +2566,7 @@ th: 0 º</property>
                                                       <item id="Meio Campo" translatable="yes">Meio Campo</item>
                                                       <item id="Zagueiro" translatable="yes">Zagueiro</item>
                                                       <item id="AtacanteMeioCampo" translatable="yes">Atacante / Meio Campo</item>
+                                                      <item id="MeioCampoZagueiro" translatable="yes">Meio Campo/ Zagueiro</item>
                                                     </items>
                                                   </object>
                                                   <packing>
@@ -2695,6 +2697,7 @@ th: 0 º</property>
                                                       <item id="Meio Campo" translatable="yes">Meio Campo</item>
                                                       <item id="Zagueiro" translatable="yes">Zagueiro</item>
                                                       <item id="AtacanteMeioCampo" translatable="yes">Atacante / Meio Campo</item>
+                                                      <item id="MeioCampoZagueiro" translatable="yes">Meio Campo/Zagueiro</item>
                                                     </items>
                                                   </object>
                                                   <packing>
