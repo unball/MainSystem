@@ -13,6 +13,7 @@ class Entity(ABC):
         """Robô associado a esta entidade"""
 
         self.color = color
+        self.mu = .07
 
     def directionDecider(self):
         """Altera a propriedade `dir` do robo de acordo com a decisão"""
@@ -37,13 +38,9 @@ class Attacker(Entity):
         self.movState = 0
         self.rg = (0,0)
         self.ref = (0,0,0)
+        self.mu = .12
 
     def movementDecider(self):
-        # Executa spin se estiver morto
-        if not self.robot.isAlive():
-            self.robot.setSpin()
-            return
-
         # Dados necessários para a decisão
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
@@ -56,6 +53,11 @@ class Attacker(Entity):
         # rg = self.rg
         rg = np.array(self.world.goalpos)
         vr = np.array(self.robot.lastControlLinVel * unit(self.robot.th))
+
+        # Executa spin se estiver morto
+        if not self.robot.isAlive():
+            self.robot.setSpin(1 if rr[1] > rb[1] else -1)
+            return
 
         # Bola projetada com offset
         rbpo = projectBall(rb, vb, rr, rg, self.world.marginLimits)
@@ -128,7 +130,7 @@ class Defender(Entity):
         rg = np.array(self.world.rg)
 
         pose, spin = blockBallElipse(rb, vb, rr, rg)
-        self.robot.setSpin(spin)
+        self.robot.setSpin(spin, timeout = 0.1)
 
         self.robot.vref = 0
         self.robot.gammavels = (0,0,0)
@@ -177,13 +179,9 @@ class MidFielder(Entity):
         self.attacker = attackerRobot
         self.world = world
         self.movState = 0
+        self.mu = 0.07
 
     def movementDecider(self):
-        # Executa spin se estiver morto
-        if not self.robot.isAlive():
-            self.robot.setSpin()
-            return
-
         # Dados necessários para a decisão
         ra = np.array(self.attacker.pose.copy())
         va = np.array(self.attacker.lastControlLinVel * unit(self.attacker.th))
@@ -198,6 +196,11 @@ class MidFielder(Entity):
         # rg = self.rg
         rg = np.array(self.world.goalpos)
         vr = np.array(self.robot.lastControlLinVel * unit(self.robot.th))
+
+        # Executa spin se estiver morto
+        if not self.robot.isAlive():
+            self.robot.setSpin(1 if rr[1] > rb[1] else -1)
+            return
 
         # Bola projetada com offset
         rbpo = projectBall(rb, vb, rr, rg, self.world.marginLimits)
