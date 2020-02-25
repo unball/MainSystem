@@ -9,6 +9,9 @@ class Strategy:
 
         self.world = world
         self.state = 1
+        self.midfielderState = 0
+        self.histCenter = 0
+        self.histSize = 0.1
 
     def run(self):
         # Decisor de entidades
@@ -43,6 +46,7 @@ class Strategy:
     def entityDecider(self):
         dynamicAttackerDefenderRobots = []
         dynamicAttackerMidFilderRobots = []
+        dynamicMidfielderDefenderRobots = []
         firstAttacker = None
         for robot in self.robots:
             if robot.preferedEntity == "Atacante":
@@ -56,6 +60,8 @@ class Strategy:
                 dynamicAttackerDefenderRobots.append(robot)
             elif robot.preferedEntity == "AtacanteMeioCampo":
                 dynamicAttackerMidFilderRobots.append(robot)
+            elif robot.preferedEntity == "MeioCampoZagueiro":
+                dynamicMidfielderDefenderRobots.append(robot)
 
         # Define um meio campo se houver um atacante
         if firstAttacker is not None:
@@ -73,7 +79,12 @@ class Strategy:
         if len(dynamicAttackerMidFilderRobots) == 2:
             self.attackerMidFilederDecider(*dynamicAttackerMidFilderRobots)
 
-    def attackerDefenderDecider(self, robot1, robot2):
+        if firstAttacker is not None:
+            if len(dynamicMidfielderDefenderRobots) == 1:
+                self.midfielderDefenderDecider(*dynamicMidfielderDefenderRobots, firstAttacker)
+
+    def attackerDefenderDecider(self, *args):
+        robot1, robot2 = args
         state = self.goodPositionToAttack(robot1, robot2)
         if state != -1:
             self.state = state
@@ -94,6 +105,22 @@ class Strategy:
         else:
             robot1.entity = MidFielder(self.world, robot1, robot2)
             robot2.entity = Attacker(self.world, robot2)
+
+    def midfielderDefenderDecider(self, robot1, attackerRobot):
+        rb = np.array(self.world.ball.pos.copy())
+        vb = np.array(self.world.ball.vel.copy())
+
+        delta = self.histSize * (1 - (np.arctan(vb[0] / 0.7) / (np.pi/2)))
+
+        if rb[0]-self.histCenter > delta:
+            self.midfielderState = 1
+        elif rb[0]-self.histCenter < -delta:
+            self.midfielderState = -1
+
+        if self.midfielderState == 1:
+            robot1.entity = MidFielder(self.world, robot1, attackerRobot)
+        else:
+            robot1.entity = Defender(self.world, robot1)
 
     def directionDecider(self):
         for robot in self.robots:
