@@ -14,6 +14,9 @@ class SerialRadio(ParamsPattern, Communication):
     self.serial = None
     self.failCount = 0
 
+  def closeSerial(self):
+    if self.serial is not None: self.serial.close()
+
   def send(self, msg, waitack=True):
     """Envia a mensagem via barramento serial em `/dev/ttyUSB0`."""
     try:
