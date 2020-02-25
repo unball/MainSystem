@@ -124,7 +124,8 @@ class Defender(Entity):
         rr = np.array(self.robot.pose)
         rg = np.array(self.world.rg)
 
-        pose = blockBallElipse(rb, vb, rr, rg)
+        pose, spin = blockBallElipse(rb, vb, rr)
+        self.robot.spin = spin
 
         self.robot.vref = 0
         self.robot.gammavels = (0,0,0)
