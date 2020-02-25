@@ -80,3 +80,4 @@ class Controller:
     # Para o rosHandler, se tiver sido habilitado
     RosHandler().terminateAll()
     
+    self.communicationSystems[0].closeSerial()
