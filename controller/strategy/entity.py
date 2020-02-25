@@ -39,13 +39,10 @@ class Attacker(Entity):
         self.ref = (0,0,0)
 
     def movementDecider(self):
-        if not self.robot.isAlive():# and self.world.running: 
-            self.robot.spin = 1
-            self.robot.spinTime = time.time()
+        # Executa spin se estiver morto
+        if not self.robot.isAlive():
+            self.robot.setSpin()
             return
-        
-        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 0.5:
-            self.robot.spin = 0
 
         # Dados necessários para a decisão
         rb = np.array(self.world.ball.pos.copy())
@@ -118,14 +115,20 @@ class Defender(Entity):
             self.robot.dir *= -1
 
     def movementDecider(self):
+        # Executa spin se estiver morto
+        if not self.robot.isAlive():
+            self.robot.setSpin()
+            return
+
+
         # Dados necessários para a decisão
         rb = np.array(self.world.ball.pos.copy())
         vb = np.array(self.world.ball.vel.copy())
         rr = np.array(self.robot.pose)
         rg = np.array(self.world.rg)
 
-        pose, spin = blockBallElipse(rb, vb, rr)
-        self.robot.spin = spin
+        pose, spin = blockBallElipse(rb, vb, rr, rg)
+        self.robot.setSpin(spin)
 
         self.robot.vref = 0
         self.robot.gammavels = (0,0,0)
@@ -176,13 +179,10 @@ class MidFielder(Entity):
         self.movState = 0
 
     def movementDecider(self):
-        if not self.robot.isAlive():# and self.world.running: 
-            self.robot.spin = 1
-            self.robot.spinTime = time.time()
+        # Executa spin se estiver morto
+        if not self.robot.isAlive():
+            self.robot.setSpin()
             return
-        
-        if self.robot.spin == 1 and time.time()-self.robot.spinTime > 0.5:
-            self.robot.spin = 0
 
         # Dados necessários para a decisão
         ra = np.array(self.attacker.pose.copy())
