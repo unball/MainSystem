@@ -281,7 +281,7 @@ class UVF(Field):
     return unit(self.alpha_one(P, sign, r, Kr))
 
 class UVFDefault(UVF):
-  def __init__(self, world, pose, robotPose, direction, radius=None, spiral=True, singleObstacle=False, Vr=np.array([0,0]), Po=np.array([0,0]), Vo=np.array([0,0])):
+  def __init__(self, world, pose, robotPose, direction=0, radius=None, spiral=True, singleObstacle=False, Vr=np.array([0,0]), Po=np.array([0,0]), Vo=np.array([0,0])):
     if radius is None: radius = world.getParam("UVF_r")
     
     super().__init__(pose, robotPose,

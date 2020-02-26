@@ -25,9 +25,19 @@ class Entity(ABC):
         """Altera a propriedade `field` do robo de acordo com a decisão"""
         pass
 
+    @abstractmethod
+    def autoPositionPose(self, AutoPositionMovement):
+
+        pass
+
     @property
     def name(self):
         return self.__class__.__name__
+
+    def autoPosition(self, AutoPositionMovement):
+        pose = self.autoPositionPose(AutoPositionMovement)
+        self.robot.vref = 0
+        self.robot.field = UVFDefault(self.robot.world, pose, self.robot.pose)
 
 class Attacker(Entity):
     def __init__(self, world, robot):
@@ -101,6 +111,12 @@ class Attacker(Entity):
             #else: radius = None
             self.robot.field = UVFDefault(self.world, pose, rr, direction=0)
 
+    def autoPositionPose(self, AutoPositionMovement):
+        if AutoPositionMovement == "Defend Penalty":
+            return (0.1, -0.5, np.pi)
+        else:
+            return (0, 0, 0)
+
 class Defender(Entity):
     def __init__(self, world, robot):
         super().__init__(robot, (0,255,0))
@@ -129,6 +145,12 @@ class Defender(Entity):
 
         self.robot.field = DefenderField(pose)
 
+    def autoPositionPose(self, AutoPositionMovement):
+        if AutoPositionMovement == "Defend Penalty":
+            return (0.1, -0.5, np.pi)
+        else:
+            return (0, 0, 0)
+    
 class GoalKeeper(Entity):
     def __init__(self, world, robot):
         super().__init__(robot, (255,0,0))
@@ -161,6 +183,12 @@ class GoalKeeper(Entity):
         #self.robot.field = UVFDefault(self.world, (rr[0], *pose[1:3]), rr, direction=0, spiral=False)
         #else: self.robot.field = GoalKeeperField((rr[0], *pose[1:3]))
         #self.robot.field = UVFDefault(self.world, pose, direction=0, radius=0.14)
+    
+    def autoPositionPose(self, AutoPositionMovement):
+        if AutoPositionMovement == "Defend Penalty":
+            return (-0.7, 0, np.pi/2)
+        else:
+            return (0, 0, 0)
 
 class MidFielder(Entity):
     def __init__(self, world, robot, attackerRobot):
@@ -228,3 +256,9 @@ class MidFielder(Entity):
             #if howFrontBall(rb, rr, rg) > 0: radius = 0
             #else: radius = None
             self.robot.field = UVFDefault(self.world, pose, rr, direction=0, singleObstacle=singleObstacle, Vr=vr, Po=ra, Vo=va)
+            
+    def autoPositionPose(self, AutoPositionMovement):
+        if AutoPositionMovement == "Defend Penalty":
+            return (0.1, 0.3, np.pi)
+        else:
+            return (0, 0, 0)

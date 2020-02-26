@@ -7,6 +7,9 @@ class Strategy:
         self.robots = robots
         """Lista com os robôs a serem manipulados pela estratégia"""
 
+        self.AutoPositionRunning = False
+        self.AutoPositionMovement = ""
+
         self.world = world
         self.state = 1
 
@@ -17,8 +20,14 @@ class Strategy:
         # Decisor de direção
         self.directionDecider()
 
-        # Decisor de movimento
-        self.movementDecider()
+        if self.AutoPositionRunning == False:
+            # Decisor de movimento
+            self.movementDecider()
+        else: 
+            #Auto posicionamento
+            self.autoPosition()
+
+
 
     def goodPositionToAttack(self, robot1, robot2):
         rb = np.array(self.world.ball.pos.copy())
@@ -102,3 +111,7 @@ class Strategy:
     def movementDecider(self):
         for robot in self.robots:
             if robot.entity is not None: robot.entity.movementDecider()
+
+    def autoPosition(self):
+        for robot in self.robots:
+            if robot.entity is not None: robot.entity.autoPosition(self.AutoPositionMovement)

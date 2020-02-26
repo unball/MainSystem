@@ -58,6 +58,12 @@ class DebugHLCView(LoopThread, StackSelector):
     ]
     self.selectableFinalPoint = builder.get_object("HLCSelectableFinalPoint")
 
+    #Elementos de Auto-Position
+    self.KickPenalty = builder.get_object("PenaltiAtaque")
+    self.DefendPenalty = builder.get_object("PenaltiDefesa")
+    self.GoodGoal = builder.get_object("GolY")
+    self.BadGoal = builder.get_object("GolN")
+
     self.HLCcontrolList = ViewMux(self.__controller)
     HLCcontrolListBox = builder.get_object("HLCControlChooserBox")
     HLCcontrolListBox.pack_end(self.HLCcontrolList, True, True, 0)
@@ -98,6 +104,10 @@ class DebugHLCView(LoopThread, StackSelector):
     self.enableDebug.connect("state-set", self.setHLCParam_state_set, "enableDebug")
     saveData.connect("clicked", self.saveData)
     replay.connect("toggled", self.setReplay)
+    self.KickPenalty.connect("toggled", self.moving, "Kick Penalty")
+    self.DefendPenalty.connect("toggled", self.moving, "Defend Penalty")
+    self.GoodGoal.connect("toggled", self.moving, "Good Goal")
+    self.BadGoal.connect("toggled", self.moving, "Bad Goal")
     self.replayTimeScaleAdj.connect("value-changed", self.setReplayTimeScale)
     self.UVF_r.connect("value-changed", self.setWorldParam, "UVF_r")
     self.UVF_Kr.connect("value-changed", self.setWorldParam, "UVF_Kr")
@@ -122,6 +132,13 @@ class DebugHLCView(LoopThread, StackSelector):
 
     return mainBox
 
+  def moving(self, widget, movement):
+    self.playPauseButton.set_active(True)
+    if widget.get_active() == True:
+      self.__controller.addEvent(self.__controllerState.setAutoPosition, True, movement)
+    else:
+      self.__controller.addEvent(self.__controllerState.setAutoPosition, False, "")
+        
   def setShowField(self, widget):
       self.__renderer.showField = int(widget.get_active_id())
 

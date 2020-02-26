@@ -87,6 +87,11 @@ class DebugHLC(ParamsPattern, State):
     """Atualiza a posição da bola"""
     self.world.ball.raw_update(*point)
 
+  def setAutoPosition(self, AutoPositionRunning, AutoPositionMovement):
+    """Define o estado do Auto Position"""
+    self.strategy.AutoPositionRunning = AutoPositionRunning
+    self.strategy.AutoPositionMovement = AutoPositionMovement
+
   @property
   def finalPoint(self):
     return self.world.ball.raw_pose
