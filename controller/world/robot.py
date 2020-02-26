@@ -8,7 +8,7 @@ import time
 class Robot(Element):
   """Classe filha que implementa um robô no campo."""
 
-  def __init__(self, world, worldIdx, controlSystem=UFC("defaultRobot")):
+  def __init__(self, world, worldIdx, mu, controlSystem=UFC("defaultRobot")):
     super().__init__(world)
     
     self.step = 0.03
@@ -48,13 +48,16 @@ class Robot(Element):
 
     self.meanId = worldIdx
 
+    self.mu = mu
+    """Constante de atrito estático do robô"""
+
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""
     if self.field is None: return SpeedPair(0,0)
 
     reference = self.field.F(self.pose)
 
-    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref, self.getSpin(), mu=self.entity.mu)
+    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref, self.getSpin(), mu=self.mu)
     self.lastControlLinVel = v
     self.lastAngError = angError(reference, self.th)
 
