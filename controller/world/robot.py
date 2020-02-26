@@ -36,7 +36,7 @@ class Robot(Element):
 
     self.lastTimeAlive = None
 
-    """Ativa o spin, onde '1' é horário e '-1' é """
+    """Ativa o spin, onde '1' é anti-horário e '-1' é horário"""
     self.spin = 0
 
     self.preferedEntity = ""
@@ -44,6 +44,7 @@ class Robot(Element):
     self.size = 0.080
 
     self.spinTime = 0
+    self.spinTimeOut = 0.5
 
     self.meanId = worldIdx
 
@@ -53,7 +54,7 @@ class Robot(Element):
 
     reference = self.field.F(self.pose)
 
-    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref, self.spin)
+    v,w = self.controlSystem.actuate(reference, self.pose, self.field, self.dir, self.gammavels, self.vref, self.getSpin())
     self.lastControlLinVel = v
     self.lastAngError = angError(reference, self.th)
 
@@ -99,6 +100,24 @@ class Robot(Element):
   def th(self, th):
     """Atualiza o ângulo do objeto diretamente (sem afetar o ângulo anterior)."""
     self.setTh(th - (np.pi if self.dir == -1 else 0))
+
+  def setSpin(self, dir=1, timeout=0.5):
+    if dir != 0: 
+      # Atualiza a direção do spin
+      self.spin = dir
+
+      # Atualiza o tempo de início do spin, se for um spin
+      self.spinTime = time.time()
+
+      # Diz o tempo de duração do spin
+      self.spinTimeOut = timeout
+    
+  def getSpin(self):
+    # Se o tempo do spin acabou retorna 0 (sem spin)
+    if time.time()-self.spinTime > self.spinTimeOut:
+        self.spin = 0
+    # Retorna o valor definido de spin
+    return self.spin
 
   def isAlive(self):
     """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""

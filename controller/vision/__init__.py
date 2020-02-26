@@ -37,7 +37,7 @@ class Vision(ABC):
     if frame is None: return self.giveUpAndWait()
     
     # Renova a identificação a cada 2 segundos
-    if time.time()-self.lastCandidateUse > 100 and np.all([x.spin == 0 for x in self._world.robots]):
+    if time.time()-self.lastCandidateUse > .66 and np.all([x.spin == 0 for x in self._world.robots]):
       self.usePastPositions = False
     
     self._world.update(self.process(frame))

@@ -9,6 +9,9 @@ class Element(object):
     self.world = world
     """Elemento deve ter uma referência ao mundo"""
 
+    self.timeStep = 3
+    """Número de intervalos de tempo do mundo que o dado da visão deve estar atrasado"""
+
     self.inst_x = 0
     """Posição x atual"""
     
@@ -114,7 +117,7 @@ class Element(object):
   def th(self):
     """Retorna o ângulo do objeto"""
     thVec = unit(self.inst_th)
-    return angl((thVec[0] * self.world.fieldSide, thVec[1]))
+    return angl((thVec[0] * self.world.fieldSide, thVec[1])) #+ self.timeStep * self.w * self.world.dt
 
   @property
   def raw_th(self):
@@ -133,11 +136,19 @@ class Element(object):
   @property
   def vel(self):
     """Retorna a velocidade do objeto no formato de lista: \\([v_x, v_y]\\)"""
-    return [self.inst_vx * self.world.fieldSide, self.inst_vy]
+    return [self.vx, self.vy]
 
   @property
   def raw_vel(self):
     return [self.inst_vx, self.inst_vy]
+
+  @property
+  def vx(self):
+    return self.inst_vx * self.world.fieldSide
+
+  @property
+  def vy(self):
+    return self.inst_vy
 
   @property
   def acc(self):
@@ -216,7 +227,7 @@ class Element(object):
   @property
   def x(self):
     """Retorna a posição \\(x\\) atual do objeto"""
-    return self.inst_x * self.world.fieldSide
+    return self.inst_x * self.world.fieldSide #+ self.timeStep * self.vx * self.world.dt
 
   @property
   def raw_x(self):
@@ -225,7 +236,7 @@ class Element(object):
   @property
   def y(self):
     """Retorna a posição \\(y\\) atual do objeto"""
-    return self.inst_y
+    return self.inst_y #+ self.timeStep * self.vy * self.world.dt
     
   @property
   def raw_y(self):

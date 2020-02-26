@@ -1539,14 +1539,14 @@
     <property name="stock">gtk-missing-image</property>
   </object>
   <object class="GtkAdjustment" id="manualControlAng">
-    <property name="lower">-80</property>
-    <property name="upper">80</property>
+    <property name="lower">-64</property>
+    <property name="upper">64</property>
     <property name="step_increment">0.01</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="manualControlLin">
-    <property name="lower">-10</property>
-    <property name="upper">10</property>
+    <property name="lower">-2</property>
+    <property name="upper">2</property>
     <property name="step_increment">0.01</property>
     <property name="page_increment">10</property>
   </object>
