@@ -228,10 +228,11 @@ class MidFielder(Entity):
             #if howFrontBall(rb, rr, rg) < -0.03*(1-self.robot.movState) and abs(angError(robotBallAngle, rr[2])) < (30+self.robot.movState*60)*np.pi/180 and np.abs(projectLine(rr[:2], unit(rr[2]), rg[0])) <= 0.25:
             if self.robot.movState == 0:
                 self.robot.ref = (*(rr[:2] + 1000*unit(rr[2])), rr[2])
+                self.robot.movState = 1
             pose, gammavels = goToGoal(rg, rr, vr)
             self.robot.vref = 999
             self.robot.gammavels = (0,0,0)
-            self.robot.movState = 1
+            
             Kr = None
             pose = self.robot.ref
             singleObstacle = False
@@ -241,7 +242,7 @@ class MidFielder(Entity):
             pose, gammavels = goToBall(rbfiltered, rg, vb, self.world.marginLimits)
             self.robot.vref = 999
             self.robot.gammavels = gammavels
-            self.movState = 0
+            self.robot.movState = 0
             Kr = 0.04
             singleObstacle = True
         

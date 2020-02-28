@@ -134,7 +134,7 @@ class Robot(Element):
       self.lastTimeAlive = time.time()
       return True
 
-    if self.velmod / ctrlVel < 0.15:
+    if self.velmod / ctrlVel < 0.1:
       if self.lastTimeAlive is not None and time.time()-self.lastTimeAlive > 0.33:
         return False
     else:
