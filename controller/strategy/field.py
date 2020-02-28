@@ -16,7 +16,7 @@ class Field(ABC):
     P = np.array(P)
     dx = filt((self.F(P+[d,0,0])-self.F(P-[d,0,0]))/(2*d), 100)
     dy = filt((self.F(P+[0,d,0])-self.F(P-[0,d,0]))/(2*d), 100)
-    return (dx*np.cos(P[2]) + dy*np.sin(P[2])) / 2.5
+    return (dx*np.cos(P[2]) + dy*np.sin(P[2])) / 2
 
   def gamma(self, P: tuple, v: tuple, d=0.00001):
     P = np.array(P)
