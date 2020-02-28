@@ -100,12 +100,18 @@ def blockBallElipse(rb, vb, rr, rm):
 
     #if not insideEllipse(rb, a, b, rm) and norm(rr, rb) < 0.09:
     #    spin = 1 if rr[1] < rb[1] else -1
-    if norm(rb, rm) > norm(rr, rm) and rb[0] > rr[0] and norm(rr, rb) < 0.09:
-        spin = 1 if rr[1] > rb[1] else -1
 
-    return (r[0], r[1], r_ort_angle), spin
+    return (r[0], r[1], r_ort_angle), spinDefender(rb, rr, rm)
 
     #return followBally(rb, rr)
+
+def spinDefender(rb, rr, rm):
+    if norm(rb, rm) > norm(rr, rm) and rb[0] > rr[0] and norm(rr, rb) < 0.09:
+        spin = 1 if rr[1] > rb[1] else -1
+    else:
+        spin = 0
+
+    return spin
 
 def mirrorPosition(rr, vr, rb, rg):
     angle = -1 * ang(rb, rg)
