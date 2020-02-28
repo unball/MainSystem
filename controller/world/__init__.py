@@ -33,7 +33,7 @@ class World(ParamsPattern):
     self.field_y_length = 1.35
     self.xmax = (self.field_x_length) / 2
     self.ymax = (self.field_y_length) / 2
-    self.xmaxmargin = self.xmax - 0.20
+    self.xmaxmargin = self.xmax - 0.10
     self.ymaxmargin = self.ymax - 0.20
     self.marginLimits = (self.xmaxmargin, self.ymaxmargin)
     self.goalpos = (self.xmax, 0)
@@ -44,7 +44,7 @@ class World(ParamsPattern):
     self.n_robots = 5
     self.fieldSide = Field.RIGHT
     self.running = False
-    self.mus = [0.07, 0.07, 0.12, 0.07, 0.07]
+    self.mus = [0.07, 0.07, 0.10, 0.07, 0.07]
     self.robots = [Robot(self, i, self.mus[i]) for i in range(self.n_robots)]
     self.enemyRobots = []
     self.edges = []

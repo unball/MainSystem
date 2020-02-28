@@ -242,7 +242,7 @@ class MainVision(Vision):
     """
     if not self.usePastPositions: return candidate
     
-    nearestIdx = np.argmin([norm(x.pos, center) for x in self._world.robots[:3]])
+    nearestIdx = np.argmin([norm(x.raw_pos, center) for x in self._world.robots[:3]])
     return nearestIdx
   
   def detectarTime(self, componentTeamMask, center, rectangleAngle, centerMeters):

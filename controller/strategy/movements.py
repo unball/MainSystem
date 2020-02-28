@@ -106,7 +106,15 @@ def blockBallElipse(rb, vb, rr, rm):
     #return followBally(rb, rr)
 
 def spinDefender(rb, rr, rm):
-    if norm(rb, rm) > norm(rr, rm) and rb[0] > rr[0] and norm(rr, rb) < 0.09:
+    if norm(rb, rm) > norm(rr, rm) and norm(rr, rb) < 0.12:
+        spin = 1 if rr[1] > rb[1] else -1
+    else:
+        spin = 0
+
+    return spin
+
+def spinGoalKeeper(rb, rr, rm):
+    if norm(rr, rb) < 0.12:
         spin = 1 if rr[1] > rb[1] else -1
     else:
         spin = 0

@@ -51,6 +51,10 @@ class Robot(Element):
     self.mu = mu
     """Constante de atrito estático do robô"""
 
+    self.movState = 0
+
+    self.ref = (0,0,0)
+
   def actuate(self):
     """Retorna velocidade linear e angular de acordo com o controle do robô e o campo utilizado por ele"""
     if self.field is None: return SpeedPair(0,0)
@@ -104,7 +108,7 @@ class Robot(Element):
     """Atualiza o ângulo do objeto diretamente (sem afetar o ângulo anterior)."""
     self.setTh(th - (np.pi if self.dir == -1 else 0))
 
-  def setSpin(self, dir=1, timeout=0.5):
+  def setSpin(self, dir=1, timeout=0.25):
     if dir != 0: 
       # Atualiza a direção do spin
       self.spin = dir
@@ -131,7 +135,7 @@ class Robot(Element):
       return True
 
     if self.velmod / ctrlVel < 0.15:
-      if self.lastTimeAlive is not None and time.time()-self.lastTimeAlive > 1:
+      if self.lastTimeAlive is not None and time.time()-self.lastTimeAlive > 0.33:
         return False
     else:
       self.lastTimeAlive = time.time()

@@ -10,7 +10,7 @@ class Strategy:
         self.world = world
         self.state = 1
         self.midfielderState = 0
-        self.histCenter = 0
+        self.histCenter = -0.15
         self.histSize = 0.1
 
     def run(self):
