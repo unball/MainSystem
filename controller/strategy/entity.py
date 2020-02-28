@@ -64,7 +64,7 @@ class Attacker(Entity):
 
         # Executa spin se estiver morto
         if not self.robot.isAlive():
-            self.robot.setSpin(1 if rr[1] > rb[1] else -1)
+            self.robot.setSpin(-np.sign(rr[0]) if rr[1] > rb[1] else np.sign(rr[0]))
             return
 
         # Bola projetada com offset
@@ -211,7 +211,7 @@ class MidFielder(Entity):
 
         # Executa spin se estiver morto
         if not self.robot.isAlive():
-            self.robot.setSpin(1 if rr[1] > rb[1] else -1)
+            self.robot.setSpin(-np.sign(rr[0]) if rr[1] > rb[1] else np.sign(rr[0]))
             return
 
         # Bola projetada com offset
