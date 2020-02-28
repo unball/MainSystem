@@ -33,8 +33,8 @@ class World(ParamsPattern):
     self.field_y_length = 1.35
     self.xmax = (self.field_x_length) / 2
     self.ymax = (self.field_y_length) / 2
-    self.xmaxmargin = self.xmax - 0.15
-    self.ymaxmargin = self.ymax - 0.15
+    self.xmaxmargin = self.xmax - 0.20
+    self.ymaxmargin = self.ymax - 0.20
     self.marginLimits = (self.xmaxmargin, self.ymaxmargin)
     self.goalpos = (self.xmax, 0)
     self.allyGoalPos = np.array([-self.xmax, 0])

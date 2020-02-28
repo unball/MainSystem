@@ -121,6 +121,7 @@ class Strategy:
             robot1.entity = MidFielder(self.world, robot1, attackerRobot)
         else:
             robot1.entity = Defender(self.world, robot1)
+            attackerRobot.entity.setAuxRobot(robot1)
 
     def directionDecider(self):
         for robot in self.robots:
