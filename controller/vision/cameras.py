@@ -65,9 +65,11 @@ class CameraHandler():
     # Aloca a nova câmera
     if index != -1: 
       cap = cv2.VideoCapture(index)
-      #cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-      #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 230)
-      cap.set(cv2.CAP_PROP_FPS, 187)
+      cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
+      cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+      cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+      cap.set(cv2.CAP_PROP_FPS, 120)
+      print(cap.get(cv2.CAP_PROP_FPS))
       self.__cap = cap
     
     self.__model.current_camera = index
