@@ -134,3 +134,4 @@ config.json
 doc/*
 *.html
 .vscode/
+*~
