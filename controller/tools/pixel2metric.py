@@ -30,7 +30,7 @@ def meters2pixel(world, position, shape):
   x += camera_x_length / 2
   y += camera_y_length / 2
   
-  return (int(x),int(y))
+  return (int(min(max(x,0),camera_x_length)),int(min(max(y,0),camera_y_length)))
 
 def meters2pixelSize(world, size, shape):
   """Recebe o mundo, um tamanho do mundo físico físico e o tamanho do frame e converte para o tamanho equivalente em pixels."""
