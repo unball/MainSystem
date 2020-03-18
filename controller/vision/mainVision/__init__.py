@@ -128,7 +128,7 @@ class MainVision(Vision):
     base = np.array([[0,0],[1,0],[1,1],[0,1]])
     key_points = np.array(points) * np.array([width, height])
     
-    frame_points = base * np.array([width, height])
+    frame_points = base * np.maximum.reduce(key_points)
     
     h, mask = cv2.findHomography(key_points, frame_points, cv2.RANSAC)
     
@@ -152,7 +152,10 @@ class MainVision(Vision):
     else:
       homography_matrix = self.getHomography(frame.shape)
       try:
-        return cv2.warpPerspective(frame, np.array(homography_matrix), (frame.shape[1], frame.shape[0]))
+        warpped = cv2.warpPerspective(frame, np.array(homography_matrix), (frame.shape[1], frame.shape[0]))
+        key_points = np.array(self.__model.homography_points) * np.array([frame.shape[1], frame.shape[0]])
+        extreme_points = np.maximum.reduce(key_points).astype(np.uint32)
+        return MainVision.crop(warpped, (0,0), extreme_points)
       except:
         return frame
         
