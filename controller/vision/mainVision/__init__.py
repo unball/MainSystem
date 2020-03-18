@@ -6,6 +6,8 @@ from controller.tools import norm
 from view.tools.drawing import Drawing
 import cv2
 import numpy as np
+import copy
+import time
 
 class MainVision(Vision):
   """Classe que implementa a visão principal da UnBall, que utiliza segmentação por única cor e faz a identificação por forma."""
@@ -23,6 +25,9 @@ class MainVision(Vision):
     
     self.__angles = np.array([0, 90, 180, -90, -180])
     """Contém uma lista que corrige o ângulo do vetor que liga o centro de massa do detalhe ao centro de massa da camisa para o ângulo que o robô anda para frente"""
+
+    self.lastMessage = None
+    self.average = 0
 
   @property
   def preto_hsv(self):
@@ -179,7 +184,7 @@ class MainVision(Vision):
     """Retorna uma máscara do que é bola"""
     return cv2.inRange(img, np.array(self.__model.bola_hsv[0:3]), np.array(self.__model.bola_hsv[3:6]))
     
-  def identificarBola(self, mask):
+  def identificarBola(self, mask, shape, pref=(0,0)):
     """Com base em uma máscara, retorna posição em metros e raio da bola"""
     bolaContours,_ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     bolaContours = [countor for countor in bolaContours if cv2.contourArea(countor) >= self.__model.min_internal_area_contour]
@@ -187,10 +192,37 @@ class MainVision(Vision):
     if len(bolaContours) != 0:
       bolaContour = max(bolaContours, key=cv2.contourArea)
       ((x,y), radius) = cv2.minEnclosingCircle(bolaContour)
-      
-      return (pixel2meters(self._world, (x,y), mask.shape), radius)
+      return (pixel2meters(self._world, (x+pref[0],y+pref[1]), shape), radius)
     
     else: return None
+
+  def identificarRobo(self, teamMask, componentMask, shape, pref=(0,0)):
+    # Obtém dados do componente como uma camisa
+    camisa = self.detectarCamisa(componentMask, shape, pref=pref)
+    
+    # Extrai dados da camisa
+    if camisa is None: return None
+    centro, centerMeters, angulo, camisaContours = camisa
+    
+    # Máscara dos componentes internos do elemento
+    componentTeamMask = componentMask & teamMask
+    
+    # Tenta identificar um aliado
+    aliado = self.detectarTime(componentTeamMask, centro, angulo, centerMeters, pref)
+    if aliado is not None:
+      return {
+        "id": aliado[0],
+        "pose": (*centerMeters, aliado[1]*np.pi/180),
+        "debug": {"contornoInterno": aliado[2]}
+      }
+    
+    # Adiciona camisa como adversário
+    else:
+      return {
+        "id": None,
+        "pose": (*centerMeters, angulo*np.pi/180),
+        "debug": {"contornoExterno": camisaContours}
+      }
     
   def aplicarFiltrosMorfologicos(self, mask):
     """Aplica filtros morfológicos com o objetivo de retirar ruido a uma mascara"""
@@ -206,12 +238,12 @@ class MainVision(Vision):
     components = self.aplicarFiltrosMorfologicos(np.uint8(components))
     return [np.uint8(np.where(components == label, 255, 0)) for label in np.unique(components)[1:]]
     
-  def detectarCamisa(self, component_mask):
+  def detectarCamisa(self, component_mask, shape, pref=(0,0)):
     """Com base na máscara de um componente conectado extrai informação de posição e ângulo parcial de uma camisa"""
     # Encontra um contorno para a camisa com base no maior contorno
     mainContours,_ = cv2.findContours(component_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    mainContours = [countor for countor in mainContours if cv2.contourArea(countor)>=self.__model.min_external_area_contour]
-    
+    mainContours = [countor + np.array(pref)[:2] for countor in mainContours if cv2.contourArea(countor)>=self.__model.min_external_area_contour]
+
     countMainContours = len(mainContours)
     
     # Contorno pequeno
@@ -225,7 +257,7 @@ class MainVision(Vision):
     
     # Calcula a posição e ângulo parcial da camisa com base no retângulo
     center = rectangle[0]
-    centerMeters = pixel2meters(self._world, center, component_mask.shape)
+    centerMeters = pixel2meters(self._world, np.array(center), shape)
     angle = rectangle[-1]
     
     return center, centerMeters, angle, mainContours
@@ -243,24 +275,25 @@ class MainVision(Vision):
     .. todo:: Falta fazer usar o centro como base para saber se o candidato é ou não razoável
     Retorna o identificador com base no centro do robô e na identificação instantânea da camisa (devida somente ao frame atual) e retorna qual deve ser o identificador mais provável.
     """
+    return candidate
     if not self.usePastPositions: return candidate
     
     nearestIdx = np.argmin([norm(x.raw_pos, center) for x in self._world.robots[:3]])
     return nearestIdx
   
-  def detectarTime(self, componentTeamMask, center, rectangleAngle, centerMeters):
+  def detectarTime(self, componentTeamMask, center, rectangleAngle, centerMeters, pref=(0,0)):
     """Com base na máscara do detalhe do time extrai identifica qual é o robô aliado e obtém o ângulo total"""
     
     # Encontra os contornos internos com área maior que um certo limiar e ordena
     internalContours,_ = cv2.findContours(componentTeamMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    internalContours = [countor for countor in internalContours if cv2.contourArea(countor)>=self.__model.min_internal_area_contour]
+    internalContours = [countor + np.array(pref)[:2] for countor in internalContours if cv2.contourArea(countor)>=self.__model.min_internal_area_contour]
     
     countInternalContours = len(internalContours)
     
     # Não é do nosso time
     if countInternalContours == 0:
       return None
-    
+
     # Seleciona a forma principal
     mainShape = max(internalContours, key=cv2.contourArea)
     
@@ -288,62 +321,134 @@ class MainVision(Vision):
       
     
     return identificador, estimatedAngle, internalContours
-  
-  def process(self, frame):
-    """Implementa o `process` da classe mãe compondo a mensagem de alteração da visão"""
+
+  def cropBallRegion(self, img_hsv, lastMessage):
+    ballPose = np.array([lastMessage.ball_x, lastMessage.ball_y])
+    pmin = np.array(meters2pixel(self._world, ballPose-[0.1, -0.1], img_hsv.shape))
+    pmax = np.array(meters2pixel(self._world, ballPose+[0.1, -0.1], img_hsv.shape))
+    return {"region": MainVision.crop(img_hsv, pmin, pmax), "pmin": pmin}
+
+  def cropRobotsRegion(self, img_hsv, lastMessage):
+    regions = []
+    for pose in lastMessage.allyPoses[:3]:
+      robotPose = np.array([pose[0], pose[1]])
+      pmin = np.array(meters2pixel(self._world, robotPose-[0.1, -0.1], img_hsv.shape))
+      pmax = np.array(meters2pixel(self._world, robotPose+[0.1, -0.1], img_hsv.shape))
+      regions.append({"region": MainVision.crop(img_hsv, pmin, pmax), "pmin": pmin})
+
+    return regions
+
+  def optimizedModeCondition(self):
+    return self.lastMessage is not None and self.lastMessage.ball_found == True and sum([x[3] for x in self.lastMessage.allyPoses[:3]]) == 3
+
+  def process(self, frame, checkpoint=None):
+    # Verifica se todos os robôs+bola já foram identificados
+    if self.optimizedModeCondition():
+      print("OTIMIZADO!")
+      self.lastMessage, frame = self.process_optimized(frame, self.lastMessage, checkpoint)
     
-    # Mensagem de retorno
-    mensagem = VisionMessage(5)
+    # Executa o modo não otimizado
+    else:
+      self.lastMessage, frame = self.process_complete(frame, checkpoint)
     
-    # Corta o campo
+    if checkpoint: return self.lastMessage, frame
+    else: return self.lastMessage
+
+  def process_complete(self, frame, checkpoint=None):
+    # Corta a imagem
     img_warpped = self.warp(frame)
-    
-    # Formata como HSV
+
+    # Muda o espaço de cor par HSV
     img_hsv = self.converterHSV(img_warpped)
-    
-    # Segmenta o que não é o fundo
+
+    # Máscaras
     fgMask = self.obterMascaraElementos(img_hsv)
-    
-    # Segmenta o time
     teamMask = self.obterMascaraTime(img_hsv)
-    
-    # Segmenta a bola
-    bolaMask = self.obterMascaraBola(img_hsv)
+    ballMask = self.obterMascaraBola(img_hsv)
 
-    # Tenta identificar uma bola
-    bola = self.identificarBola(bolaMask & fgMask)
-    mensagem.setBall(bola)
-    
-    # O que não é fundo nem bola
-    fgMaskNoBall = cv2.bitwise_and(fgMask, cv2.bitwise_not(bolaMask))
-    
-    # Encontra componentes conectados e aplica operações de abertura e dilatação
+    # Mensagem de retorno
+    message = VisionMessage(5)
+
+    # Identifica a bola
+    ball = self.identificarBola(ballMask, ballMask.shape)
+    message.setBall(ball)
+
+    # Máscara do que não é fundo nem bola
+    fgMaskNoBall = cv2.bitwise_and(fgMask, cv2.bitwise_not(ballMask))
+
+    # Obtém compomentes conectados na máscara (robos aliados e inimigos)
     components = self.obterComponentesConectados(fgMaskNoBall)
-    
-    #print([x.meanId for x in self._world.robots])
 
-    # Itera por cada elemento conectado
+    # Identifica os robos
     for componentMask in components:
-        
-      # Obtém dados do componente como uma camisa
-      camisa = self.detectarCamisa(componentMask)
+      robot = self.identificarRobo(teamMask, componentMask, componentMask.shape)
+
+      # Robô não identificado
+      if robot is None: continue
       
-      # Camisa tem área pequena
-      if camisa is None: continue
+      # Aliado tem id
+      if robot["id"] is not None:
+        message.setRobot(robot["id"], robot["pose"], internalContours=robot["debug"]["contornoInterno"])
       
-      centro, centerMeters, angulo, camisaContours = camisa
-      
-      # Máscara dos componentes internos do elemento
-      componentTeamMask = componentMask & teamMask
-      
-      # Tenta identificar um aliado
-      aliado = self.detectarTime(componentTeamMask, centro, angulo, centerMeters)
-      if aliado is not None:
-        mensagem.setRobot(aliado[0], (*centerMeters, aliado[1]*np.pi/180), internalContours=aliado[2])
-      
-      # Adiciona camisa como adversário
+      # Inimigo
       else:
-        mensagem.setEnemyRobot((*centerMeters, angulo*np.pi/180), extContour=camisaContours)
-    
-    return mensagem
-    
+        message.setEnemyRobot(robot["pose"], extContour=robot["debug"]["contornoExterno"])
+
+    return message, img_hsv
+
+  def process_optimized(self, frame, lastMessage, checkpoint=None):
+    # Corta a imagem
+    img_warpped = self.warp(frame)
+
+    # Muda o espaço de cor par HSV
+    img_hsv = self.converterHSV(img_warpped)
+
+    # Gera as sub-imagens
+    ballRegions = self.cropBallRegion(img_hsv, lastMessage)
+    robotRegions = self.cropRobotsRegion(img_hsv, lastMessage)
+
+    # Mensagem de retorno começa como uma cópia da última mensagem
+    message = copy.deepcopy(lastMessage)
+
+    # Identifica a bola
+    ballMask = self.obterMascaraBola(ballRegions["region"])
+    ball = self.identificarBola(ballMask, img_hsv.shape, pref=ballRegions["pmin"])
+    message.setBall(ball)
+
+    # Identifica os robôs
+    for robotId, region in enumerate(robotRegions):
+      # Última pose
+      lastpose = lastMessage.allyPoses[robotId]
+
+      # Máscaras
+      fgMask = self.obterMascaraElementos(region["region"])
+      teamMask = self.obterMascaraTime(region["region"])
+      ballMask = self.obterMascaraBola(region["region"])
+      fgMaskNoBall = cv2.bitwise_and(fgMask, cv2.bitwise_not(ballMask))
+
+      # Componentes conectados na região
+      components = self.obterComponentesConectados(fgMaskNoBall)
+
+      # Melhor candidato dos componentes
+      bestCandidate = None
+
+      # Para cada componente identifica
+      for componentMask in components:
+        robot = self.identificarRobo(teamMask, componentMask, img_hsv.shape, region["pmin"])
+
+        # Robô não identificado
+        if robot is None: continue
+
+        # Robô é o procurado e é melhor candidato
+        if robot["id"] == robotId and (bestCandidate is None or norm(robot["pose"], lastpose) < norm(bestCandidate["pose"], lastpose)):
+          bestCandidate = robot
+
+      # Não achou o robô
+      if bestCandidate is None:
+        message.unsetRobot(robotId)
+
+      # Atualiza o robô na mensagem
+      else:
+        message.setRobot(robotId, bestCandidate["pose"], internalContours=bestCandidate["debug"]["contornoInterno"])
+
+    return message, robotRegions[0]["region"]

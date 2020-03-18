@@ -31,6 +31,9 @@ class VisionMessage():
     """Retorna o número de robôs aliados"""
     return self.n_robots
   
+  def unsetRobot(self, index):
+    self.allyPoses[index] = (*self.allyPoses[index][:3], False)
+  
   def setRobot(self, index, pose, internalContours=None):
     """Diz que o robô de índice `index` foi identificado e atualiza sua pose"""
     if(index < self.n_robots):
@@ -47,6 +50,8 @@ class VisionMessage():
   def setBall(self, pos):
     """Coloca a bola como identificada e atualiza sua posição"""
     
-    if pos is None: return
+    if pos is None: 
+      self.ball_found = False
+      return
     self.ball_x, self.ball_y = pos[0]
     self.ball_found = True

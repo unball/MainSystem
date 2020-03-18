@@ -11,6 +11,7 @@ from view.vision.mainVision.segmentarBola import SegmentarBola
 from view.vision.mainVision.segmentarTime import SegmentarTime
 from view.vision.mainVision.parametrosVisao import ParametrosVisao
 from view.vision.mainVision.parametrosVisao import VisaoAltoNivel
+from view.vision.mainVision.cropBall import CropBall
 import cv2
 
 class MainVisionView(StackSelector):
@@ -46,7 +47,8 @@ class MainVisionView(StackSelector):
       Morfologia(notebook, self.__controller, self.__visionSystem),
       SegmentarTime(notebook, self.__controller, self.__visionSystem),
       ParametrosVisao(notebook, self.__controller, self.__visionSystem, self.__world),
-      VisaoAltoNivel(notebook, self.__controller, self.__visionSystem, self.__world)
+      VisaoAltoNivel(notebook, self.__controller, self.__visionSystem, self.__world),
+      CropBall(notebook, self.__controller, self.__visionSystem)
     ])
     """Contém o seletor de frameRenderer"""
     
