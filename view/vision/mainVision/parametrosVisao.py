@@ -20,13 +20,13 @@ class ParametrosVisao(FrameRenderer):
     """Conteúdo a ser inserido na interface da configuração de parâmetros da visão"""
     builder = Gtk.Builder.new_from_file(resource_filename(__name__, "parametrosVisao.ui"))
     
-    builder.get_object("adj_area_cont_rect").set_value(self.__visionSystem.areaRatio)
+    builder.get_object("adj_area_cont_rect").set_value(self.__visionSystem.getParam("cont_rect_area_ratio"))
     builder.get_object("adj_area_cont_rect").connect("value-changed", self.update_area_ratio)
     
-    builder.get_object("adj_min_area_internal_contour").set_value(self.__visionSystem.minInternalAreaContour)
+    builder.get_object("adj_min_area_internal_contour").set_value(self.__visionSystem.getParam("min_internal_area_contour"))
     builder.get_object("adj_min_area_internal_contour").connect("value-changed", self.update_min_internal_area_contour)
     
-    builder.get_object("adj_min_area_external_contour").set_value(self.__visionSystem.minExternalAreaContour)
+    builder.get_object("adj_min_area_external_contour").set_value(self.__visionSystem.getParam("min_external_area_contour"))
     builder.get_object("adj_min_area_external_contour").connect("value-changed", self.update_min_external_area_contour)
     
     #builder.get_object("adj_stability_param").set_value(self.__visionSystem.stabilityParam)
@@ -37,15 +37,15 @@ class ParametrosVisao(FrameRenderer):
   
   def update_area_ratio(self, widget):
     """Atualiza na visão a razão de área triângulo/retângulo que permite diferenciar essas formas"""
-    self.__controller.addEvent(self.__visionSystem.atualizarAreaRatio, widget.get_value())
+    self.__controller.addEvent(self.__visionSystem.setParam, "cont_rect_area_ratio", widget.get_value())
   
   def update_min_internal_area_contour(self, widget):
     """Atualiza na visão a área mínima aceitável para contornos internos detectados"""
-    self.__controller.addEvent(self.__visionSystem.atualizarMinInternalArea, widget.get_value())
+    self.__controller.addEvent(self.__visionSystem.setParam, "min_internal_area_contour", widget.get_value())
   
   def update_min_external_area_contour(self, widget):
     """Atualiza na visão a área mínima aceitável para contornos externos detectados"""
-    self.__controller.addEvent(self.__visionSystem.atualizarMinExternalArea, widget.get_value())
+    self.__controller.addEvent(self.__visionSystem.setParam, "min_external_area_contour", widget.get_value())
   
   def getFrame(self):
     """Retorna um frame que desenha retângulos ao redor dos robôs com seus identificadores e círculo ao redor da bola"""

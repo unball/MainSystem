@@ -4,19 +4,31 @@ from model.vision.mainVisionModel import MainVisionModel
 from controller.tools.pixel2metric import pixel2meters, meters2pixel, normToAbs
 from controller.tools import norm
 from view.tools.drawing import Drawing
+from model.paramsPattern import ParamsPattern
 import cv2
 import numpy as np
 import copy
 import time
 
-class MainVision(Vision):
+class MainVision(ParamsPattern, Vision):
   """Classe que implementa a visão principal da UnBall, que utiliza segmentação por única cor e faz a identificação por forma."""
   
   def __init__(self, world):
-    super().__init__(world)
-    
-    self.__model = MainVisionModel()
-    """Modelo `MainSystem.model.vision.mainVisionModel.MainVisionModel` que mantém as variáveis da visão"""
+    Vision.__init__(self, world)
+    ParamsPattern.__init__(self, "VisionParams", {
+      "preto_hsv": [0,94,163,360,360,360],
+      "time_hsv": [13,0,0,32,360,360],
+      "bola_hsv": [0, 117, 0, 98, 360, 360],
+      "homography": None,
+      "use_homography": True,
+      "crop_points": None,
+      "homography_points": None,
+      "cont_rect_area_ratio": 0.75,
+      "min_internal_area_contour": 10,
+      "min_external_area_contour": 10,
+      "stability_param": 0.99,
+      "internalPolygonPoints": []
+    })
     
     self.__current_frame_shape = None
     """Mantém o formato do frame, caso mude a matriz de homografia será recalculada com base nos pontos (em coordenadas relativas) selecionados"""
@@ -28,81 +40,23 @@ class MainVision(Vision):
 
     self.lastMessage = None
     self.average = 0
-
-  @property
-  def preto_hsv(self):
-    """Retorna o valor dos limites HSV para segmentação dos elementos"""
-    return self.__model.preto_hsv
-    
-  @property
-  def time_hsv(self):
-    """Retorna o valor dos limites HSV para segmentação do time"""
-    return self.__model.time_hsv
-    
-  @property
-  def bola_hsv(self):
-    """Retorna o valor dos limites HSV para segmentação da bola"""
-    return self.__model.bola_hsv
-    
-  @property
-  def use_homography(self):
-    """Retorna a variável `use_homography` que indica se é para usar a matriz de homografia ou usar um corte retangular"""
-    return self.__model.use_homography
-  
-  @property
-  def areaRatio(self):
-    """Retorna a variável `cont_rect_area_ratio` que contém a razão área triângulo/retângulo. Essa razão é usada para diferenciar as duas formas"""
-    return self.__model.cont_rect_area_ratio
-    
-  @property
-  def minInternalAreaContour(self):
-    """Retorna a variável `min_internal_area_contour` que contém a área mínima do contorno interno aceitável. Se for detectado um contorno de área menor que essa, esse contorno será filtrado."""
-    return self.__model.min_internal_area_contour
-    
-  @property
-  def minExternalAreaContour(self):
-    """Retorna a variável `min_external_area_contour` que contém a área mínima do contorno externo aceitável. Se for detectado um contorno de área menor que essa, esse contorno será filtrado."""
-    return self.__model.min_external_area_contour
-
-  def updateInternalPolygon(self, points):
-    self.__model.internalPolygonPoints = points
   
   def atualizarPretoHSV(self, value, index):
     """Atualiza o valor do limite HSV de índice `index` para segmentação dos elementos."""
-    self.__model.preto_hsv[index] = value
+    self.getParam("preto_hsv")[index] = value
   
   def atualizarTimeHSV(self, value, index):
     """Atualiza o valor do limite HSV de índice `index` para segmentação do time."""
-    self.__model.time_hsv[index] = value
+    self.getParam("time_hsv")[index] = value
   
   def atualizarBolaHSV(self, value, index):
     """Atualiza o valor do limite HSV de índice `index` para segmentação da bola."""
-    self.__model.bola_hsv[index] = value
-    
-  def setUseHomography(self, value):
-    """Atualiza o valor da flag `use_homography`."""
-    self.__model.use_homography = value
-    
-  def updateCropPoints(self, points):
-    """Atualiza os pontos de corte retangular."""
-    self.__model.crop_points = points
+    self.getParam("bola_hsv")[index] = value
     
   def updateHomographyPoints(self, points):
     """Atualiza os pontos chave para calcular a matriz de homografia."""
-    self.__model.homography_points = points
+    self.setParam("homography_points", points)
     self.__homography_points_updated = True
-  
-  def atualizarAreaRatio(self, value):
-    """Atualiza o parâmetro de área que diferencia retângulo de triângulo."""
-    self.__model.cont_rect_area_ratio = value
-    
-  def atualizarMinInternalArea(self, value):
-    """Atualiza o parâmetro de área mínima do contorno interno."""
-    self.__model.min_internal_area_contour = value
-    
-  def atualizarMinExternalArea(self, value):
-    """Atualiza o parâmetro de área mínima do contorno externo."""
-    self.__model.min_external_area_contour = value
   
   def get_polygon_mask(frame, points):
       mask = np.zeros((*frame.shape[:2],1), np.uint8)
@@ -121,10 +75,10 @@ class MainVision(Vision):
   def getHomography(self, shape):
     """Obtém a matriz de homografia"""
     if self.__homography_points_updated or self.__current_frame_shape != shape:
-      if self.__model.homography_points is None:
+      if self.getParam("homography_points") is None:
         return None
-      self.updateHomography(self.__model.homography_points, shape)
-    return self.__model.homography
+      self.updateHomography(self.getParam("homography_points"), shape)
+    return self.getParam("homography")
     
   def updateHomography(self, points, shape):
     """Atualiza a matriz de homografia com base nos pontos selecionados e no tamanho do frame"""
@@ -137,19 +91,19 @@ class MainVision(Vision):
     
     h, mask = cv2.findHomography(key_points, frame_points, cv2.RANSAC)
     
-    self.__model.homography = h.tolist()
+    self.setParam("homography", h.tolist())
+    self.setParam("homography_points", points)
     self.__homography_points_updated = False
     self.__current_frame_shape = shape
-    self.__model.homography_points = points
     self.__homography = h
   
   def warp(self, frame):
     """Método que corta de forma retangular ou via homografia a depender de `MainSystem.model.vision.mainVisionModel.MainVisionModel`"""
     
-    if not self.__model.use_homography:
-      if self.__model.crop_points:
-        p0 = normToAbs(self.__model.crop_points[0], frame.shape)
-        p1 = normToAbs(self.__model.crop_points[1], frame.shape)
+    if not self.getParam("use_homography"):
+      if self.getParam("crop_points"):
+        p0 = normToAbs(self.getParam("crop_points")[0], frame.shape)
+        p1 = normToAbs(self.getParam("crop_points")[1], frame.shape)
         return MainVision.crop(frame, p0, p1)
       else:
         return frame
@@ -158,7 +112,7 @@ class MainVision(Vision):
       homography_matrix = self.getHomography(frame.shape)
       try:
         warpped = cv2.warpPerspective(frame, np.array(homography_matrix), (frame.shape[1], frame.shape[0]))
-        key_points = np.array(self.__model.homography_points) * np.array([frame.shape[1], frame.shape[0]])
+        key_points = np.array(self.getParam("homography_points")) * np.array([frame.shape[1], frame.shape[0]])
         extreme_points = np.maximum.reduce(key_points).astype(np.uint32)
         return MainVision.crop(warpped, (0,0), extreme_points)
       except:
@@ -171,23 +125,23 @@ class MainVision(Vision):
   
   def obterMascaraElementos(self,img):
     """Retorna uma máscara do que não é fundo"""
-    fgMask = cv2.inRange(img, np.array(self.__model.preto_hsv[0:3]), np.array(self.__model.preto_hsv[3:6]))
-    if len(self.__model.internalPolygonPoints) != 0: 
-      fgMask &= MainVision.get_polygon_mask(img, self.__model.internalPolygonPoints)[:,:,0]
+    fgMask = cv2.inRange(img, np.array(self.getParam("preto_hsv")[0:3]), np.array(self.getParam("preto_hsv")[3:6]))
+    if len(self.getParam("internalPolygonPoints")) != 0: 
+      fgMask &= MainVision.get_polygon_mask(img, self.getParam("internalPolygonPoints"))[:,:,0]
     return fgMask
     
   def obterMascaraTime(self, img):
     """Retorna uma máscara dos detalhes da camisa do time"""
-    return cv2.inRange(img, np.array(self.__model.time_hsv[0:3]), np.array(self.__model.time_hsv[3:6]))
+    return cv2.inRange(img, np.array(self.getParam("time_hsv")[0:3]), np.array(self.getParam("time_hsv")[3:6]))
     
   def obterMascaraBola(self, img):
     """Retorna uma máscara do que é bola"""
-    return cv2.inRange(img, np.array(self.__model.bola_hsv[0:3]), np.array(self.__model.bola_hsv[3:6]))
+    return cv2.inRange(img, np.array(self.getParam("bola_hsv")[0:3]), np.array(self.getParam("bola_hsv")[3:6]))
     
   def identificarBola(self, mask, shape, pref=(0,0)):
     """Com base em uma máscara, retorna posição em metros e raio da bola"""
     bolaContours,_ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    bolaContours = [countor for countor in bolaContours if cv2.contourArea(countor) >= self.__model.min_internal_area_contour]
+    bolaContours = [countor for countor in bolaContours if cv2.contourArea(countor) >= self.getParam("min_internal_area_contour")]
 
     if len(bolaContours) != 0:
       bolaContour = max(bolaContours, key=cv2.contourArea)
@@ -242,7 +196,7 @@ class MainVision(Vision):
     """Com base na máscara de um componente conectado extrai informação de posição e ângulo parcial de uma camisa"""
     # Encontra um contorno para a camisa com base no maior contorno
     mainContours,_ = cv2.findContours(component_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    mainContours = [countor + np.array(pref)[:2] for countor in mainContours if cv2.contourArea(countor)>=self.__model.min_external_area_contour]
+    mainContours = [countor + np.array(pref)[:2] for countor in mainContours if cv2.contourArea(countor)>=self.getParam("min_external_area_contour")]
 
     countMainContours = len(mainContours)
     
@@ -268,7 +222,7 @@ class MainVision(Vision):
     contourArea = cv2.contourArea(countor)
     rectArea = rect[1][0]*rect[1][1]
     
-    return 4 if contourArea/rectArea > self.__model.cont_rect_area_ratio else 3
+    return 4 if contourArea/rectArea > self.getParam("cont_rect_area_ratio") else 3
     
   def obterIdentificador(self, center, candidate):
     """
@@ -286,7 +240,7 @@ class MainVision(Vision):
     
     # Encontra os contornos internos com área maior que um certo limiar e ordena
     internalContours,_ = cv2.findContours(componentTeamMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    internalContours = [countor + np.array(pref)[:2] for countor in internalContours if cv2.contourArea(countor)>=self.__model.min_internal_area_contour]
+    internalContours = [countor + np.array(pref)[:2] for countor in internalContours if cv2.contourArea(countor)>=self.getParam("min_internal_area_contour")]
     
     countInternalContours = len(internalContours)
     

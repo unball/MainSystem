@@ -88,7 +88,7 @@ class CortarCampoInterno(FrameRenderer):
     if self.pointReturnedToStart(point):
       self.__model.done = True
       self.__controller.addEvent(self.__controller.world.setEdges, self.getPolygonPoints())
-      self.__visionSystem.updateInternalPolygon(self.getPolygonPoints())
+      self.__visionSystem.setParam("internalPolygonPoints", self.getPolygonPoints())
     else:
       self.__model.points.append((point, self.__edgeType))
 

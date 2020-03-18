@@ -17,7 +17,7 @@ class SegmentarTime(FrameRenderer):
     
     for index,name in enumerate(["hmin", "smin", "vmin", "hmax", "smax", "vmax"]):
       element = builder.get_object(name)
-      element.set_value(self.__visionSystem.time_hsv[index])
+      element.set_value(self.__visionSystem.getParam("time_hsv")[index])
       element.connect("value-changed", self.update_hsv_interval, index)
     
     return builder.get_object("main")

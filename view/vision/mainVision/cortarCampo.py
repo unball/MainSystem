@@ -32,7 +32,7 @@ class CortarCampo(FrameRenderer):
     builder = Gtk.Builder.new_from_file(resource_filename(__name__, "cortarCampo.ui"))
     builder.get_object("campo_switch").connect("state-set", self.set_show_mode)
     builder.get_object("homografia_switch").connect("state-set", self.set_crop_mode)
-    builder.get_object("homografia_switch").set_state(self.__visionSystem.use_homography)
+    builder.get_object("homografia_switch").set_state(self.__visionSystem.getParam("use_homography"))
     self.__eventBox.connect("button-press-event", self.update_points)
     self.__eventBox.connect("motion-notify-event", self.mouse_over)
     
@@ -54,7 +54,7 @@ class CortarCampo(FrameRenderer):
   
   def set_crop_mode(self, widget, value):
     """Atualiza flag da visão que indica se é para usar ou não homografia"""
-    self.__controller.addEvent(self.__visionSystem.setUseHomography, value)
+    self.__controller.addEvent(self.__visionSystem.setParam, "use_homography", value)
     
   def getRelPoint(self, widget, event):
     """Com base no evento e no widget de eventBox, calcula a posição relativa do mouse no frame"""
@@ -69,7 +69,7 @@ class CortarCampo(FrameRenderer):
     
     point = self.getRelPoint(widget, event)
     
-    if self.__visionSystem.use_homography:
+    if self.__visionSystem.getParam("use_homography"):
       if len(self.__model.clicked_points_homography) == 4: self.__model.clicked_points_homography.clear()
       self.__model.clicked_points_homography.append(point)
     else:
@@ -80,12 +80,12 @@ class CortarCampo(FrameRenderer):
   
   def update_vision_points(self):
     """Atualiza a visão com os novos pontos"""
-    if self.__visionSystem.use_homography:
+    if self.__visionSystem.getParam("use_homography"):
       if len(self.__model.clicked_points_homography) == 4:
         self.__controller.addEvent(self.__visionSystem.updateHomographyPoints, self.__model.clicked_points_homography.copy())
     else:
       if len(self.__model.clicked_points_crop) == 2:
-        self.__controller.addEvent(self.__visionSystem.updateCropPoints, self.__model.clicked_points_crop.copy())
+        self.__controller.addEvent(self.__visionSystem.setParam, "crop_points", self.__model.clicked_points_crop.copy())
   
   def mouse_over(self, widget, event):
     """Evento quando o mouse sobrepõe o frame, este método atualiza a posição relativa do mouse"""
@@ -98,7 +98,7 @@ class CortarCampo(FrameRenderer):
     
     if self.__show_warpped: return self.__visionSystem.warp(frame)
     else:
-      if self.__visionSystem.use_homography:
+      if self.__visionSystem.getParam("use_homography"):
         color = (0,255,0) if len(self.__model.clicked_points_homography) == 4 else (255,255,255)
         mousePos = normToAbs(self.__current_mouse_position, frame.shape)
     
