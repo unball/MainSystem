@@ -71,7 +71,9 @@ class cv2Renderer(Gtk.Frame, LoopThread):
 
   def get_worker_frame(self):
     """Método que fica executando a thread que mantém a GUI renderizando"""
-    GLib.idle_add(self.do_update_frame, self.__worker())
+    frame = self.__worker()
+    if frame is not None: self.__widthHeightProportion = frame.shape[1] / frame.shape[0]
+    GLib.idle_add(self.do_update_frame, frame)
     time.sleep(0.008)
 
   def do_update_frame(self, image_data):

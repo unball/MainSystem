@@ -158,7 +158,7 @@ class HighLevelRenderer(cv2Renderer):
     width, height = self.getShape()
     
     # Cria um frame do tamanho adequado com tudo preto
-    frame = np.zeros((height,width,3), np.uint8)
+    frame = np.zeros((height,int(height*175/135),3), np.uint8)
     
     # Desenha os lados de campo
     Drawing.draw_field(self.__world, frame)
