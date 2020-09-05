@@ -25,7 +25,9 @@ def loop():
 
     # Controla
     for i in range(message['n_ally']):
-        if message['ally_x'][i] <= 0:
+        if abs(message['ally_x'][i]) < 0.1:
+            vss.command.setPos(i, -0.6, 0, 0)
+        elif message['ally_x'][i] <= 0:
             vss.command.write(i, 10, 10)
         else:
             vss.command.write(i, -10, -10)

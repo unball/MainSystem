@@ -62,6 +62,9 @@ class Command:
     def write(self, index, vl, vr):
         self.lib.commandWrite(c_int(index), c_double(vl), c_double(vr))
 
+    def setPos(self, index, x, y, th):
+        self.lib.commandPos(c_int(index), c_double(x), c_double(y), c_double(th))
+
 class VSS:
     def __init__(self):
         self.lib = CDLL("./lib/vss.so")
