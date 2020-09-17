@@ -1,44 +1,50 @@
-from client.client import VSS
+from client import VSS
+from world import World
+from control.UFC import UFC
+from strategy import Strategy
 import time
 
 vss = VSS()
 
-t0 = 0
+class Loop:
+    def __init__(self, loopFreq = 120):
+        self.world = World(5)
+        self.loopTime = 1.0 / loopFreq
+        self.running = True
+        self.control = UFC()
+        self.strategy = Strategy(self.world)
 
-def loop():
-    global t0
-    # Lê a visão
-    message = vss.vision.read()
+    def loop(self):
+        # Executa visão
+        message = vss.vision.read()
+        if message is None: return
 
-    # Visão é inválida
-    if message is None: return
+        # Atualiza o estado de jogo
+        self.world.update(message)
 
-    # Mostra os dados da visão
-    print("       \t  x  \t  y  \t  th  ")
-    print("ball\t{:+2.2f}\t{:+2.2f}".format(message['ball_x'], message['ball_y']))
-    for i in range(message['n_ally']):
-        x,y,th = message['ally_x'][i], message['ally_y'][i], message['ally_th'][i]
-        print("ally {:d}\t{:+2.2f}\t{:+2.2f}\t{:+2.2f}".format(i,x,y,th))
-    for i in range(message['n_enemy']):
-        x,y,th = message['enemy_x'][i], message['enemy_y'][i], message['enemy_th'][i]
-        print("enemy {:d}\t{:+2.2f}\t{:+2.2f}\t{:+2.2f}".format(i,x,y,th))
+        # Executa estratégia
+        self.strategy.update()
 
-    # Controla
-    for i in range(message['n_ally']):
-        if abs(message['ally_x'][i]) < 0.1:
-            vss.command.setPos(i, -0.6, 0, 0)
-        elif message['ally_x'][i] <= 0:
-            vss.command.write(i, 10, 10)
-        else:
-            vss.command.write(i, -10, -10)
+        # Executa o controle
+        vl, vr = self.control.actuate(self.world.team[0])
+        
+        # Envia para os robôs
+        #print("{}\t{}".format(vl, vr))
+        vss.command.write(0, vl, vr)
 
-    # Atualiza o tempo
-    tn = time.time()
-    print("{:.2f}".format(1/(tn-t0)) + "Hz")
-    t0 = tn
+    def run(self):
+        while self.running:
+            # Tempo inicial do loop
+            t0 = time.time()
 
-    # Espera
-    time.sleep(1.0 / 120)
+            # Executa o loop
+            self.loop()
 
-while True:
-    loop()
+            # Dorme para que a próxima chamada seja 
+            time.sleep(max(self.loopTime - (time.time()-t0), 0))
+
+# Instancia o programa principal
+loop = Loop()
+
+# Executa o sistema
+loop.run()
