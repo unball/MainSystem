@@ -3,7 +3,7 @@ from tools import unit, angl, ang
 
 
 def goToBall(rb, rg):
-    offset = -0 * unit(angl(rg-rb)) #+ 0.015 * unit(angl(rg-rb) + np.pi/2)
+    offset = -0.015 * unit(angl(rg-rb)) #+ 0.015 * unit(angl(rg-rb) + np.pi/2)
 
     rb = rb + offset
     

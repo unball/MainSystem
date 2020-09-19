@@ -8,15 +8,15 @@ class UFC():
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
   def __init__(self):
     self.g = 9.8
-    self.kw = 5
+    self.kw = 4.5
     self.kp = 10
-    self.mu = 0.5
+    self.mu = 0.8
     self.amax = self.mu * self.g
     self.vmax = 2
     self.L = 0.075
 
     self.lastth = 0
-    self.interval = Interval(filter=False)
+    self.interval = Interval(filter=True)
 
   def actuate(self, robot):
     # Ângulo de referência

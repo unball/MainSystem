@@ -15,8 +15,8 @@ class Field:
     def phi(self, P: tuple, d=0.0001):
         """Calcula o ângulo \\(\\phi = \\frac{\\partial \\theta_d}{\\partial x} \\cos(\\theta) + \\frac{\\partial \\theta_d}{\\partial y} \\sin(\\theta)\\) usado para o controle"""
         P = np.array(P)
-        dx = sat((self.F(P+[d,0,0])-self.F(P-[d,0,0]))/(2*d), 2)
-        dy = sat((self.F(P+[0,d,0])-self.F(P-[0,d,0]))/(2*d), 2)
+        dx = sat((self.F(P+[d,0,0])-self.F(P-[d,0,0]))/(2*d), 3)
+        dy = sat((self.F(P+[0,d,0])-self.F(P-[0,d,0]))/(2*d), 3)
         return (dx*np.cos(P[2]) + dy*np.sin(P[2]))
 
     def gamma(self, dth, v, phi):
