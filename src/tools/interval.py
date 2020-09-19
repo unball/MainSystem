@@ -1,16 +1,24 @@
 import time
 
 class Interval:
-    def __init__(self):
-        self.dt = None
+    def __init__(self, filter=True):
+        self._dt = None
         self.lastTime = None
+        self.filter = filter
 
-    def getInterval(self):
-        if self.lastTime is None:
-            self.lastTime = time.time()
-        else:
+    def getInterval(self, update=True):
+        if self.lastTime is not None:
             currentTime = time.time()
             dt = currentTime - self.lastTime
-            self.dt = dt if self.dt is None else (0.999 * self.dt + 0.001 * dt)
-        
-        return self.dt
+            if self.filter: self._dt = dt if self._dt is None else (0.999 * self._dt + 0.001 * dt)
+            else: self._dt = dt
+            
+        self.lastTime = time.time()
+        return self._dt
+
+    @property
+    def dt(self):
+        return self._dt
+
+    def update(self):
+        self.lastTime = time.time()
