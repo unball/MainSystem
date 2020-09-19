@@ -1,8 +1,8 @@
 import time
 
 class Interval:
-    def __init__(self, filter=True):
-        self._dt = None
+    def __init__(self, filter=True, initial_dt=None):
+        self._dt = initial_dt
         self.lastTime = None
         self.filter = filter
 

@@ -1,84 +1,99 @@
 import time
 from tools.interval import Interval
-from tools import adjustAngle, norml
+from tools import adjustAngle, norml, derivative, angularDerivative
 import numpy as np
 import math
 
-class Robot:
-    def __init__(self, id):
-        self.id = id
+class EntriesVec:
+    def __init__(self, past=20):
         self.past = 20
+        self.vec = [0] * self.past
 
-        self.xvec = [0]*self.past
-        self.yvec = [0]*self.past
-        self.thvec_raw = [0]*self.past
+    def add(self, value):
+        self.vec = [value] + self.vec[0:self.past-1]
 
-        self.lastControlLinVel = 0
+    @property
+    def value(self):
+        return self.vec[0]
 
-        self.direction = 1
+class Element:
+    def __init__(self):
+        self.xvec = EntriesVec()
+        self.yvec = EntriesVec()
+        self.interval = Interval(initial_dt=0.016)
 
-        self.intervalManager = Interval()
-        self.timeLastResponse = None
-
-    def update(self, x, y, th):
-        self.xvec =       [x] + self.xvec[0:self.past-1]
-        self.yvec =       [y] + self.yvec[0:self.past-1]
-        self.thvec_raw = [th] + self.thvec_raw[0:self.past-1]
-
-        self.dt = self.intervalManager.getInterval()
+    def update(self, x, y):
+        self.xvec.add(x)
+        self.yvec.add(y)
+        self.interval.update()
 
     @property
     def x(self):
-        return self.xvec[0]
+        return self.xvec.value
 
     @property
     def y(self):
-        return self.yvec[0]
-
-    @property
-    def thvec(self):
-        return [th + (np.pi if self.direction == -1 else 0) for th in self.thvec_raw]
-
-    @property
-    def th(self):
-        return self.thvec[0]
+        return self.yvec.value
 
     @property
     def pos(self):
         return (self.x, self.y)
 
     @property
-    def pose(self):
-        return (self.x, self.y, self.th)
-
-    def derivative(self, vec):
-        if self.dt is None: return 0
-        return (vec[0] - vec[1]) / self.dt
-
-    @property
-    def w(self):
-        return self.derivative(self.thvec)
-
-    @property
     def vx(self):
-        return self.derivative(self.xvec)
+        return derivative(self.xvec.vec, self.interval.dt)
 
     @property
     def vy(self):
-        return self.derivative(self.yvec)
+        return derivative(self.yvec.vec, self.interval.dt)
+
+    @property
+    def v(self):
+        return (self.vx, self.vy)
 
     @property
     def velmod(self):
-        vx = self.vx
-        vy = self.vy
-        if vx is not None and vy is not None:
-            return norml((vx, vy))
-        else: return 0
+        return norml(self.v)
+
+class Robot(Element):
+    def __init__(self, id):
+        super().__init__()
+        self.id = id
+        self.thvec_raw = EntriesVec()
+
+    def update(self, x, y, th):
+        self.thvec_raw.add(th)
+        super().update(x,y)
+
+class TeamRobot(Robot):
+    def __init__(self, id):
+        super().__init__(id)
+
+        self.field = None
+        self.vref = math.inf
+        self.spin = 0
+        self.timeLastResponse = None
+        self.lastControlLinVel = 0
+        self.direction = 1
+
+    def updateField(self, field):
+        self.field = field
 
     @property
-    def alpha(self):
-        if self.dt is None: return 0
-        return adjustAngle(self.thvec[0] - 2 * self.thvec[1] + self.thvec[2]) / self.dt**2
+    def thvec(self):
+        return [th + (np.pi if self.direction == -1 else 0) for th in self.thvec_raw.vec]
+
+    @property
+    def th(self):
+        return self.thvec[0]
+
+    @property
+    def pose(self):
+        return (self.x, self.y, self.th)
+
+    @property
+    def w(self):
+        return angularDerivative(self.thvec.vec, self.interval.dt)
     
     def isAlive(self):
         """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
@@ -97,25 +112,6 @@ class Robot:
         
         return True
 
-class TeamRobot(Robot):
-    def __init__(self, id):
-        super().__init__(id)
-        self.field = None
-        self.vref = math.inf
-        self.spin = 0
-
-    def updateField(self, field):
-        self.field = field
-
-class Ball:
+class Ball(Element):
     def __init__(self):
-        self.x = 0
-        self.y = 0
-
-    def update(self, x, y):
-        self.x = x
-        self.y = y
-
-    @property
-    def pos(self):
-        return (self.x, self.y)
+        super().__init__()

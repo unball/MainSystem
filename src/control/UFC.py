@@ -1,4 +1,4 @@
-from tools import norm, ang, angError, sat, speeds2motors, fixAngle
+from tools import norm, ang, angError, sat, speeds2motors, fixAngle, filt
 from tools.interval import Interval
 import numpy as np
 import math
@@ -8,15 +8,15 @@ class UFC():
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
   def __init__(self):
     self.g = 9.8
-    self.kw = 4.5
+    self.kw = 5.5
     self.kp = 10
-    self.mu = 0.8
+    self.mu = 0.75
     self.amax = self.mu * self.g
     self.vmax = 2
     self.L = 0.075
 
     self.lastth = 0
-    self.interval = Interval(filter=True)
+    self.interval = Interval(filter=True, initial_dt=0.016)
 
   def actuate(self, robot):
     # Ângulo de referência
@@ -26,7 +26,7 @@ class UFC():
     # Tempo desde a última atuação
     dt = self.interval.getInterval()
     # Derivada da referência
-    dth = angError(th, self.lastth) / (dt if dt is not None else 0.016)
+    dth = sat(angError(th, self.lastth) / dt, 15)
     # Computa phi
     phi = robot.field.phi(robot.pose)
     # Computa gamma
@@ -50,7 +50,7 @@ class UFC():
     v  = max(min(v1, v2, v3), 0)
 
     # Lei de controle da velocidade angular
-    w = phi + omega
+    w = v * phi + omega
     
     # Atualiza a última referência
     self.lastth = th
