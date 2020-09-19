@@ -4,13 +4,14 @@ import numpy as np
 wheel_reduction = 5
 r = 0.0325
 L = 0.075
+#L = 0.18
 
 def speeds2motors(v: float, w: float) -> (int, int):
   """Recebe velocidade linear e angular e retorna velocidades para as duas rodas"""
 
   # Computa a velocidade angular de rotação de cada roda
-  vr = (v + (L/2)*w) / (2*np.pi*r) * wheel_reduction
-  vl = (v - (L/2)*w) / (2*np.pi*r) * wheel_reduction
+  vr = (v + (L/2)*w) / r#/ (2*np.pi*r) * wheel_reduction
+  vl = (v - (L/2)*w) / r#/ (2*np.pi*r) * wheel_reduction
 
   #if fabs(vr) > max_motor_speed or fabs(vl) > max_motor_speed:
   #  vr = max_motor_speed * vr / max(vr, vl)
@@ -21,6 +22,10 @@ def speeds2motors(v: float, w: float) -> (int, int):
   
   return vl, vr
 
+def motors2linvel(vl: float, vr: float) -> float:
+  # Computa a velocidade angular de rotação de cada roda
+  return (vr + vl) * (2*np.pi*r) / wheel_reduction / 2
+
 def angl(p0: tuple):
   """Calcula o ângulo da tupla `p0` no plano este ângulo está em \\((-\\pi,\\pi]\\)"""
   return np.arctan2(p0[1], p0[0])
@@ -28,6 +33,10 @@ def angl(p0: tuple):
 def unit(angle):
   """Retorna um vetor unitário de ângulo `angle` no formato de numpy array"""
   return np.array([np.cos(angle), np.sin(angle)])
+
+def norm(p0: tuple, p1: tuple):
+  """Calcula a distância entre as tuplas `p0` e `p1` no plano"""
+  return np.sqrt((p1[0]-p0[0])**2+(p1[1]-p0[1])**2)
 
 def norml(p0: tuple):
   """Calcula a norma de `p0"""
@@ -50,3 +59,13 @@ def sat(x: float, amp: float):
 def ang(p0: tuple, p1: tuple):
   """Calcula o ângulo entre as tuplas `p0` e `p1` no plano, este ângulo está em \\((-\\pi,\\pi]\\)"""
   return np.arctan2(p1[1]-p0[1], p1[0]-p0[0])
+
+def filt(x: float, amp: float):
+  if np.abs(x) > np.abs(amp): return 0
+  else: return x
+
+def fixAngle(angle: float):
+  if abs(angle) > np.pi/2:
+    return (angle + np.pi/2) % (np.pi) - np.pi/2
+  else:
+    return angle
