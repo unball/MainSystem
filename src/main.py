@@ -7,7 +7,7 @@ import time
 vss = VSS()
 
 class Loop:
-    def __init__(self, loopFreq = 120):
+    def __init__(self, loopFreq = 60):
         self.world = World(5)
         self.loopTime = 1.0 / loopFreq
         self.running = True
