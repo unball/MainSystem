@@ -1,41 +1,60 @@
-from tools import speeds2motors, angError, sat
+from tools import norm, ang, angError, sat, speeds2motors, fixAngle
 from tools.interval import Interval
+import numpy as np
+import math
+import time 
 
-class UFC:
-    def __init__(self):
-        self.T = 0.10
-        self.Kw = 30
-        self.vmax = 2
-        self.mu = 1
-        self.g = 9.85
-        self.th = None
-        self.vrmax = 1000
+class UFC():
+  """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
+  def __init__(self):
+    self.g = 9.8
+    self.kw = 5
+    self.kp = 10
+    self.mu = 0.5
+    self.amax = self.mu * self.g
+    self.vmax = 2
+    self.L = 0.075
 
-        self.intervalManager = Interval()
-        self.lastth = None
+    self.lastth = 0
+    self.interval = Interval(filter=False)
 
-    def actuate(self, robot):
-        # Intervalo de tempo desde a última chamada
-        dt = self.intervalManager.getInterval()
+  def actuate(self, robot):
+    # Ângulo de referência
+    th = robot.field.F(robot.pose)
+    # Erro angular
+    eth = angError(th, robot.th)
+    # Tempo desde a última atuação
+    dt = self.interval.getInterval()
+    # Derivada da referência
+    dth = angError(th, self.lastth) / (dt if dt is not None else 0.016)
+    # Computa phi
+    phi = robot.field.phi(robot.pose)
+    # Computa gamma
+    gamma = robot.field.gamma(dth, robot.velmod, phi)
+    #print("eth: {:.4f}\tphi: {:.4f}\tth: {:.4f}\trth: {:.4f}\t".format(eth*180/np.pi, phi, th*180/np.pi, robot.th*180/np.pi))
+    
+    # Computa omega
+    omega = self.kw * np.sign(eth) * np.sqrt(np.abs(eth)) + gamma
 
-        # Referência
-        th = robot.field.F(robot.pose)
-        #print(robot.th)
+    # Velocidade limite de deslizamento
+    if phi != 0: v1 = (-np.abs(omega) + np.sqrt(omega**2 + 4 * np.abs(phi) * self.amax)) / (2*np.abs(phi))
+    if phi == 0: v1 = self.amax / np.abs(omega)
 
-        # Derivada
-        dth = robot.field.dth(th, self.lastth, dt)
+    # Velocidade limite das rodas
+    v2 = (2*self.vmax - self.L * np.abs(omega)) / (2 + self.L * np.abs(phi))
 
-        # Erro
-        eth = angError(th, robot.th)
-        print(eth)
+    # Velocidade limite de aproximação
+    v3 = self.kp * norm(robot.pos, robot.field.Pb) ** 2 + robot.vref
 
-        # Controle
-        u = dth + self.T * robot.alpha + self.Kw * eth
-        v = min(self.vmax, abs(self.mu * self.g / (robot.w + 0.0001)))
+    # Velocidade linear é menor de todas
+    v  = max(min(v1, v2, v3), 0)
 
-        # Atualiza estados
-        self.lastth = th
-
-        vl, vr = speeds2motors(v, u)
-
-        return sat(vl, self.vrmax), sat(vr, self.vrmax)
+    # Lei de controle da velocidade angular
+    w = phi + omega
+    
+    # Atualiza a última referência
+    self.lastth = th
+    robot.lastControlLinVel = v
+    
+    if robot.spin == 0: return speeds2motors(v * robot.direction, w)
+    else: return speeds2motors(0, 60 * robot.spin)
