@@ -33,9 +33,9 @@ class Field:
 
 class World:
     def __init__(self, n_robots=5):
-        self.team = [TeamRobot(i) for i in range(n_robots)]
-        self.enemies = [Robot(i) for i in range(n_robots)]
-        self.ball = Ball()
+        self.team = [TeamRobot(self, i) for i in range(n_robots)]
+        self.enemies = [Robot(self, i) for i in range(n_robots)]
+        self.ball = Ball(self)
         self.field = Field()
 
     def update(self, message):

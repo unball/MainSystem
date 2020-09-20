@@ -11,7 +11,6 @@ class Loop:
         self.world = World(5)
         self.loopTime = 1.0 / loopFreq
         self.running = True
-        self.control = UFC()
         self.strategy = Strategy(self.world)
 
     def loop(self):
@@ -26,11 +25,8 @@ class Loop:
         self.strategy.update()
 
         # Executa o controle
-        vl, vr = self.control.actuate(self.world.team[0])
-        
-        # Envia para os robôs
-        #print("{}\t{}".format(vl, vr))
-        vss.command.write(0, vl, vr)
+        for i,robot in enumerate(self.world.team):
+            vss.command.write(i, *robot.control.actuate(robot))
 
     def run(self):
         while self.running:

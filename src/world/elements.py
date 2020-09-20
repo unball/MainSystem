@@ -1,6 +1,7 @@
 import time
 from tools.interval import Interval
 from tools import adjustAngle, norml, derivative, angularDerivative
+from control.UFC import UFC
 import numpy as np
 import math
 
@@ -17,7 +18,8 @@ class EntriesVec:
         return self.vec[0]
 
 class Element:
-    def __init__(self):
+    def __init__(self, world):
+        self.world = world
         self.xvec = EntriesVec()
         self.yvec = EntriesVec()
         self.interval = Interval(initial_dt=0.016)
@@ -56,8 +58,8 @@ class Element:
         return norml(self.v)
 
 class Robot(Element):
-    def __init__(self, id):
-        super().__init__()
+    def __init__(self, world, id):
+        super().__init__(world)
         self.id = id
         self.thvec_raw = EntriesVec()
 
@@ -66,18 +68,24 @@ class Robot(Element):
         super().update(x,y)
 
 class TeamRobot(Robot):
-    def __init__(self, id):
-        super().__init__(id)
+    def __init__(self, world, id):
+        super().__init__(world, id)
 
         self.field = None
         self.vref = math.inf
         self.spin = 0
+        self.entity = None
+        self.control = UFC()
         self.timeLastResponse = None
         self.lastControlLinVel = 0
         self.direction = 1
 
     def updateField(self, field):
         self.field = field
+
+    def updateEntity(self, entityClass, forced_update=False, **kwargs):
+        if type(self.entity) != entityClass or forced_update:
+            self.entity = entityClass(self.world, self, **kwargs)
 
     @property
     def thvec(self):
@@ -113,5 +121,5 @@ class TeamRobot(Robot):
         return True
 
 class Ball(Element):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, world):
+        super().__init__(world)

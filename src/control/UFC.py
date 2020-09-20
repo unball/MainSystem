@@ -10,7 +10,7 @@ class UFC():
     self.g = 9.8
     self.kw = 5.5
     self.kp = 10
-    self.mu = 0.75
+    self.mu = 0.7
     self.amax = self.mu * self.g
     self.vmax = 2
     self.L = 0.075
@@ -19,6 +19,7 @@ class UFC():
     self.interval = Interval(filter=True, initial_dt=0.016)
 
   def actuate(self, robot):
+    if robot.field is None: return 0,0
     # Ângulo de referência
     th = robot.field.F(robot.pose)
     # Erro angular
