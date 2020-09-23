@@ -34,16 +34,14 @@ class Attacker(Entity):
 
         # Define estado do movimento
         if self.attackState == 0:
-            if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < 0.075 * 0.75 and abs(angError(self.robot.th, ang(rb, rg))) < 20 * np.pi / 180:
+            if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < 0.075 * 0.75 and abs(angError(self.robot.th, ang(rb, rg))) < 15 * np.pi / 180:
                 self.attackState = 1
-                self.attackAngle = self.robot.th
-                #print("Modo ataque!")
+                self.attackAngle = ang(rb, rg)
             else: self.attackState = 0
         else:
             if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < 0.075*2 and abs(angError(self.robot.th, ang(rb, rg))) < 90 * np.pi / 180:
                 self.attackState = 1
             else:
-                #print("Saiu modo ataque!")
                 self.attackState = 0
 
         # Aplica o movimento
@@ -53,6 +51,6 @@ class Attacker(Entity):
             if any(np.abs(rb) > rl):
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=0.07)
             else:
-                self.robot.field = UVF(Pb, radius=0.07)
+                self.robot.field = UVF(Pb, radius=0.10)
         else:
-            self.robot.field = DirectionalField(self.attackAngle, nullgamma=True)
+            self.robot.field = DirectionalField(self.attackAngle)

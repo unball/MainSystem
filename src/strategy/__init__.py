@@ -9,10 +9,10 @@ class Strategy:
     def entityDecider(self):
         robot = self.world.team[0]
         robot.updateEntity(Attacker)
-        robot = self.world.team[1]
-        robot.updateEntity(Attacker)
-        robot = self.world.team[2]
-        robot.updateEntity(Attacker)
+        # robot = self.world.team[1]
+        # robot.updateEntity(Attacker)
+        # robot = self.world.team[2]
+        # robot.updateEntity(Attacker)
     
     def update(self):
         self.entityDecider()
