@@ -1,7 +1,7 @@
 import time
 from tools.interval import Interval
 from tools import adjustAngle, norml, derivative, angularDerivative
-from control.UFC import UFC
+from control.UFC import UFC, UFC_Simple
 import numpy as np
 import math
 
@@ -68,14 +68,14 @@ class Robot(Element):
         super().update(x,y)
 
 class TeamRobot(Robot):
-    def __init__(self, world, id):
+    def __init__(self, world, id, control=UFC_Simple()):
         super().__init__(world, id)
 
         self.field = None
         self.vref = math.inf
         self.spin = 0
         self.entity = None
-        self.control = UFC()
+        self.control = control
         self.timeLastResponse = None
         self.lastControlLinVel = 0
         self.direction = 1
@@ -101,7 +101,7 @@ class TeamRobot(Robot):
 
     @property
     def w(self):
-        return angularDerivative(self.thvec.vec, self.interval.dt)
+        return angularDerivative(self.thvec, self.interval.dt)
     
     def isAlive(self):
         """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""

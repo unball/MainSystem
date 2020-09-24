@@ -12,7 +12,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg):
     else:
         rbp = rb + min(u) * vb
 
-    rbp[0] = max(rbp[0], -rl[0])
+    #rbp[0] = max(rbp[0], -rl[0])
     rbp[1] = sat(rbp[1], rl[1])
     offset = 0.015 * unit(angl(rg-rbp))#+ 0.015 * unit(angl(rg-rb) + np.pi/2)
 

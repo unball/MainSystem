@@ -5,10 +5,14 @@ from strategy import Strategy
 import time
 
 vss = VSS()
+vss_enemy = VSS(team_yellow=True)
 
 class Loop:
     def __init__(self, loopFreq = 60):
         self.world = World(5)
+        self.world.enemies[0].control = UFC()
+        self.world.enemies[1].control = UFC()
+        self.world.enemies[2].control = UFC()
         self.loopTime = 1.0 / loopFreq
         self.running = True
         self.strategy = Strategy(self.world)
@@ -28,6 +32,9 @@ class Loop:
         for i,robot in enumerate(self.world.team):
             vss.command.write(i, *robot.control.actuate(robot))
 
+        for i,robot in enumerate(self.world.enemies):
+            vss_enemy.command.write(i, *robot.control.actuate(robot))
+
     def run(self):
         while self.running:
             # Tempo inicial do loop
@@ -42,5 +49,4 @@ class Loop:
 # Instancia o programa principal
 loop = Loop()
 
-# Executa o sistema
 loop.run()

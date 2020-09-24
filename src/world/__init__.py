@@ -1,11 +1,12 @@
 from .elements import *
 
 class Field:
-    def __init__(self):
+    def __init__(self, side):
         self.width = 1.75
         self.height = 1.35
         self.xmargin = 0.30
         self.ymargin = 0.10
+        self.side = side
 
     @property
     def maxX(self):
@@ -32,11 +33,11 @@ class Field:
         return (self.maxX, 0)
 
 class World:
-    def __init__(self, n_robots=5):
+    def __init__(self, n_robots=5, side=1):
         self.team = [TeamRobot(self, i) for i in range(n_robots)]
-        self.enemies = [Robot(self, i) for i in range(n_robots)]
+        self.enemies = [TeamRobot(self, i) for i in range(n_robots)]
         self.ball = Ball(self)
-        self.field = Field()
+        self.field = Field(side)
 
     def update(self, message):
         teamPos = zip(message["ally_x"], message["ally_y"], message["ally_th"])

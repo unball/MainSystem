@@ -5,15 +5,16 @@ from strategy.movements import goToBall
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
 import numpy as np
+import math
 
 class Attacker(Entity):
-    def __init__(self, world, robot):
+    def __init__(self, world, robot, side=1):
         super().__init__(world, robot)
-        print("oi")
         self.lastDirectionChange = 0
         self.attackAngle = None
         self.attackState = 0
         self.vravg = 0
+        self.side = side
 
     def directionDecider(self):
         if self.robot.field is not None:
@@ -30,6 +31,7 @@ class Attacker(Entity):
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
         rg = np.array(self.world.field.goalPos)
+        if self.side is -1: rg = (-rg[0], rg[1])
         rl = np.array(self.world.field.marginPos)
 
         # Define estado do movimento
@@ -49,8 +51,11 @@ class Attacker(Entity):
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg)
 
             if any(np.abs(rb) > rl):
-                self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=0.07)
+                self.robot.vref = math.inf
+                self.robot.field = UVF(Pb, direction=-self.side*np.sign(rb[1]), radius=0.07)
             else:
+                self.robot.vref = 0.5
                 self.robot.field = UVF(Pb, radius=0.10)
         else:
+            self.robot.vref = math.inf
             self.robot.field = DirectionalField(self.attackAngle)

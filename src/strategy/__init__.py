@@ -13,6 +13,13 @@ class Strategy:
         # robot.updateEntity(Attacker)
         # robot = self.world.team[2]
         # robot.updateEntity(Attacker)
+        
+        robot = self.world.enemies[0]
+        robot.updateEntity(Attacker,side=-1)
+        # robot = self.world.enemies[1]
+        # robot.updateEntity(Attacker,side=-1)
+        # robot = self.world.enemies[2]
+        # robot.updateEntity(Attacker,side=-1)
     
     def update(self):
         self.entityDecider()
@@ -21,3 +28,7 @@ class Strategy:
                 robot.entity.directionDecider()
                 robot.entity.fieldDecider()
 
+        for robot in self.world.enemies:
+            if robot.entity is not None:
+                robot.entity.directionDecider()
+                robot.entity.fieldDecider()
