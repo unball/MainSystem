@@ -1,4 +1,5 @@
 from .entity.attacker import Attacker
+from .entity.goalKeeper import GoalKeeper
 import numpy as np
 import time
 
@@ -7,12 +8,12 @@ class Strategy:
         self.world = world
 
     def entityDecider(self):
-        robot = self.world.team[0]
-        robot.updateEntity(Attacker)
+        # robot = self.world.team[0]
+        # robot.updateEntity(Attacker)
         # robot = self.world.team[1]
         # robot.updateEntity(Attacker)
-        # robot = self.world.team[2]
-        # robot.updateEntity(Attacker)
+        robot = self.world.team[2]
+        robot.updateEntity(GoalKeeper)
         
         robot = self.world.enemies[0]
         robot.updateEntity(Attacker,side=-1)

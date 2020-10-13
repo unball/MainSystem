@@ -83,3 +83,6 @@ def howFrontBall(rb, rr, rg):
 
 def howPerpBall(rb, rr, rg):
     return np.dot(rr[:2]-rb, unit(angl(rg-rb)+np.pi/2))
+
+def projectLine(r, v, xline):
+  return ((xline-r[0])/v[0])*v[1] + r[1]
