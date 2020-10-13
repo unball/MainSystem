@@ -29,6 +29,7 @@ class UVF(Field):
         return self.TUF(np.array(P), np.array(self.Pb))
 
     def TUF(self, P, Pb):
+        
         P = P.copy()
 
         # Ajusta o sistema de coordenadas

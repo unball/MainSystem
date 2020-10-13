@@ -12,4 +12,4 @@ def centralField2pygameAxisCoordinate(xy_tuple):
     return (int(xy_tuple[0]+FIELD_DIMENSIONS[0]/2), -int(xy_tuple[1]-FIELD_DIMENSIONS[1]/2))
 
 def pygame2centralFieldAxisCoordinate(xy_tuple):
-    return (xy_tuple[0]-FIELD_DIMENSIONS[0]/2, -xy_tuple[1]+FIELD_DIMENSIONS[1]/2)
+    return ((xy_tuple[0]-FIELD_DIMENSIONS[0]/2)/M_TO_PIXEL, (-xy_tuple[1]+FIELD_DIMENSIONS[1]/2)/M_TO_PIXEL)

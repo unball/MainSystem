@@ -4,11 +4,11 @@ import numpy as np
 import pygame
 
 class UVFScreen:
-    def __init__(self, world, index_uvf_robot = 2, arrow_step = 0.08):
+    def __init__(self, world, index_uvf_robot = 2, arrow_step = 0.15):
         self.world = world
         self.index_uvf_robot = index_uvf_robot
         self.arrow_step = int(arrow_step*M_TO_PIXEL)
-        self.arrow_poses = self.arrowPoses(int(arrow_step*M_TO_PIXEL))
+        self.arrow_poses = self.arrowPoses(arrow_step*M_TO_PIXEL)
 
     def arrowPoses(self, arrow_step):
         x = np.arange(-FIELD_DIMENSIONS[0]/2, FIELD_DIMENSIONS[0]/2, arrow_step)
@@ -28,6 +28,10 @@ class UVFScreen:
         self.robotCollor = {0: (100,0,0),
                             1: (0,100,0),
                             2: (0,0,100)}
+        
+        self.createRobotsSurface()
+        self.createUVFSurface()
+
     def clearScreen(self):
         #clear screen at the start of every frame
         self.screen.fill((40, 40, 40))
@@ -64,7 +68,6 @@ class UVFScreen:
 
             #rotate surf by DEGREE amount degrees
             rotatedSurf =  pygame.transform.rotate(self.robots_surf[index], math.degrees(robot.th))
-            # print(robot.th)
 
             #get the rect of the rotated surf and set it's center to the oldCenter
             rotRect = rotatedSurf.get_rect()
@@ -78,17 +81,26 @@ class UVFScreen:
         pygame.draw.circle(self.screen, (100, 0, 0), centralField2pygameAxisCoordinate((self.world.ball.x*M_TO_PIXEL, self.world.ball.y*M_TO_PIXEL)), BALL_RADIUS)
 
     def createUVFSurface(self):
+        # self.arrows_surf = pygame.Surface((self.arrow_step, self.arrow_step))
+        # self.arrows_surf.fill((40,40,40))
+        # self.arrows_surf.set_colorkey((255, 255, 255))
+
+        # #create shapes so you can tell rotation is happenning
+        # robotMask =  pygame.Rect(ROBOT_DIMENSIONS[1]*2/3, ROBOT_DIMENSIONS[1]/3, 2.5*CM_TO_PIXEL, 2.5*CM_TO_PIXEL)
+
+        # #draw the shape to that surface
+        # # pygame.draw.rect(self.arrows_surf[index], (255,255,255), robotMask)
+        # pygame.draw.line(self.arrows_surf, (255,255,255), (0, self.arrow_step/2), (self.arrow_step-4, self.arrow_step/2))
+        # pygame.draw.circle(self.arrows_surf, (255,255,255), (int(self.arrow_step-4), int(self.arrow_step/2)), int(0.5*CM_TO_PIXEL))
+
+        # # #draw surf to screen and catch the rect that blit returns
+        # blittedRect = self.screen.blit(self.arrows_surf, centralField2pygameAxisCoordinate((0,0)))
 
         self.arrows_surf = []
         
         robot = self.world.team[self.index_uvf_robot]
 
         for index in range(self.arrow_poses.shape[0]):
-            # if robot.field is not None: 
-            #     th = robot.field.F((robot.x, robot.y, 0))
-            #     # print(th)
-
-
             #create new surface with white BG
             self.arrows_surf.append(pygame.Surface((self.arrow_step, self.arrow_step)))
             self.arrows_surf[index].fill((40,40,40))
@@ -96,32 +108,29 @@ class UVFScreen:
             # #set a color key for blitting
             # self.arrows_surf[index].set_colorkey((255, 255, 255))
 
-            #create shapes so you can tell rotation is happenning
-            robotMask =  pygame.Rect(ROBOT_DIMENSIONS[1]*2/3, ROBOT_DIMENSIONS[1]/3, 2.5*CM_TO_PIXEL, 2.5*CM_TO_PIXEL)
-
             #draw the shape to that surface
             # pygame.draw.rect(self.arrows_surf[index], (255,255,255), robotMask)
-            pygame.draw.line(self.arrows_surf[index], (255,255,255), (0, self.arrow_step/2), (self.arrow_step, self.arrow_step/2))
-            pygame.draw.circle(self.arrows_surf[index], (255,255,255), (int(self.arrow_step), int(self.arrow_step/2)), int(0.5*CM_TO_PIXEL))
+            pygame.draw.line(self.arrows_surf[index], (255,255,255), (0, self.arrow_step/2), (self.arrow_step-4, self.arrow_step/2))
+            pygame.draw.circle(self.arrows_surf[index], (255,255,255), (int(self.arrow_step-4), int(self.arrow_step/2)), int(0.5*CM_TO_PIXEL))
 
             # #draw surf to screen and catch the rect that blit returns
-            blittedRect = self.screen.blit(self.arrows_surf[index], centralField2pygameAxisCoordinate(tuple(self.arrow_poses[index])))
+            blittedRect = self.screen.blit(self.arrows_surf[index], centralField2pygameAxisCoordinate(self.arrow_poses[index]))
 
 
     def drawUVF(self):
-        return
+        robot = self.world.team[self.index_uvf_robot]
 
-        for index, robot in enumerate(self.world.team):
-            if index == MAX_ROBOTS_NUMBER:
-                break
+        if robot.field is None: 
+            return
 
+        for index in range(self.arrow_poses.shape[0]):
             #rotate surf by DEGREE amount degrees
-            rotatedSurf =  pygame.transform.rotate(robots_surf[index], math.degrees(robot.th))
-            # print(robot.th)
+            th = robot.field.F(self.arrow_poses[index]/M_TO_PIXEL)
+            rotatedSurf =  pygame.transform.rotate(self.arrows_surf[index], math.degrees(th))
 
             #get the rect of the rotated surf and set it's center to the oldCenter
             rotRect = rotatedSurf.get_rect()
-            rotRect.center = centralField2pygameAxisCoordinate((robot.x*M_TO_PIXEL,robot.y*M_TO_PIXEL))
+            rotRect.center = centralField2pygameAxisCoordinate(self.arrow_poses[index])
 
             #draw rotatedSurf with the corrected rect so it gets put in the proper spot
             self.screen.blit(rotatedSurf, rotRect)
@@ -130,11 +139,6 @@ class UVFScreen:
     def updateScreen(self):        
         self.clearScreen()
 
-        self.createRobotsSurface()
-
-        self.clearScreen()
-
-        self.createUVFSurface()
         self.drawUVF()
         self.drawRobots()
         self.drawBall()
