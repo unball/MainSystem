@@ -8,15 +8,15 @@ class Strategy:
         self.world = world
 
     def entityDecider(self):
-        # robot = self.world.team[0]
-        # robot.updateEntity(Attacker)
+        robot = self.world.team[0]
+        robot.updateEntity(GoalKeeper)
         # robot = self.world.team[1]
         # robot.updateEntity(Attacker)
-        robot = self.world.team[2]
-        robot.updateEntity(GoalKeeper)
+        # robot = self.world.team[2]
+        # robot.updateEntity(GoalKeeper)
         
-        robot = self.world.enemies[0]
-        robot.updateEntity(Attacker,side=-1)
+        #robot = self.world.enemies[0]
+        #robot.updateEntity(Attacker,side=-1)
         # robot = self.world.enemies[1]
         # robot.updateEntity(Attacker,side=-1)
         # robot = self.world.enemies[2]

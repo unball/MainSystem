@@ -25,14 +25,14 @@ def goToBall(rb, vb, rg, rr, rl, vravg):
     return np.array([*target[:2], angle])
 
 def goalkeep(rb, vb, rr, rg):
-    xGoal = rg[0]
-    ytarget = projectLine(rb, vb, xGoal)
-    if ((vb[0]) < -0.1): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
+    xGoal = rg[0] + 0.15
+    #ytarget = projectLine(rb, vb, xGoal)
+    #if ((vb[0]) < -0.1): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
         #verificar se a projeção está no gol
         #projetando vetor até um xGoal-> y = (xGoal-Xball) * Vyball/Vxball + yBall 
-        ytarget = sat(ytarget, 0.20)
-        angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
-        return (xGoal, ytarget, angle)
+    #    ytarget = sat(ytarget, 0.20)
+    #    angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
+    #    return (xGoal, ytarget, angle)
     #Se não acompanha o y
     ytarget = sat(rb[1],0.20)
     angle = np.pi/2 if rr[1] < ytarget else -np.pi/2

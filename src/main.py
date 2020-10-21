@@ -34,11 +34,12 @@ class Loop:
         self.strategy.update()
 
         # Executa o controle
-        for i,robot in enumerate(self.world.team):
-            vss.command.write(i, *robot.control.actuate(robot))
+        vss.command.write(0, *self.world.team[0].control.actuate(self.world.team[0]))
+        #for i,robot in enumerate(self.world.team):
+        #    vss.command.write(i, *robot.control.actuate(robot))
 
-        for i,robot in enumerate(self.world.enemies):
-            vss_enemy.command.write(i, *robot.control.actuate(robot))
+        #for i,robot in enumerate(self.world.enemies):
+        #    vss_enemy.command.write(i, *robot.control.actuate(robot))
 
         if self.draw_UVF:
             self.UVF_screen.updateScreen()
