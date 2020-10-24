@@ -12,17 +12,23 @@ class FunctionOptimizer(Optimizer):
     def __init__(self, systemClass, environmentClass):
         Optimizer.__init__(self, systemClass, environmentClass)
 
+        self.history = []
+
     def optimize(self):
         x0 = np.array([(v[0]+v[1])/2 for k,v in self.systemClass.getParams().items()])
         return minimize(self.execute, x0, method='Powell', tol=1e-3)
 
     def execute(self, x):
         cost = self.runExperiment(x)
+        historyRecord = (cost, {})
         print("\n=======")
         print("cost: " + str(cost))
         for i,key in enumerate(self.systemClass.getParams()):
+            historyRecord[1][key] = x[i]
             print(key + ": " + str(x[i]))
         print("=======\n")
+        self.history.append(historyRecord)
+        
         return cost
 
 # class FunctionOptimizer(Optimizer):

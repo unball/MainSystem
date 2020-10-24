@@ -8,7 +8,7 @@ import numpy as np
 import math
 
 class Attacker(Entity):
-    def __init__(self, world, robot, side=1, 
+    def __init__(self, world, robot, 
                  perpBallLimiarTrackState = 0.075 * 0.75, 
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 15, 
@@ -19,7 +19,7 @@ class Attacker(Entity):
                  ballOffset = 0.015
         ):
 
-        super().__init__(world, robot)
+        Entity.__init__(self, world, robot)
         
         # Params
         self.perpBallLimiarTrackState = perpBallLimiarTrackState
@@ -36,7 +36,6 @@ class Attacker(Entity):
         self.attackAngle = None
         self.attackState = 0
         self.vravg = 0
-        self.side = side
 
     def directionDecider(self):
         if self.robot.field is not None:
@@ -53,7 +52,7 @@ class Attacker(Entity):
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
         rg = np.array(self.world.field.goalPos)
-        if self.side == -1: rg = (-rg[0], rg[1])
+        #if self.side == -1: rg = (-rg[0], rg[1])
         rl = np.array(self.world.field.marginPos)
 
         # Define estado do movimento
@@ -74,7 +73,7 @@ class Attacker(Entity):
 
             if any(np.abs(rb) > rl):
                 self.robot.vref = math.inf
-                self.robot.field = UVF(Pb, direction=-self.side*np.sign(rb[1]), radius=self.spiralRadiusCorners)
+                self.robot.field = UVF(Pb, direction=np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
