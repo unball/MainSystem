@@ -6,17 +6,23 @@ import time
 
 class UFC_Simple():
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self):
+  def __init__(self, kw=5.5, kp=10, mu=0.7, vmax=2, L=0.075):
     self.g = 9.8
-    self.kw = 5.5
-    self.kp = 10
-    self.mu = 0.7
+    self.kw = kw
+    self.kp = kp
+    self.mu = mu
     self.amax = self.mu * self.g
-    self.vmax = 2
-    self.L = 0.075
+    self.vmax = vmax
+    self.L = L
 
     self.lastth = 0
     self.interval = Interval(filter=True, initial_dt=0.016)
+
+    self.eth = 0
+
+  @property
+  def error(self):
+    return self.eth
 
   def actuate(self, robot):
     if robot.field is None: return 0,0
@@ -47,6 +53,9 @@ class UFC_Simple():
     # Atualiza a última referência
     self.lastth = th
     robot.lastControlLinVel = v
+
+    # Atualiza variáveis de estado
+    self.eth = eth
     
     if robot.spin == 0: return speeds2motors(v * robot.direction, w)
     else: return speeds2motors(0, 60 * robot.spin)
