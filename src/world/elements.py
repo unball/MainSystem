@@ -68,14 +68,14 @@ class Robot(Element):
         super().update(x,y)
 
 class TeamRobot(Robot):
-    def __init__(self, world, id, control=UFC_Simple()):
+    def __init__(self, world, id, control=None):
         super().__init__(world, id)
 
         self.field = None
         self.vref = math.inf
         self.spin = 0
         self.entity = None
-        self.control = control
+        self.control = control if control is not None else UFC_Simple()
         self.timeLastResponse = None
         self.lastControlLinVel = 0
         self.direction = 1
