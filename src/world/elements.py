@@ -1,7 +1,7 @@
 import time
 from tools.interval import Interval
-from tools import adjustAngle, norml, derivative, angularDerivative
-from control.UFC import UFC, UFC_Simple
+from tools import adjustAngle, norml, derivative, angularDerivative, unit, angl
+from control.UFC import UFC_Simple
 import numpy as np
 import math
 
@@ -30,24 +30,40 @@ class Element:
         self.interval.update()
 
     @property
-    def x(self):
+    def x_raw(self):
         return self.xvec.value
 
     @property
-    def y(self):
+    def x(self):
+        return self.world.field.side * self.x_raw
+
+    @property
+    def y_raw(self):
         return self.yvec.value
+
+    @property
+    def y(self):
+        return self.y_raw
 
     @property
     def pos(self):
         return (self.x, self.y)
 
     @property
-    def vx(self):
+    def vx_raw(self):
         return derivative(self.xvec.vec, self.interval.dt)
 
     @property
-    def vy(self):
+    def vx(self):
+        return self.world.field.side * self.vx_raw
+
+    @property
+    def vy_raw(self):
         return derivative(self.yvec.vec, self.interval.dt)
+
+    @property
+    def vy(self):
+        return self.vy_raw
 
     @property
     def v(self):
@@ -75,7 +91,6 @@ class TeamRobot(Robot):
         self.vref = math.inf
         self.spin = 0
         self.entity = None
-        self.control = control if control is not None else UFC_Simple()
         self.timeLastResponse = None
         self.lastControlLinVel = 0
         self.direction = 1
@@ -92,16 +107,24 @@ class TeamRobot(Robot):
         return [th + (np.pi if self.direction == -1 else 0) for th in self.thvec_raw.vec]
 
     @property
-    def th(self):
+    def th_raw(self):
         return self.thvec[0]
+
+    @property
+    def th(self):
+        return self.th_raw if self.world.field.side == 1 else adjustAngle(np.pi - self.th_raw)
 
     @property
     def pose(self):
         return (self.x, self.y, self.th)
 
     @property
-    def w(self):
+    def w_raw(self):
         return angularDerivative(self.thvec, self.interval.dt)
+
+    @property
+    def w(self):
+        return self.world.field.side * self.w_raw
     
     def isAlive(self):
         """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""

@@ -7,7 +7,7 @@ import numpy as np
 import time
 
 class Attacker(System):
-    def __init__(self, params, experimentTimeout=0.3):
+    def __init__(self, params, experimentTimeout=10):
         System.__init__(self)
 
         self.params = params

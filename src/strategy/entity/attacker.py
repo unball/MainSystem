@@ -4,6 +4,7 @@ from strategy.field.DirectionalField import DirectionalField
 from strategy.movements import goToBall
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
+from control.UFC import UFC_Simple
 import numpy as np
 import math
 
@@ -36,6 +37,12 @@ class Attacker(Entity):
         self.attackAngle = None
         self.attackState = 0
         self.vravg = 0
+
+        self._control = UFC_Simple(self.world)
+
+    @property
+    def control(self):
+        return self._control
 
     def directionDecider(self):
         if self.robot.field is not None:
@@ -80,3 +87,5 @@ class Attacker(Entity):
         else:
             self.robot.vref = math.inf
             self.robot.field = DirectionalField(self.attackAngle)
+    
+
