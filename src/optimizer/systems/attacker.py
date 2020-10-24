@@ -16,18 +16,9 @@ class Attacker(System):
 
         self.world = World()
 
-        self.strategy = SingleAttacker(self.world, {
-            "perpBallLimiarTrackState": self.param("perpBallLimiarTrackState"),
-            "perpBallLimiarAtackState": self.param("perpBallLimiarAtackState"),
-            "alignmentAngleTrackState": self.param("alignmentAngleTrackState"),
-            "alignmentAngleAtackState": self.param("alignmentAngleAtackState"),
-            "spiralRadius": self.param("spiralRadius"),
-            "spiralRadiusCorners": self.param("spiralRadiusCorners"),
-            "approximationSpeed": self.param("approximationSpeed"),
-            "ballOffset": self.param("ballOffset")
-        })
+        self.strategy = SingleAttacker(self.world, self.paramsDict(["perpBallLimiarTrackState", "perpBallLimiarAtackState", "alignmentAngleTrackState", "alignmentAngleAtackState", "spiralRadius", "spiralRadiusCorners", "approximationSpeed", "ballOffset"]))
 
-        self.world.team[0].control = UFC_Simple(kw=self.param("kw"), kp=self.param("kp"), mu=self.param("mu"), vmax=self.param("vmax"), L=self.param("L"))
+        self.world.team[0].control = UFC_Simple(**self.paramsDict(["kw", "kp", "mu", "vmax", "L"]))
     
     def action(self, state):
         if self.experimentStart is None: self.experimentStart = time.time()
@@ -46,20 +37,17 @@ class Attacker(System):
     @property
     def metrics(self):
         ballDistance = norm(self.world.ball.pos, self.world.team[0].pos)
-        if ballDistance < 0.01: 
-            nearBall = True
-        else:
-            nearBall = False
+        ballGoalDistance = norm(self.world.ball.pos, self.world.field.goalPos)
         
-        return [self.world.ball.x, self.world.team[0].control.error, ballDistance, nearBall]
+        return [self.world.team[0].control.error, ballDistance, ballGoalDistance]
 
     @staticmethod
     def getParams():
         return {
-            "perpBallLimiarTrackState": [0,1], 
-            "perpBallLimiarAtackState": [0,1], 
-            "alignmentAngleTrackState": [0,90], 
-            "alignmentAngleAtackState": [0,90], 
+            #"perpBallLimiarTrackState": [0,1], 
+            #"perpBallLimiarAtackState": [0,1], 
+            #"alignmentAngleTrackState": [0,90], 
+            #"alignmentAngleAtackState": [0,90], 
             "spiralRadius": [0,0.2], 
             "spiralRadiusCorners": [0,0.2], 
             "approximationSpeed": [0,1], 
@@ -68,20 +56,30 @@ class Attacker(System):
             "kp": [0,10],
             "mu": [0,1],
             "vmax": [0,2],
-            "L": [0,0.1]
+            #"L": [0,0.1]
         }
 
     def cost(self, experimentMetrics):
         experimentMetrics = np.array(experimentMetrics)
-        ballCost = 0.65 - experimentMetrics[:,0].mean()
-        controlErrorCost = np.abs(experimentMetrics[:,1]).mean()
-        ballDistanceCost = experimentMetrics[:,2].mean()
+        controlErrorCost = np.abs(experimentMetrics[:,0]).mean()
+        ballDistanceCost = experimentMetrics[:,1].mean()
+        ballGoalDistanceCost = experimentMetrics[:,2].min()
 
-        return ballCost + controlErrorCost + ballDistanceCost
+        return controlErrorCost + ballDistanceCost + ballGoalDistanceCost
 
     def endExperiment(self):
         if self.experimentStart is None: return False
         return time.time() - self.experimentStart > self.experimentTimeout
 
     def param(self, key):
-        return self.params[list(Attacker.getParams().keys()).index(key)]
+        keylist = list(Attacker.getParams().keys())
+        if key not in keylist: return None
+        else: return self.params[keylist.index(key)]
+
+    def paramsDict(self, keys):
+        pd = {}
+        for k in keys:
+            value = self.param(k)
+            if value is not None: pd[k] = value
+        
+        return pd

@@ -14,7 +14,7 @@ class FunctionOptimizer(Optimizer):
 
     def optimize(self):
         x0 = np.array([(v[0]+v[1])/2 for k,v in self.systemClass.getParams().items()])
-        return minimize(self.execute, x0, method='Nelder-Mead', tol=1e-3)
+        return minimize(self.execute, x0, method='Powell', tol=1e-3)
 
     def execute(self, x):
         cost = self.runExperiment(x)
@@ -42,4 +42,4 @@ class FunctionOptimizer(Optimizer):
 #         return cost
 
 fo = FunctionOptimizer(Attacker, CornerSituation)
-fo.optimize()
+ofo = fo.optimize()
