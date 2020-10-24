@@ -86,3 +86,7 @@ def howPerpBall(rb, rr, rg):
 
 def projectLine(r, v, xline):
   return ((xline-r[0])/v[0])*v[1] + r[1]
+
+def insideEllipse(r, a, b, rm):
+  """ Retorna se a posição r está dentro da elipse de parâmetros a, b e centro rm"""
+  return ((r[0]-rm[0])/a)**2+((r[1]-rm[1])/b)**2 < 1

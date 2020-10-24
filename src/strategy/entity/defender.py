@@ -2,18 +2,18 @@ from ..entity import Entity
 from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.goalKeeper import GoalKeeperField
-from strategy.movements import goalkeep
+from strategy.movements import goalkeep, blockBallElipse
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
 from control.goalKeeper import GoalKeeperControl
 import numpy as np
 import math
 
-class GoalKeeper(Entity):
+class Defender(Entity):
     def __init__(self, world, robot, side=1):
         super().__init__(world, robot)
 
-        self._control = GoalKeeperControl(world)
+        self._control = UFC_Simple()
 
     @property
     def control(self):
@@ -31,14 +31,12 @@ class GoalKeeper(Entity):
     def fieldDecider(self):
         rr = np.array(self.robot.pos)
         vr = np.array(self.robot.v)
-        # self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
-        rg = -np.array(self.world.field.goalPos) + 0.20
+        rg = -np.array(self.world.field.goalPos) + 0.10
     
          # Aplica o movimento
         self.robot.vref = 0
-        Pb = goalkeep(rb, vb, rr, rg)
-        # print('Pb:', Pb)
+        Pb = blockBallElipse(rb, vb, rr, rg) 
         self.robot.field = UVF(Pb)
         

@@ -63,11 +63,19 @@ class Command:
     def write(self, index, vl, vr):
         self.lib.commandWrite(c_void_p(self.command_p), c_int(index), c_double(vl), c_double(vr))
 
+    def writeMulti(self, actions):
+        vls = [v[0] for v in actions]
+        vrs = [v[1] for v in actions]
+        self.lib.commandsWrite(c_void_p(self.command_p), (c_double * 3)(*vls), (c_double * 3)(*vrs))
+
     def setPos(self, index, x, y, th):
         self.lib.commandPos(c_void_p(self.command_p), c_int(index), c_double(x), c_double(y), c_double(th))
+
+    def setBallPos(self, x, y):
+        self.lib.commandBallPos(c_void_p(self.command_p), c_double(x), c_double(y))
 
 class VSS:
     def __init__(self, team_yellow=False):
         self.lib = CDLL("./lib/vss.so")
-        self.vision = Vision(self, "127.0.0.1", 10020)
-        self.command = Command(self, "127.0.0.1", 20011, team_yellow)                                           
+        self.vision = Vision(self, "127.0.0.1", 10002)
+        self.command = Command(self, "127.0.0.1", 20011, team_yellow)

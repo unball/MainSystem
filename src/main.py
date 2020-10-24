@@ -1,6 +1,5 @@
 from client import VSS
 from world import World
-from control.UFC import UFC
 from strategy import Strategy
 from UVF_screen import UVFScreen
 import time
@@ -10,17 +9,14 @@ vss_enemy = VSS(team_yellow=True)
 
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
-        self.world = World(5)
-        self.world.enemies[0].control = UFC()
-        self.world.enemies[1].control = UFC()
-        self.world.enemies[2].control = UFC()
+        self.world = World(3, side=1)
         self.loopTime = 1.0 / loopFreq
         self.running = True
         self.strategy = Strategy(self.world)
 
         self.draw_UVF = draw_UVF
         if self.draw_UVF:
-            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=2)
+            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
 
     def loop(self):
         # Executa visão
@@ -34,12 +30,10 @@ class Loop:
         self.strategy.update()
 
         # Executa o controle
-        vss.command.write(0, *self.world.team[0].control.actuate(self.world.team[0]))
-        #for i,robot in enumerate(self.world.team):
-        #    vss.command.write(i, *robot.control.actuate(robot))
+        vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
 
-        #for i,robot in enumerate(self.world.enemies):
-        #    vss_enemy.command.write(i, *robot.control.actuate(robot))
+        if self.draw_UVF:
+            self.UVF_screen.updateScreen()
 
         if self.draw_UVF:
             self.UVF_screen.updateScreen()
@@ -61,6 +55,6 @@ class Loop:
             time.sleep(max(self.loopTime - (time.time()-t0), 0))
 
 # Instancia o programa principal
-loop = Loop(draw_UVF=True)
+loop = Loop(draw_UVF=False)
 
 loop.run()

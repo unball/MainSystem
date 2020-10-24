@@ -14,11 +14,11 @@ class Interval:
             else: self._dt = dt
             
         self.lastTime = time.time()
-        return self._dt
+        return 0.016#self._dt
 
     @property
     def dt(self):
-        return self._dt
+        return 0.016#self._dt
 
     def update(self):
         self.lastTime = time.time()

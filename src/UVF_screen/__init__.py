@@ -4,7 +4,7 @@ import numpy as np
 import pygame
 
 class UVFScreen:
-    def __init__(self, world, index_uvf_robot = 2, arrow_step = 0.15):
+    def __init__(self, world, index_uvf_robot = 2, arrow_step = 0.05):
         self.world = world
         self.index_uvf_robot = index_uvf_robot
         self.arrow_step = int(arrow_step*M_TO_PIXEL)
