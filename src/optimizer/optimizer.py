@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import time
 
 class Optimizer(ABC):
     def __init__(self, systemClass, environmentClass):
@@ -7,20 +8,13 @@ class Optimizer(ABC):
         self.environmentClass = environmentClass
 
     def loop(self, system, environment):
+        self.ctime = time.time()
         state  = environment.state
         action = system.action(state)
         
         environment.execute(action)
 
         return system.metrics
-
-    @abstractmethod
-    def endExperimentCondition(self):
-        pass
-
-    @abstractmethod
-    def cost(self, experimentMetrics):
-        pass
 
     @abstractmethod
     def optimize(self):
@@ -33,8 +27,8 @@ class Optimizer(ABC):
         
         experimentMetrics = []
 
-        while not self.endExperimentCondition():
+        while not system.endExperiment():
             loopMetric = self.loop(system, environment)
             experimentMetrics.append(loopMetric)
 
-        return self.cost(experimentMetrics)
+        return system.cost(experimentMetrics)

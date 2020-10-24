@@ -12,6 +12,14 @@ class System(ABC):
     def metrics(self):
         pass
 
+    @staticmethod
+    def getParams(self):
+        pass
+
     @abstractmethod
-    def params(self):
+    def cost(self, experimentMetrics):
+        pass
+
+    @abstractmethod
+    def endExperiment(self):
         pass
