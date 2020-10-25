@@ -5,7 +5,7 @@ class Field:
         self.width = 1.75
         self.height = 1.35
         self.xmargin = 0.30
-        self.ymargin = 0.20
+        self.ymargin = 0.25
         self.side = side
 
     @property

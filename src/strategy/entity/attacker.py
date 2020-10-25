@@ -1,6 +1,8 @@
 from ..entity import Entity
 from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
+from strategy.field.areaAvoidance.avoidanceField import AvoidanceField
+from strategy.field.areaAvoidance.area import AvoidCircle
 from strategy.movements import goToBall
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
@@ -80,12 +82,15 @@ class Attacker(Entity):
 
             if any(np.abs(rb) > rl):
                 self.robot.vref = math.inf
-                self.robot.field = UVF(Pb, direction=np.sign(rb[1]), radius=self.spiralRadiusCorners)
+                self.robot.field = UVF((Pb[0], Pb[1]+np.sign(rb[1])*0.10, Pb[2]), direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
         else:
             self.robot.vref = math.inf
             self.robot.field = DirectionalField(self.attackAngle)
+
+        
+        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle((0,0), 0.10), borderSize=0.1)
     
 
