@@ -90,6 +90,8 @@ class TeamRobot(Robot):
         self.field = None
         self.vref = math.inf
         self.spin = 0
+        self.spinTime = 0
+        self.spinTimeOut = 0.5
         self.entity = None
         self.timeLastResponse = None
         self.lastControlLinVel = 0
@@ -106,6 +108,19 @@ class TeamRobot(Robot):
             self.entity = entityClass(self.world, self, **kwargs)
         
         self.updateSpin()
+
+    def setSpin(self, dir=1, timeout=0.25):
+        if dir != 0: 
+            # Atualiza a direção do spin
+            self.spin = dir
+
+            # Atualiza o tempo de início do spin, se for um spin
+            self.spinTime = time.time()
+
+            # Diz o tempo de duração do spin
+            self.spinTimeOut = timeout
+        else:
+            self.spin = 0
 
     @property
     def thvec(self):

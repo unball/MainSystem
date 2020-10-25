@@ -46,10 +46,14 @@ class GoalKeeper(Entity):
         # self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
-        rg = -np.array(self.world.field.goalPos) + 0.20
+        rg = -np.array(self.world.field.goalPos)
+        rg[0] += 0.25
     
          # Aplica o movimento
         self.robot.vref = 0
+
+        self.robot.setSpin(spinGoalKeeper(rb, rr, rg), timeout = 0.1)
+
         Pb = goalkeep(rb, vb, rr, rg)
         # print('Pb:', Pb)
         self.robot.field = UVF(Pb)
