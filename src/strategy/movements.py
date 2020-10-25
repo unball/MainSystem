@@ -3,6 +3,7 @@ from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine, 
 import math
 
 def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
+    rb = rb.copy()
     #rbp = rb + vb * norm(rb, rr) / (vravg + 0.00001)
 
     u = np.roots([norml(vb) ** 2 - (vravg+0.1)**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])

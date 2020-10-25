@@ -104,7 +104,7 @@ class Attacker(Entity):
 
             if any(np.abs(rb) > rl):
                 self.robot.vref = math.inf
-                self.robot.field = UVF((Pb[0], Pb[1], Pb[2]), direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
+                self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
