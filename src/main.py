@@ -37,7 +37,7 @@ class Loop:
 
         # Executa o controle
         vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
-        #vss_enemy.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.enemyWorld.team if robot.entity is not None])
+        vss_enemy.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.enemyWorld.team if robot.entity is not None])
 
         if self.draw_UVF:
             self.UVF_screen.updateScreen()
@@ -62,6 +62,6 @@ class Loop:
             time.sleep(max(self.loopTime - (time.time()-t0), 0))
 
 # Instancia o programa principal
-loop = Loop(draw_UVF=True)
+loop = Loop(draw_UVF=False)
 
 loop.run()

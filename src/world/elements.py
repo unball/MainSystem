@@ -99,6 +99,8 @@ class TeamRobot(Robot):
         
         self.spinTime = 0
         self.spinTimeOut = 0.05
+        self.forcedAliveTime = 0
+        self.forcedAliveTimeTimeOut = 0
 
     def updateField(self, field):
         self.field = field
@@ -106,21 +108,19 @@ class TeamRobot(Robot):
     def updateEntity(self, entityClass, forced_update=False, **kwargs):
         if type(self.entity) != entityClass or forced_update:
             self.entity = entityClass(self.world, self, **kwargs)
-        
-        self.updateSpin()
 
-    def setSpin(self, dir=1, timeout=0.25):
-        if dir != 0: 
-            # Atualiza a direção do spin
-            self.spin = dir
+    # def setSpin(self, dir=1, timeout=0.25):
+    #     if dir != 0: 
+    #         # Atualiza a direção do spin
+    #         self.spin = dir
 
-            # Atualiza o tempo de início do spin, se for um spin
-            self.spinTime = time.time()
+    #         # Atualiza o tempo de início do spin, se for um spin
+    #         self.spinTime = time.time()
 
-            # Diz o tempo de duração do spin
-            self.spinTimeOut = timeout
-        else:
-            self.spin = 0
+    #         # Diz o tempo de duração do spin
+    #         self.spinTimeOut = timeout
+    #     else:
+    #         self.spin = 0
 
     @property
     def thvec(self):
@@ -147,6 +147,9 @@ class TeamRobot(Robot):
         return self.world.field.side * self.w_raw
 
     def setSpin(self, dir=1, timeOut=0.25):
+        if self.spin != 0:
+            return
+
         if dir != 0:
             self.spin = dir
         
@@ -160,6 +163,9 @@ class TeamRobot(Robot):
     
     def isAlive(self):
         """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
+        if time.time() - self.forcedAliveTime < self.forcedAliveTimeTimeOut:
+            return True
+
         ctrlVel = np.abs(self.lastControlLinVel)
         
         if ctrlVel < 0.01:
@@ -170,11 +176,17 @@ class TeamRobot(Robot):
             if self.timeLastResponse is not None:
                 dt = time.time() - self.timeLastResponse
                 if dt is not None and dt > 0.33:
+                    self.keepAlive(3)
                     return False
         else:
             self.timeLastResponse = time.time()
         
         return True
+
+    def keepAlive(self, timeToKeepAlive):
+        self.forcedAliveTime = time.time()
+        self.forcedAliveTimeTimeOut = timeToKeepAlive
+
 
 class Ball(Element):
     def __init__(self, world):

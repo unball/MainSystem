@@ -56,7 +56,7 @@ class Defender(Entity):
             self.robot.vref = 999
         else:
             pose, spin = blockBallElipse(rb, vb, rr, rg)
-            self.robot.spin = spin
+            self.robot.setSpin(spin)
 
             self.robot.vref = 0
             self.robot.field = DefenderField(pose, center=rg)
