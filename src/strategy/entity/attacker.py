@@ -7,6 +7,7 @@ from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
 import math
+import time
 
 class Attacker(Entity):
     def __init__(self, world, robot, 
@@ -37,6 +38,9 @@ class Attacker(Entity):
         self.attackAngle = None
         self.attackState = 0
         self.vravg = 0
+        
+        
+        self.lastChat = 0
 
         self._control = UFC_Simple(self.world)
 
@@ -49,8 +53,16 @@ class Attacker(Entity):
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
 
-            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180:
+            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 and time.time()-self.lastChat > .3:
                 self.robot.direction *= -1
+                self.lastChat = time.time()
+            
+            # Inverter a direção se o robô ficar preso em algo
+            elif not self.robot.isAlive() and self.robot.spin == 0:
+                if time.time()-self.lastChat > .3:
+                    self.lastChat = time.time()
+                    self.robot.direction *= -1
+            
 
     def fieldDecider(self):
         rr = np.array(self.robot.pos)

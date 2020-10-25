@@ -3,17 +3,19 @@ from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.goalKeeper import GoalKeeperField
 from strategy.movements import goalkeep
-from tools import angError, howFrontBall, howPerpBall, ang, norml
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm
 from tools.interval import Interval
 from control.goalKeeper import GoalKeeperControl
 import numpy as np
 import math
+import time
 
 class GoalKeeper(Entity):
     def __init__(self, world, robot, side=1):
         super().__init__(world, robot)
 
         self._control = GoalKeeperControl(world)
+        self.lastChat = 0
 
     @property
     def control(self):
@@ -25,8 +27,18 @@ class GoalKeeper(Entity):
             rob_th = self.robot.th
             # print('Rob_th:', rob_th)
 
-            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180:
+            if norm(self.robot.pos, self.world.ball.pos) < 0.07:
+                self.robot.setSpin(np.sign(self.robot.y - self.world.ball.y), timeOut=0.1)
+
+            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 and time.time()-self.lastChat > .3:
                 self.robot.direction *= -1
+                self.lastChat = time.time()
+            
+            # Inverter a direção se o robô ficar preso em algo
+            elif not self.robot.isAlive() and self.robot.spin == 0:
+                if time.time()-self.lastChat > .3:
+                    self.lastChat = time.time()
+                    self.robot.direction *= -1
 
     def fieldDecider(self):
         rr = np.array(self.robot.pos)

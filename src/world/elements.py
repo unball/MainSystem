@@ -94,6 +94,9 @@ class TeamRobot(Robot):
         self.timeLastResponse = None
         self.lastControlLinVel = 0
         self.direction = 1
+        
+        self.spinTime = 0
+        self.spinTimeOut = 0.05
 
     def updateField(self, field):
         self.field = field
@@ -101,6 +104,8 @@ class TeamRobot(Robot):
     def updateEntity(self, entityClass, forced_update=False, **kwargs):
         if type(self.entity) != entityClass or forced_update:
             self.entity = entityClass(self.world, self, **kwargs)
+        
+        self.updateSpin()
 
     @property
     def thvec(self):
@@ -125,6 +130,18 @@ class TeamRobot(Robot):
     @property
     def w(self):
         return self.world.field.side * self.w_raw
+
+    def setSpin(self, dir=1, timeOut=0.25):
+        if dir != 0:
+            self.spin = dir
+        
+        self.spinTime = time.time()
+        self.spinTimeOut = timeOut
+
+    def updateSpin(self):
+
+        if time.time() - self.spinTime < self.spinTimeOut:
+            self.spin = 0
     
     def isAlive(self):
         """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
@@ -135,9 +152,10 @@ class TeamRobot(Robot):
             return True
         
         if self.velmod / ctrlVel < 0.1:
-            dt = time.time() - self.timeLastResponse
-            if dt is not None and dt > 0.33:
-                return False
+            if self.timeLastResponse is not None:
+                dt = time.time() - self.timeLastResponse
+                if dt is not None and dt > 0.33:
+                    return False
         else:
             self.timeLastResponse = time.time()
         
