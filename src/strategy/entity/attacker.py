@@ -2,7 +2,8 @@ from ..entity import Entity
 from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.areaAvoidance.avoidanceField import AvoidanceField
-from strategy.field.areaAvoidance.area import AvoidCircle
+from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
+from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.movements import goToBall
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
@@ -12,9 +13,9 @@ import math
 
 class Attacker(Entity):
     def __init__(self, world, robot, 
-                 perpBallLimiarTrackState = 0.075 * 0.75, 
+                 perpBallLimiarTrackState = 0.075 * 0.5, 
                  perpBallLimiarAtackState = 0.075 * 2, 
-                 alignmentAngleTrackState = 15, 
+                 alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
                  spiralRadius = 0.10, 
                  spiralRadiusCorners = 0.07, 
@@ -64,6 +65,10 @@ class Attacker(Entity):
         #if self.side == -1: rg = (-rg[0], rg[1])
         rl = np.array(self.world.field.marginPos)
 
+        goalAreaWidth, goalAreaHeight = self.world.field.goalAreaSize
+        rga = np.array([-rg[0] - goalAreaWidth + 0.1, rg[1] - goalAreaHeight / 2])
+        rgb = np.array([-rg[0] + goalAreaWidth + 0.1, rg[1] + goalAreaHeight / 2])
+
         # Define estado do movimento
         if self.attackState == 0:
             if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180:
@@ -76,13 +81,18 @@ class Attacker(Entity):
             else:
                 self.attackState = 0
 
+        # Executa spin se estiver morto
+        #if not self.robot.isAlive():
+        #    self.robot.setSpin(-np.sign(rr[0]) if rr[1] > 0 else np.sign(rr[0]))
+        #    return
+
         # Aplica o movimento
         if self.attackState == 0:
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
 
             if any(np.abs(rb) > rl):
                 self.robot.vref = math.inf
-                self.robot.field = UVF((Pb[0], Pb[1]+np.sign(rb[1])*0.10, Pb[2]), direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
+                self.robot.field = UVF((Pb[0], Pb[1], Pb[2]), direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
@@ -91,6 +101,7 @@ class Attacker(Entity):
             self.robot.field = DirectionalField(self.attackAngle)
 
         
-        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle((0,0), 0.10), borderSize=0.1)
+        #self.robot.field = AvoidanceField(self.robot.field, AvoidCircle((0,0), 0.10), borderSize=0.1)
+        self.robot.field = AvoidanceField(self.robot.field, AvoidRect(rga, rgb), borderSize=0.1)
     
 

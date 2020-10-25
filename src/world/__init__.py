@@ -4,8 +4,11 @@ class Field:
     def __init__(self, side):
         self.width = 1.75
         self.height = 1.35
+        self.goalAreaWidth = 0.15
+        self.goalAreaHeight = 0.70
+
         self.xmargin = 0.30
-        self.ymargin = 0.25
+        self.ymargin = 0.30
         self.side = side
 
     @property
@@ -31,6 +34,10 @@ class Field:
     @property
     def goalPos(self):
         return (self.maxX, 0)
+
+    @property
+    def goalAreaSize(self):
+        return (self.goalAreaWidth, self.goalAreaHeight)
 
 class World:
     def __init__(self, n_robots=5, side=1):
