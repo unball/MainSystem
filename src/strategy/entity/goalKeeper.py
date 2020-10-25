@@ -2,7 +2,7 @@ from ..entity import Entity
 from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.goalKeeper import GoalKeeperField
-from strategy.movements import goalkeep
+from strategy.movements import goalkeep, spinGoalKeeper
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
 from control.goalKeeper import GoalKeeperControl
@@ -38,6 +38,9 @@ class GoalKeeper(Entity):
     
          # Aplica o movimento
         self.robot.vref = 0
+
+        self.robot.setSpin(spinGoalKeeper(rb, rr, rg), timeout = 0.1)
+
         Pb = goalkeep(rb, vb, rr, rg)
         # print('Pb:', Pb)
         self.robot.field = UVF(Pb)

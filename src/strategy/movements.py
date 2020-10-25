@@ -1,5 +1,6 @@
 import numpy as np
-from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine
+from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine, insideEllipse
+import math
 
 def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     #rbp = rb + vb * norm(rb, rr) / (vravg + 0.00001)
@@ -54,8 +55,16 @@ def blockBallElipse(rb, vb, rr, rm):
     if rr[1] > r[1] and r_ort_angle > 0: r_ort_angle = r_ort_angle+np.pi
     if rr[1] < r[1] and r_ort_angle < 0: r_ort_angle = r_ort_angle+np.pi
 
-    #if not insideEllipse(rb, a, b, rm) and norm(rr, rb) < 0.09:
-    #    spin = 1 if rr[1] < rb[1] else -1
+    if not insideEllipse(rb, a, b, rm) and norm(rr, rb) < 0.09:
+       spin = 1 if rr[1] > rb[1] else -1
     
-    #return (r[0], r[1], r_ort_angle), spinDefender(rb, rr, rm)
-    return (r[0], r[1], r_ort_angle)
+    return (r[0], r[1], r_ort_angle), spin
+    # return (r[0], r[1], r_ort_angle)
+    
+def spinGoalKeeper(rb, rr, rm):
+    if norm(rr, rb) < 0.09:
+        spin = 1 if rr[1] > rb[1] else -1
+    else:
+        spin = 0
+
+    return spin

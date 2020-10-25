@@ -2,9 +2,11 @@ from ..entity import Entity
 from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.goalKeeper import GoalKeeperField
+from strategy.field.ellipse import DefenderField
 from strategy.movements import goalkeep, blockBallElipse
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
+from control.UFC import UFC_Simple
 from control.goalKeeper import GoalKeeperControl
 import numpy as np
 import math
@@ -13,7 +15,7 @@ class Defender(Entity):
     def __init__(self, world, robot, side=1):
         super().__init__(world, robot)
 
-        self._control = UFC_Simple()
+        self._control = GoalKeeperControl(self.world)
 
     @property
     def control(self):
@@ -33,10 +35,27 @@ class Defender(Entity):
         vr = np.array(self.robot.v)
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
-        rg = -np.array(self.world.field.goalPos) + 0.10
+        rg = -np.array(self.world.field.goalPos) 
+        rg[0] += 0.10
     
          # Aplica o movimento
         self.robot.vref = 0
-        Pb = blockBallElipse(rb, vb, rr, rg) 
-        self.robot.field = UVF(Pb)
+
+        if np.sign(rb[1]) > 0 and rb[1] > rr[1] and rb[0] < -0.60 and rr[1] > 0.25 and np.abs(rr[0]-rb[0]) < 0.07:
+            pose = (rr[0], rb[1], np.pi/2)
+            self.robot.field = GoalKeeperField(pose, rb[0])
+            self.robot.vref = 999
+        elif np.sign(rb[1]) < 0 and rb[1] < rr[1] and rb[0] < -0.60 and rr[1] < -0.25 and np.abs(rr[0]-rb[0]) < 0.07:
+            pose = (rr[0], rb[1], -np.pi/2)
+            self.robot.field = GoalKeeperField(pose, rb[0])
+            self.robot.vref = 999
+        else:
+            pose, spin = blockBallElipse(rb, vb, rr, rg)
+            self.robot.spin = spin
+
+            self.robot.vref = 0
+            self.robot.field = DefenderField(pose, center=rg)
+
+        # Pb = blockBallElipse(rb, vb, rr, rg) 
+        # self.robot.field = DefenderField(Pb)
         

@@ -1,5 +1,6 @@
 from ctypes import *
 import time
+from copy import copy
 
 class VisionMessage(Structure):
     MAX_ROBOTS = 5
@@ -16,10 +17,22 @@ class VisionMessage(Structure):
                 ('enemy_th', c_double * MAX_ROBOTS)]
 
 class Vision:
-    def __init__(self, vss, ip, port):
+    def __init__(self, vss, ip, port, team_yellow):
         self.lib = vss.lib
         self.lib.beginVision(c_uint(port), c_char_p(bytes(ip, 'ascii')))
         self.last_message = None
+        self.team_yellow = team_yellow
+
+    @staticmethod
+    def invertMessage(message):
+        invertedMessage = copy(message)
+        invertedMessage['ally_x'] = copy(message["enemy_x"])
+        invertedMessage['ally_y'] = copy(message["enemy_y"])
+        invertedMessage['ally_th'] = copy(message["enemy_th"])
+        invertedMessage['enemy_x'] = copy(message["ally_x"])
+        invertedMessage['enemy_y'] = copy(message["ally_y"])
+        invertedMessage['enemy_th'] = copy(message["ally_th"])
+        return invertedMessage
 
     def read(self):
         # Define o retorno
@@ -77,5 +90,5 @@ class Command:
 class VSS:
     def __init__(self, team_yellow=False):
         self.lib = CDLL("./lib/vss.so")
-        self.vision = Vision(self, "127.0.0.1", 10002)
+        self.vision = Vision(self, "127.0.0.1", 10002, team_yellow)
         self.command = Command(self, "127.0.0.1", 20011, team_yellow)
