@@ -11,7 +11,7 @@ class Strategy:
     def entityDecider(self):
         self.world.team[0].updateEntity(Attacker)
         self.world.team[1].updateEntity(GoalKeeper)
-        self.world.team[2].updateEntity(Defender)
+        self.world.team[2].updateEntity(Attacker)
     
     def update(self):
         self.entityDecider()

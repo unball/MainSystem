@@ -6,7 +6,7 @@ from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
 from strategy.movements import goToBall
-from tools import angError, howFrontBall, howPerpBall, ang, norml
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
@@ -47,7 +47,7 @@ class Attacker(Entity):
         self.lastChat = 0
 
         self._control = UFC_Simple(self.world)
-
+        self.name = "attacker"
     @property
     def control(self):
         return self._control
@@ -93,7 +93,7 @@ class Attacker(Entity):
                 self.attackState = 1
             else:
                 self.attackState = 0
-
+        
         # Executa spin se estiver morto
         #if not self.robot.isAlive():
         #    self.robot.setSpin(-np.sign(rr[0]) if rr[1] > 0 else np.sign(rr[0]))
@@ -122,5 +122,11 @@ class Attacker(Entity):
         for robot in self.world.team:
             if robot.id != self.robot.id:
                 self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.05)
-    
+                if robot.entity.name ==  "attacker":
+                    if robot.entity.attackState == 1 and self.attackState == 0:
+                        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.75*b), borderSize=0.15)
+                    elif insideEllipse(robot.pos, a, b, rg):
+                    # elif norm(robot.pos, rb) < norm(rr, rb):
+                        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.75*b), borderSize=0.15)
+
 
