@@ -3,7 +3,7 @@ from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.goalKeeper import GoalKeeperField
 from strategy.movements import goalkeep, spinGoalKeeper
-from tools import angError, howFrontBall, howPerpBall, ang, norml, norm
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, angl
 from tools.interval import Interval
 from control.goalKeeper import GoalKeeperControl
 import numpy as np
@@ -47,7 +47,7 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
         rg = -np.array(self.world.field.goalPos)
-        rg[0] += 0.25
+        rg[0] += 0.2
     
          # Aplica o movimento
         self.robot.vref = 0
@@ -55,6 +55,6 @@ class GoalKeeper(Entity):
         self.robot.setSpin(spinGoalKeeper(rb, rr, rg), timeOut = 0.1)
 
         Pb = goalkeep(rb, vb, rr, rg)
-        # print('Pb:', Pb)
-        self.robot.field = UVF(Pb)
+
+        self.robot.field = UVF(Pb, spiral=0.01)
         

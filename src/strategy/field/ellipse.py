@@ -3,7 +3,7 @@ from tools import angl, unit, norml, angError, filt, sat, ang
 from . import Field
 
 class DefenderField(Field):
-  def __init__(self, Pb, a=0.3, b=0.45, center=[-0.75, 0]):
+  def __init__(self, Pb, a=0.35, b=0.50, center=[-0.75, 0]):
     super().__init__()
     self.Pb = Pb
     self.a = a

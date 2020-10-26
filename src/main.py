@@ -20,7 +20,7 @@ class Loop:
         self.running = True 
         self.draw_UVF = draw_UVF
         if self.draw_UVF:
-            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=0)
+            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
 
     def loop(self):
         # Executa visão

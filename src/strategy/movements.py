@@ -34,18 +34,18 @@ def goalkeep(rb, vb, rr, rg):
     ytarget = projectLine(rb, vb, xGoal)
     if ((vb[0]) < -0.1): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
         #verificar se a projeção está no gol
-        ytarget = sat(ytarget, 0.20)
+        ytarget = sat(ytarget, 0.25)
         angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
         return (xGoal, ytarget, angle)
 
     #Se não, acompanha o y
-    ytarget = sat(rb[1],0.20)
+    ytarget = sat(rb[1],0.25)
     angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
     return np.array([xGoal, ytarget, angle])
  
 def blockBallElipse(rb, vb, rr, rm):
-    a = 0.3
-    b = 0.45
+    a = 0.35
+    b = 0.50
     e = np.array([1/a, 1/b])
     spin = 0
     
