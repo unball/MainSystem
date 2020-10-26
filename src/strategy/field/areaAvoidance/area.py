@@ -23,17 +23,16 @@ class Area:
     def dP(self, t, d=0.001):
         return (self.P((t+d) % 1) - self.P((t-d) % 1)) / (2*d)
 
-    def normalTo(self, P):
-        tn = self.nearestTo(P)
+    def normalTo(self, tn):
         dP = self.dP(tn)
 
         normal = np.array([dP[1], -dP[0]])
 
         return normal / norml(normal)
 
-    def distanceTo(self, P):
+    def distanceTo(self, tn, P):
         P = np.array(P)[:2]
-        Pn = self.P(self.nearestTo(P))
-        n = self.normalTo(P)
+        Pn = self.P(tn)
+        n = self.normalTo(tn)
 
         return norml(P-Pn) * np.sign(np.dot(P-Pn, n))

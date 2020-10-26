@@ -4,6 +4,7 @@ from strategy.field.DirectionalField import DirectionalField
 from strategy.field.areaAvoidance.avoidanceField import AvoidanceField
 from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
+from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
 from strategy.movements import goToBall
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
@@ -79,7 +80,7 @@ class Attacker(Entity):
 
         goalAreaWidth, goalAreaHeight = self.world.field.goalAreaSize
         rga = np.array([-rg[0] - goalAreaWidth + 0.1, rg[1] - goalAreaHeight / 2])
-        rgb = np.array([-rg[0] + goalAreaWidth + 0.1, rg[1] + goalAreaHeight / 2])
+        rgb = np.array([-rg[0] + goalAreaWidth + 0.3, rg[1] + goalAreaHeight / 2])
 
         # Define estado do movimento
         if self.attackState == 0:
@@ -114,6 +115,10 @@ class Attacker(Entity):
 
         
         #self.robot.field = AvoidanceField(self.robot.field, AvoidCircle((0,0), 0.10), borderSize=0.1)
-        self.robot.field = AvoidanceField(self.robot.field, AvoidRect(rga, rgb), borderSize=0.1)
+        #self.robot.field = AvoidanceField(self.robot.field, AvoidRect(rga, rgb), borderSize=0.1)
+        a, b = self.world.field.areaEllipseSize
+        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(self.world.field.areaEllipseCenter, 0.5*a, 0.75*b), borderSize=0.1)
+        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(self.world.team[1].pos, 0.05), borderSize=0.05)
+        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(self.world.team[2].pos, 0.05), borderSize=0.05)
     
 

@@ -35,8 +35,6 @@ class Defender(Entity):
         vr = np.array(self.robot.v)
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
-        rg = -np.array(self.world.field.goalPos) 
-        rg[0] += 0.10
 
         # Executa spin se estiver morto
         if not self.robot.isAlive():
@@ -55,11 +53,11 @@ class Defender(Entity):
             self.robot.field = GoalKeeperField(pose, rb[0])
             self.robot.vref = 999
         else:
-            pose, spin = blockBallElipse(rb, vb, rr, rg)
+            pose, spin = blockBallElipse(rb, vb, rr, self.world.field.areaEllipseCenter, *self.world.field.areaEllipseSize)
             self.robot.setSpin(spin)
 
             self.robot.vref = 0
-            self.robot.field = DefenderField(pose, center=rg)
+            self.robot.field = DefenderField(pose, *self.world.field.areaEllipseSize, self.world.field.areaEllipseCenter)
 
         # Pb = blockBallElipse(rb, vb, rr, rg) 
         # self.robot.field = DefenderField(Pb)

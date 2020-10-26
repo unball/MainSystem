@@ -43,9 +43,7 @@ def goalkeep(rb, vb, rr, rg):
     angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
     return np.array([xGoal, ytarget, angle])
  
-def blockBallElipse(rb, vb, rr, rm):
-    a = 0.35
-    b = 0.50
+def blockBallElipse(rb, vb, rr, rm, a, b):
     e = np.array([1/a, 1/b])
     spin = 0
     
