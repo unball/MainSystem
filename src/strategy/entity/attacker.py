@@ -19,7 +19,7 @@ class Attacker(Entity):
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
-                 spiralRadius = 0.10, 
+                 spiralRadius = 0.07, 
                  spiralRadiusCorners = 0.07, 
                  approximationSpeed = 0.5, 
                  ballOffset = 0.015
@@ -105,7 +105,7 @@ class Attacker(Entity):
 
             if any(np.abs(rb) > rl):
                 self.robot.vref = math.inf
-                self.robot.field = UVF((Pb[0], Pb[1]+np.sign(rb[1])*0.2, Pb[2]), direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
+                self.robot.field = UVF((Pb[0], Pb[1]+np.sign(rb[1])*0.1, Pb[2]), direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
@@ -117,8 +117,10 @@ class Attacker(Entity):
         #self.robot.field = AvoidanceField(self.robot.field, AvoidCircle((0,0), 0.10), borderSize=0.1)
         #self.robot.field = AvoidanceField(self.robot.field, AvoidRect(rga, rgb), borderSize=0.1)
         a, b = self.world.field.areaEllipseSize
-        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(self.world.field.areaEllipseCenter, 0.5*a, 0.75*b), borderSize=0.1)
-        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(self.world.team[1].pos, 0.05), borderSize=0.05)
-        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(self.world.team[2].pos, 0.05), borderSize=0.05)
+        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(self.world.field.areaEllipseCenter, 0.6*a, 0.75*b), borderSize=0.15)
+
+        for robot in self.world.team:
+            if robot.id != self.robot.id:
+                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.05)
     
 
