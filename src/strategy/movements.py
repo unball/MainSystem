@@ -68,6 +68,9 @@ def blockBallElipse(rb, vb, rr, rm):
 
     if not insideEllipse(rb, a, b, rm) and norm(rr, rb) < 0.09:
        spin = 1 if rr[1] > rb[1] else -1
+
+    if insideEllipse(rb, a, b, rm):
+        return (r[0], -r[1], r_ort_angle), spin
     
     return (r[0], r[1], r_ort_angle), spin
     # return (r[0], r[1], r_ort_angle)
