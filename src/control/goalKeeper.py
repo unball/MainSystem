@@ -7,7 +7,7 @@ import time
 
 class GoalKeeperControl(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=5, kp=50, mu=0.5, vmax=2, L=0.075):
+  def __init__(self, world, kw=5, kp=100, mu=0.5, vmax=2, L=0.075):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -51,7 +51,7 @@ class GoalKeeperControl(Control):
 
     # Velocidade limite de aproximação
     dTarget = norm(robot.pos, robot.field.Pb)
-    v3 = self.kp * (dTarget-0.05) ** 2 + robot.vref if dTarget > 0.05 else 0
+    v3 = self.kp * (dTarget-0.02) ** 2 + robot.vref if dTarget > 0.02 else 0
 
     # Velocidade linear é menor de todas
     v  = max(min(v1, v2, v3), 0)

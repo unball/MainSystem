@@ -58,7 +58,7 @@ class Loop:
             # Executa o loop
             self.loop()
 
-            print((time.time()-t0)*1000)
+            #print((time.time()-t0)*1000)
 
             # Dorme para que a próxima chamada seja 
             time.sleep(max(self.loopTime - (time.time()-t0), 0))
