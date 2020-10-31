@@ -90,5 +90,5 @@ class Command:
 class VSS:
     def __init__(self, team_yellow=False):
         self.lib = CDLL("./lib/vss.so")
-        self.vision = Vision(self, "127.0.0.1", 10002, team_yellow)
+        self.vision = Vision(self, "224.0.0.0", 10002, team_yellow)
         self.command = Command(self, "127.0.0.1", 20011, team_yellow)
