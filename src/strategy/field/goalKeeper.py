@@ -1,5 +1,5 @@
 import numpy as np
-from tools import angl, unit, norml, angError, filt, sat
+from tools import angl, unit, norml, angError, filt, sat, deadZoneDisc
 from . import Field
 
 class GoalKeeperField(Field):
@@ -19,8 +19,8 @@ class GoalKeeperField(Field):
     c2 = np.bitwise_not(c1)
 
     uvf = np.zeros_like(P[0])
-    uvf[c1] = -np.pi/2 - (P[0][c1] - self.x) * self.A
-    uvf[c2] = np.pi/2 + (P[0][c2] - self.x) * self.A
+    uvf[c1] = -np.pi/2 + np.arctan(-(deadZoneDisc(P[0][c1] - self.x, 0.08)) * self.A)
+    uvf[c2] = np.pi/2 + np.arctan((deadZoneDisc(P[0][c2] - self.x, 0.08)) * self.A)
 
     if uvf.size == 1 and not(retnparray): return uvf[0]
     return uvf

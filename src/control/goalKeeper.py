@@ -51,7 +51,7 @@ class GoalKeeperControl(Control):
 
     # Velocidade limite de aproximação
     dTarget = norm(robot.pos, robot.field.Pb)
-    v3 = self.kp * dTarget ** 2 + robot.vref if dTarget > 0.05 else 0
+    v3 = self.kp * (dTarget-0.05) ** 2 + robot.vref if dTarget > 0.05 else 0
 
     # Velocidade linear é menor de todas
     v  = max(min(v1, v2, v3), 0)

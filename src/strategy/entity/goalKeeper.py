@@ -16,6 +16,7 @@ class GoalKeeper(Entity):
 
         self._control = GoalKeeperControl(world)
         self.lastChat = 0
+        self.state = "Stable"
         self.__name = "goalkeeper"
 
     @property
@@ -31,7 +32,7 @@ class GoalKeeper(Entity):
             if norm(self.robot.pos, self.world.ball.pos) < 0.07:
                 self.robot.setSpin(np.sign(self.robot.y - self.world.ball.y), timeOut=0.1)
 
-            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 and time.time()-self.lastChat > .3:
+            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180: #and time.time()-self.lastChat > .3:
                 self.robot.direction *= -1
                 self.lastChat = time.time()
             
@@ -57,5 +58,16 @@ class GoalKeeper(Entity):
 
         Pb = goalkeep(rb, vb, rr, rg)
 
-        self.robot.field = UVF(Pb, spiral=0.01)
-        
+        if self.state == "Stable":
+            self.state = "Stable" if np.abs(Pb[0]-rr[0]) < 0.06 else "Unstable"
+        else:
+            self.state = "Unstable" if np.abs(Pb[0]-rr[0]) > 0.02 else "Stable"
+
+        #self.robot.field = UVF(Pb, spiral=0.01)
+        #self.robot.field = DirectionalField(Pb[2], Pb=Pb) if np.abs(rr[0]-Pb[0]) < 0.07 else UVF(Pb, spiral=0.01)
+
+        if self.state == "Stable":
+            self.robot.field = DirectionalField(Pb[2], Pb=(rr[0], Pb[1], Pb[2]))
+        else:
+            self.robot.field = UVF(Pb, spiral=0.04)
+        #self.robot.field = DirectionalField(Pb[2], Pb=Pb)

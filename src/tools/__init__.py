@@ -94,3 +94,9 @@ def insideEllipse(r, a, b, rm):
 def angleRange(th):
   if th >= 0 and th <= np.pi: return th
   else: return th + 2*np.pi
+
+def deadZone(x, w):
+  return x-np.sign(x)*w if np.abs(x) > w else 0
+
+def deadZoneDisc(x, w):
+  return x if np.abs(x) > w else 0
