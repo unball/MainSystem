@@ -1,6 +1,6 @@
 import socket
 import sys
-sys.path.append('protobuf/vssreferee/python')
+sys.path.append('protobuf/')
 import vssref_command_pb2
 import vssref_common_pb2
 import vssref_placement_pb2
