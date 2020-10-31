@@ -1,6 +1,6 @@
 from client import VSS
 from world import World
-from strategy import Strategy
+from strategy import Strategy, EnemyStrategy
 from UVF_screen import UVFScreen
 import time
 
@@ -13,14 +13,14 @@ class Loop:
         self.enemyWorld = World(3, side=-1)
 
         self.strategy = Strategy(self.world)
-        self.enemyStrategy = Strategy(self.enemyWorld)
+        self.enemyStrategy = EnemyStrategy(self.enemyWorld)
 
         # Variáveis
         self.loopTime = 1.0 / loopFreq
         self.running = True 
         self.draw_UVF = draw_UVF
         if self.draw_UVF:
-            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=0)
+            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
 
     def loop(self):
         # Executa visão
