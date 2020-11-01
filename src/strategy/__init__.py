@@ -70,7 +70,7 @@ class Strategy:
     def formationDecider(self):
         if np.abs(self.world.allyGoals - self.world.enemyGoals) >= 8: 
             self.experimentStartTime = 0
-            return formations["insane"]
+            return self.formations["insane"]
         else:
             rb = np.array(self.world.ball.pos)
 
