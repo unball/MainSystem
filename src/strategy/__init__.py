@@ -3,7 +3,7 @@ from .entity.goalKeeper import GoalKeeper
 from .entity.defender import Defender
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats
+from tools import sats, norml
 import numpy as np
 import time
 
@@ -12,8 +12,8 @@ class Strategy:
         self.world = world
         self.formations = {
             "insane": (Attacker, Attacker, Attacker),
-            "ambitious": (GoalKeeper, Attacker, Attacker),
-            "safe": (GoalKeeper, Attacker, Defender)
+            "ambitious": (Attacker, Attacker, GoalKeeper),
+            "safe": (Attacker, Defender, GoalKeeper)
         }
 
         # Variáveis de estado do formationDecider
