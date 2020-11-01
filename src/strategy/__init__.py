@@ -1,7 +1,14 @@
 from .entity.attacker import Attacker
 from .entity.goalKeeper import GoalKeeper
 from .entity.defender import Defender
-from client.protobuf.vssref_common_pb2 import Foul
+#from client.protobuf.vssref_common_pb2 import Foul
+#import pathlib
+#moduleFolder = str(pathlib.Path(__file__).parent.absolute())
+#import sys
+#sys.path.append(moduleFolder + '/../client/protobuf/')
+#print(moduleFolder + '/../client/protobuf')
+#from vssref_common_pb2 import Foul
+import client.protobuf.vssref_common_pb2 as vssref_common_pb2
 from client.referee import RefereeCommands
 from tools import sats
 import numpy as np
@@ -12,8 +19,8 @@ class Strategy:
         self.world = world
         self.formations = {
             "insane": (Attacker, Attacker, Attacker),
-            "ambitious": (Attacker, Attacker, GoalKeeper),
-            "safe": (Attacker, Defender, GoalKeeper)
+            "ambitious": (GoalKeeper, Attacker, Attacker),
+            "safe": (GoalKeeper, Attacker, Defender)
         }
 
         # Variáveis de estado do formationDecider
@@ -95,7 +102,7 @@ class Strategy:
     def manageReferee(self, command):
         if command is None: return
         # Verifica gol
-        if command.foul == Foul.KICKOFF:
+        if command.foul == vssref_common_pb2.Foul.KICKOFF:
             if RefereeCommands.color2side(command.teamcolor) == self.world.field.side:
                 self.world.addEnemyGoal()
             elif RefereeCommands.color2side(command.teamcolor) == -self.world.field.side:
