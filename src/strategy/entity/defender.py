@@ -16,7 +16,6 @@ class Defender(Entity):
         super().__init__(world, robot)
 
         self._control = GoalKeeperControl(self.world)
-        self.__name = "defender"
     @property
     def control(self):
         return self._control

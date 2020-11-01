@@ -17,7 +17,6 @@ class GoalKeeper(Entity):
         self._control = GoalKeeperControl(world)
         self.lastChat = 0
         self.state = "Stable"
-        self.__name = "goalkeeper"
 
     @property
     def control(self):

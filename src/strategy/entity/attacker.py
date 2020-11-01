@@ -47,7 +47,6 @@ class Attacker(Entity):
         self.lastChat = 0
 
         self._control = UFC_Simple(self.world)
-        self.name = "attacker"
     @property
     def control(self):
         return self._control
