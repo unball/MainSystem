@@ -12,8 +12,8 @@ class Strategy:
         self.world = world
         self.formations = {
             "insane": (Attacker, Attacker, Attacker),
-            "ambitious": (Attacker, Attacker, GoalKeeper),
-            "safe": (Attacker, Defender, GoalKeeper)
+            "ambitious": (GoalKeeper, Attacker, Attacker),
+            "safe": (GoalKeeper, Attacker, Defender)
         }
 
         # Variáveis de estado do formationDecider
@@ -23,7 +23,9 @@ class Strategy:
         self.safeScore = 0.5
         self.safeLineX = -0.20
         self.safeLineHyst = 0.1
-        self.safeLineState = "learn"
+        self.ambitiousLineX = 0.3
+        self.ambitiousLineHyst = 0.1
+        self.formationState = "learn"
         self.learnState = "safe"
 
         # Métricas do experimento
@@ -35,7 +37,7 @@ class Strategy:
         ballAverageXScore = (self.ballAverageX) / (2 * self.world.field.maxX)
         balanceScore = sats((self.world.balance - self.initialBalance) / (2 * 2), 0, 1)
 
-        deltaScore = (ballAverageXScore * 0.3 + balanceScore * 0.7) * 0.1
+        deltaScore = (ballAverageXScore * 0.3 + balanceScore * 0.7) * 0.2
 
         if self.learnState == "safe":
             self.safeScore = max(min(self.safeScore + deltaScore, 1), 0)
@@ -79,17 +81,21 @@ class Strategy:
             self.ballAverageX_n += 1
 
             # Decide o estado
-            if self.safeLineState == "learn":
-                if rb[0] < self.safeLineX - self.safeLineHyst: self.safeLineState = "safe"
-            elif self.safeLineState == "safe":
-                if rb[0] > self.safeLineX + self.safeLineHyst: self.safeLineState = "learn"
+            if self.formationState == "learn":
+                if rb[0] < self.safeLineX - self.safeLineHyst: self.formationState = "safe"
+                if rb[0] > self.ambitiousLineX + self.ambitiousLineHyst: self.formationState = "ambitious"
+            elif self.formationState == "safe":
+                if rb[0] > self.safeLineX + self.safeLineHyst: self.formationState = "learn"
+            elif self.formationState == "ambitious":
+                if rb[0] < self.ambitiousLineX - self.ambitiousLineHyst: self.formationState = "learn"
 
             # Inicia um novo experimento
             if time.time() - self.experimentStartTime > self.experimentPeriod:
                 self.initExperiment()
 
             # Decide a formação, finalmente...
-            if self.safeLineState == "safe": return self.formations["safe"]
+            if self.formationState == "safe": return self.formations["safe"]
+            elif self.formationState == "ambitious": return self.formations["ambitious"]
             else: return self.formations[self.learnState]
         
     def manageReferee(self, command):
