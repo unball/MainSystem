@@ -56,6 +56,9 @@ def sat(x: float, amp: float):
   """Satura um número real `x` entre `amp` e `-amp`"""
   return max(min(x, amp), -amp)
 
+def sats(x: float, ampn: float, ampp: float):
+  return max(min(x, ampp), ampn)
+
 def ang(p0: tuple, p1: tuple):
   """Calcula o ângulo entre as tuplas `p0` e `p1` no plano, este ângulo está em \\((-\\pi,\\pi]\\)"""
   return np.arctan2(p1[1]-p0[1], p1[0]-p0[0])

@@ -49,6 +49,9 @@ class World:
         self.ball = Ball(self)
         self.field = Field(side)
 
+        self.allyGoals = 0
+        self.enemyGoals = 0
+
     def update(self, message):
         teamPos = zip(message["ally_x"], message["ally_y"], message["ally_th"])
         enemiesPos = zip(message["enemy_x"], message["enemy_y"], message["enemy_th"])
@@ -56,3 +59,19 @@ class World:
         for robot, pos in zip(self.team, teamPos): robot.update(*pos)
         for robot, pos in zip(self.enemies, enemiesPos): robot.update(*pos)
         self.ball.update(message["ball_x"], message["ball_y"])
+
+    def addAllyGoal(self):
+        print("Gol aliado!")
+        self.allyGoals += 1
+
+    def addEnemyGoal(self):
+        print("Gol inimigo!")
+        self.enemyGoals += 1
+
+    @property
+    def goals(self):
+        return self.allyGoals + self.enemyGoals
+
+    @property
+    def balance(self):
+        return self.allyGoals - self.enemyGoals

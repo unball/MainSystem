@@ -2,10 +2,12 @@ from client import VSS
 from world import World
 from strategy import Strategy, EnemyStrategy
 from UVF_screen import UVFScreen
+from client.referee import RefereeCommands
 import time
 
 vss = VSS()
 vss_enemy = VSS(team_yellow=True)
+rc = RefereeCommands('224.5.23.2', 10003)
 
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
@@ -23,6 +25,9 @@ class Loop:
             self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
 
     def loop(self):
+        # Recebe dados do Referee
+        command = rc.receive()
+
         # Executa visão
         message = vss.vision.read()
         if message is None: return
@@ -32,6 +37,7 @@ class Loop:
         self.enemyWorld.update(vss.vision.invertMessage(message))
 
         # Executa estratégia
+        self.strategy.manageReferee(command)
         self.strategy.update()
         self.enemyStrategy.update()
 

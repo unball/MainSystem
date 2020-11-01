@@ -1,6 +1,9 @@
 import socket
+import pathlib
+moduleFolder = str(pathlib.Path(__file__).parent.absolute())
 import sys
-sys.path.append('protobuf/')
+sys.path.append(moduleFolder + '/protobuf/')
+print(moduleFolder + '/protobuf/')
 import vssref_command_pb2
 import vssref_common_pb2
 import vssref_placement_pb2
@@ -25,6 +28,11 @@ class RefereeCommands:
         sock.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(host) + socket.inet_aton(selfHost))
 
         return sock
+
+    def color2side(color):
+        if color == vssref_common_pb2.Color.YELLOW: return -1
+        elif color == vssref_common_pb2.Color.BLUE: return 1
+        else: return 0
 
     def receive(self):
         try:
