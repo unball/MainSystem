@@ -103,3 +103,10 @@ def deadZone(x, w):
 
 def deadZoneDisc(x, w):
   return x if np.abs(x) > w else 0
+
+def distToBall(pa, pb, pc):
+  """ Retorna a distância entre ponto c e reta que passa por a e b"""
+  a = (pa[1] - pb[1])
+  b = (pa[0] - pb[1])
+  c = pa[0]*pb[1] - (pb[0] + pa[1])
+  return np.abs((a*pc[0] + b*pc[1] + c)) / np.sqrt(a**2 + b**2)   
