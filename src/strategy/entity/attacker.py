@@ -47,7 +47,6 @@ class Attacker(Entity):
         self.lastChat = 0
 
         self._control = UFC_Simple(self.world)
-        self.name = "attacker"
     @property
     def control(self):
         return self._control
@@ -83,16 +82,27 @@ class Attacker(Entity):
         rgb = np.array([-rg[0] + goalAreaWidth + 0.3, rg[1] + goalAreaHeight / 2])
 
         # Define estado do movimento
-        if self.attackState == 0:
+        if self.attackState == 0: # Ir até a bola
             if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180:
                 self.attackState = 1
                 self.attackAngle = ang(rb, rg)
+            elif abs(angError(self.robot.th, ang(rr, rb))) < 15 * np.pi / 180 and np.abs(self.robot.th) < -np.pi / 2 and np.abs(rb[1]) > 0.3:
+                self.attackState = 2
+                self.attackAngle = ang(rr, rb) # preciso melhorado
             else: self.attackState = 0
-        else:
+
+        elif self.attackState == 1: # Ataque ao gol
             if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180:
-                self.attackState = 1
+                self.attackState =  1
             else:
                 self.attackState = 0
+        else: # Ataque à bola
+            if abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180 and np.abs(self.robot.th) < -np.pi / 2 :
+                self.attackState =  2
+            else:
+                self.attackState = 0
+
+
         
         # Executa spin se estiver morto
         #if not self.robot.isAlive():
@@ -117,16 +127,18 @@ class Attacker(Entity):
         #self.robot.field = AvoidanceField(self.robot.field, AvoidCircle((0,0), 0.10), borderSize=0.1)
         #self.robot.field = AvoidanceField(self.robot.field, AvoidRect(rga, rgb), borderSize=0.1)
         a, b = self.world.field.areaEllipseSize
-        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(self.world.field.areaEllipseCenter, 0.6*a, 0.75*b), borderSize=0.15)
+        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(self.world.field.areaEllipseCenter, 0.6*a, 0.80*b), borderSize=0.15)
 
         for robot in self.world.team:
             if robot.id != self.robot.id:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.05)
-                if robot.entity.name ==  "attacker":
-                    if robot.entity.attackState == 1 and self.attackState == 0:
-                        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.75*b), borderSize=0.15)
+                if robot.entity.__class__.__name__ ==  "Attacker":
+                    if robot.entity.attackState != 0 and self.attackState == 0:
+                        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
+                        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.05)
                     elif insideEllipse(robot.pos, a, b, rg):
                     # elif norm(robot.pos, rb) < norm(rr, rb):
-                        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.75*b), borderSize=0.15)
+                        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
+                else:
+                    self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.05)
 
 

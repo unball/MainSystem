@@ -6,7 +6,6 @@ class Entity(ABC):
         
         self.world = world
         self.robot = robot
-        self.name = ""
 
     @abstractproperty
     def control(self):

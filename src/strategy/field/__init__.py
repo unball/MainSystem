@@ -2,9 +2,8 @@ import numpy as np
 from tools import angl, unit, norml, angError, filt, sat
 
 class Field:
-    def __init__(self, nullgamma=False):
-        self.Pb = (0,0)
-        self.nullgamma = nullgamma
+    def __init__(self, Pb):
+        self.Pb = Pb
 
     def F(self, P):
         pass
@@ -21,4 +20,4 @@ class Field:
         return (dx*np.cos(P[2]) + dy*np.sin(P[2]))
 
     def gamma(self, dth, v, phi):
-        return 0 if self.nullgamma else dth - v*phi
+        return dth - v*phi

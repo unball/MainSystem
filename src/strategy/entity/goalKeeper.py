@@ -2,6 +2,7 @@ from ..entity import Entity
 from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.goalKeeper import GoalKeeperField
+from strategy.field.attractive import AttractiveField
 from strategy.movements import goalkeep, spinGoalKeeper
 from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, angl
 from tools.interval import Interval
@@ -17,7 +18,6 @@ class GoalKeeper(Entity):
         self._control = GoalKeeperControl(world)
         self.lastChat = 0
         self.state = "Stable"
-        self.__name = "goalkeeper"
 
     @property
     def control(self):
@@ -59,9 +59,9 @@ class GoalKeeper(Entity):
         Pb = goalkeep(rb, vb, rr, rg)
 
         if self.state == "Stable":
-            self.state = "Stable" if np.abs(Pb[0]-rr[0]) < 0.06 else "Unstable"
+            self.state = "Stable" if np.abs(Pb[0]-rr[0]) < 0.08 else "Unstable"
         else:
-            self.state = "Unstable" if np.abs(Pb[0]-rr[0]) > 0.02 else "Stable"
+            self.state = "Unstable" if np.abs(Pb[0]-rr[0]) > 0.03 else "Stable"
 
         #self.robot.field = UVF(Pb, spiral=0.01)
         #self.robot.field = DirectionalField(Pb[2], Pb=Pb) if np.abs(rr[0]-Pb[0]) < 0.07 else UVF(Pb, spiral=0.01)
@@ -69,5 +69,6 @@ class GoalKeeper(Entity):
         if self.state == "Stable":
             self.robot.field = DirectionalField(Pb[2], Pb=(rr[0], Pb[1], Pb[2]))
         else:
-            self.robot.field = UVF(Pb, spiral=0.02)
+            #self.robot.field = UVF(Pb, radius=0.02)
+            self.robot.field = AttractiveField(Pb)
         #self.robot.field = DirectionalField(Pb[2], Pb=Pb)

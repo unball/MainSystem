@@ -10,7 +10,7 @@ from .entity.defender import Defender
 #from vssref_common_pb2 import Foul
 import client.protobuf.vssref_common_pb2 as vssref_common_pb2
 from client.referee import RefereeCommands
-from tools import sats
+from tools import sats, norml
 import numpy as np
 import time
 
@@ -19,9 +19,11 @@ class Strategy:
         self.world = world
         self.formations = {
             "insane": (Attacker, Attacker, Attacker),
-            "ambitious": (GoalKeeper, Attacker, Attacker),
-            "safe": (GoalKeeper, Attacker, Defender)
+            "crazy": (Attacker, Attacker, Defender), 
+            "ambitious": (Attacker, Attacker, GoalKeeper),
+            "safe": (Attacker, Defender, GoalKeeper)
         }
+        self.lastGoalkeeper = None
 
         # Variáveis de estado do formationDecider
         self.experimentStartTime = 0
@@ -30,8 +32,12 @@ class Strategy:
         self.safeScore = 0.5
         self.safeLineX = -0.20
         self.safeLineHyst = 0.1
-        self.safeLineState = "learn"
+        self.ambitiousLineX = 0.3
+        self.ambitiousLineHyst = 0.1
+        self.formationState = "learn"
         self.learnState = "safe"
+
+        self.insaneBehavior = False
 
         # Métricas do experimento
         self.initialBalance = 0
@@ -42,7 +48,7 @@ class Strategy:
         ballAverageXScore = (self.ballAverageX) / (2 * self.world.field.maxX)
         balanceScore = sats((self.world.balance - self.initialBalance) / (2 * 2), 0, 1)
 
-        deltaScore = (ballAverageXScore * 0.3 + balanceScore * 0.7) * 0.1
+        deltaScore = (ballAverageXScore * 0.3 + balanceScore * 0.7) * 0.2
 
         if self.learnState == "safe":
             self.safeScore = max(min(self.safeScore + deltaScore, 1), 0)
@@ -73,32 +79,78 @@ class Strategy:
 
         # Atualiza tempo de início
         self.experimentStartTime = time.time()
+
+    def learnStateUpdate(self):
+        rb = np.array(self.world.ball.pos)
+
+        # Atualiza métricas
+        self.ballAverageX = (self.ballAverageX * self.ballAverageX_n + rb[0]) / (self.ballAverageX_n + 1)
+        self.ballAverageX_n += 1
+
+        # Inicia um novo experimento
+        if time.time() - self.experimentStartTime > self.experimentPeriod:
+            self.initExperiment()
+
         
     def formationDecider(self):
-        if np.abs(self.world.allyGoals - self.world.enemyGoals) >= 8: 
-            self.experimentStartTime = 0
-            return self.formations["insane"]
+        rb = np.array(self.world.ball.pos)
+
+        # Decide estado do insane
+        if self.insaneBehavior:
+            if np.abs(self.world.balance) < 8:
+                self.insaneBehavior = False
+                # Condição inicial para a formação ao sair do modo insano
+                if rb[0] < self.safeLineX: self.formationState = "safe"
+                elif rb[0] > self.ambitiousLineX: self.formationState = "ambitious"
+                else: self.formationState = "learn"
         else:
-            rb = np.array(self.world.ball.pos)
+            if np.abs(self.world.balance) >= 8:
+                self.insaneBehavior = True
+                # Condição inicial para a formação ao entrar do modo insano
+                if rb[0] < self.safeLineX: self.formationState = "ambitious"
+                else: self.formationState = "insane"
 
-            # Atualiza métricas
-            self.ballAverageX = (self.ballAverageX * self.ballAverageX_n + rb[0]) / (self.ballAverageX_n + 1)
-            self.ballAverageX_n += 1
+        # Executa conforme estado
+        if self.insaneBehavior:
+            return self.formationDeciderInsane()
+        else:
+            return self.formationDeciderNormal()
 
-            # Decide o estado
-            if self.safeLineState == "learn":
-                if rb[0] < self.safeLineX - self.safeLineHyst: self.safeLineState = "safe"
-            elif self.safeLineState == "safe":
-                if rb[0] > self.safeLineX + self.safeLineHyst: self.safeLineState = "learn"
 
-            # Inicia um novo experimento
-            if time.time() - self.experimentStartTime > self.experimentPeriod:
-                self.initExperiment()
+    def formationDeciderNormal(self):
+        rb = np.array(self.world.ball.pos)
 
-            # Decide a formação, finalmente...
-            if self.safeLineState == "safe": return self.formations["safe"]
-            else: return self.formations[self.learnState]
-        
+        # Decide formação
+        if self.formationState == "learn":
+            if rb[0] < self.safeLineX - self.safeLineHyst: self.formationState = "safe"
+            if rb[0] > self.ambitiousLineX + self.ambitiousLineHyst: self.formationState = "ambitious"
+        elif self.formationState == "safe":
+            if rb[0] > self.safeLineX + self.safeLineHyst: self.formationState = "learn"
+        elif self.formationState == "ambitious":
+            if rb[0] < self.ambitiousLineX - self.ambitiousLineHyst: self.formationState = "learn"
+        else:
+            print("ESTADO NORMAL INVÁLIDO")
+
+        # Executa formação conforme o estado
+        if self.formationState != "learn":
+            return self.formations[self.formationState]
+        else:
+            self.learnStateUpdate()
+            return self.formations[self.learnState]
+
+    def formationDeciderInsane(self):
+        rb = np.array(self.world.ball.pos)
+
+        if self.formationState == "insane":
+            if rb[0] < self.safeLineX - self.safeLineHyst: self.formationState = "ambitious"
+        elif self.formationState == "ambitious":
+            if rb[0] > self.safeLineX + self.safeLineHyst: self.formationState = "insane"
+        else:
+            print("ESTADO INSANO INVÁLIDO!")
+
+        # Executa o estado
+        return self.formations[self.formationState]
+
     def manageReferee(self, command):
         if command is None: return
         # Verifica gol
@@ -110,9 +162,25 @@ class Strategy:
                 
 
     def entityDecider(self, formation):
-        self.world.team[0].updateEntity(formation[0])
-        self.world.team[1].updateEntity(formation[1])
-        self.world.team[2].updateEntity(formation[2])
+        form = list(formation)
+        robots= self.world.team.copy()
+        if GoalKeeper in formation:
+            rg = - np.array(self.world.field.goalPos)
+            dist = [norml(np.array(rr.pos)-rg) for rr in self.world.team]
+            nearst = np.argmin(dist)
+            minDist = np.min(dist)
+
+            if(self.lastGoalkeeper != nearst):
+                if(self.lastGoalkeeper is None or 2*minDist <= dist[self.lastGoalkeeper]):
+                    self.goalkeeperIndx = nearst
+                    robots[self.goalkeeperIndx].updateEntity(GoalKeeper)
+            form.remove(GoalKeeper)
+            _ = robots.pop(self.goalkeeperIndx)
+        else:
+            self.goalkeeperIndx = None
+        for r, e in zip(robots, form):
+            r.updateEntity(e)
+
     
     def update(self):
         formation = self.formationDecider()

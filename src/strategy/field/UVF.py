@@ -5,9 +5,7 @@ from . import Field
 
 class UVF(Field):
     def __init__(self, Pb, radius=0.13, direction=0, spiral=True, Kr=0.2, Kr_single=0.001, nullgamma=False):
-        super().__init__(nullgamma)
-        # Pose final
-        self.Pb = Pb
+        super().__init__(Pb)
 
         # Raio da espiral
         self.r = radius
