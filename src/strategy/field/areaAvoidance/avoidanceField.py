@@ -5,8 +5,7 @@ import numpy as np
 
 class AvoidanceField(Field):
     def __init__(self, mainField: Field, avoidanceArea: Area, borderSize = 0.20, conflictAngle = 5):
-        super().__init__()
-        self.Pb = mainField.Pb
+        super().__init__(mainField.Pb)
 
         self.mainField = mainField
         self.avoidanceArea = avoidanceArea

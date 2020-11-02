@@ -4,8 +4,7 @@ from . import Field
 
 class DefenderField(Field):
   def __init__(self, Pb, a, b, center):
-    super().__init__()
-    self.Pb = Pb
+    super().__init__(Pb)
     self.a = a
     self.b = b
     self.center = np.array(center)

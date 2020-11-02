@@ -4,7 +4,7 @@ from . import Field
 
 class GoalKeeperField(Field):
   def __init__(self, Pb, xgoal):
-    super().__init__()
+    super().__init__(Pb)
     self.Pb = Pb
     self.y = Pb[1]
     self.x = xgoal
