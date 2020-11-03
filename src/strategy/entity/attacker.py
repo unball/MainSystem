@@ -65,7 +65,18 @@ class Attacker(Entity):
                 if time.time()-self.lastChat > .3:
                     self.lastChat = time.time()
                     self.robot.direction *= -1
-            
+    
+    def alignedToGoal(self, rb, rr, rg):
+        return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
+
+    def alignedToGoalRelaxed(self, rb, rr, rg):
+        return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
+
+    def alignedToBall(self, rb, rr):
+        return (norm(rr, rb) < 0.05 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and np.abs(rb[1]) > 0.2
+
+    def alignedToBallRelaxed(self, rb, rr):
+        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2
 
     def fieldDecider(self):
         rr = np.array(self.robot.pos)
@@ -83,21 +94,21 @@ class Attacker(Entity):
 
         # Define estado do movimento
         if self.attackState == 0: # Ir até a bola
-            if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180:
+            if self.alignedToGoal(rb, rr, rg):
                 self.attackState = 1
                 self.attackAngle = ang(rb, rg)
-            elif abs(angError(self.robot.th, ang(rr, rb))) < 15 * np.pi / 180 and np.abs(self.robot.th) < -np.pi / 2 and np.abs(rb[1]) > 0.3:
+            elif self.alignedToBall(rb, rr):
                 self.attackState = 2
                 self.attackAngle = ang(rr, rb) # preciso melhorado
             else: self.attackState = 0
 
         elif self.attackState == 1: # Ataque ao gol
-            if -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180:
+            if self.alignedToGoalRelaxed(rb, rr, rg):
                 self.attackState =  1
             else:
                 self.attackState = 0
-        else: # Ataque à bola
-            if abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180 and np.abs(self.robot.th) < -np.pi / 2 :
+        elif self.attackState == 2: # Ataque à bola
+            if  self.alignedToBallRelaxed(rb, rr):
                 self.attackState =  2
             else:
                 self.attackState = 0
@@ -119,7 +130,7 @@ class Attacker(Entity):
             else:
                 self.robot.vref = self.approximationSpeed
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
-        else:
+        elif self.attackState == 1 or self.attackState == 2:
             self.robot.vref = math.inf
             self.robot.field = DirectionalField(self.attackAngle)
 
