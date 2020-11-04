@@ -1,14 +1,7 @@
 from .entity.attacker import Attacker
 from .entity.goalKeeper import GoalKeeper
 from .entity.defender import Defender
-#from client.protobuf.vssref_common_pb2 import Foul
-#import pathlib
-#moduleFolder = str(pathlib.Path(__file__).parent.absolute())
-#import sys
-#sys.path.append(moduleFolder + '/../client/protobuf/')
-#print(moduleFolder + '/../client/protobuf')
-#from vssref_common_pb2 import Foul
-import client.protobuf.vssref_common_pb2 as vssref_common_pb2
+from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
 from tools import sats, norml
 import numpy as np
@@ -154,7 +147,7 @@ class Strategy:
     def manageReferee(self, command):
         if command is None: return
         # Verifica gol
-        if command.foul == vssref_common_pb2.Foul.KICKOFF:
+        if command.foul == Foul.KICKOFF:
             if RefereeCommands.color2side(command.teamcolor) == self.world.field.side:
                 self.world.addEnemyGoal()
             elif RefereeCommands.color2side(command.teamcolor) == -self.world.field.side:
