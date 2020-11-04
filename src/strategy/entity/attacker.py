@@ -73,10 +73,10 @@ class Attacker(Entity):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
 
     def alignedToBall(self, rb, rr):
-        return (norm(rr, rb) < 0.05 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and np.abs(rb[1]) > 0.2
+        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and np.abs(rb[1]) > 0.2
 
     def alignedToBallRelaxed(self, rb, rr):
-        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2
+        return (norm(rr, rb) < 0.15 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2
 
     def fieldDecider(self):
         rr = np.array(self.robot.pos)
