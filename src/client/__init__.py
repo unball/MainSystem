@@ -34,7 +34,7 @@ class Vision:
         invertedMessage['enemy_th'] = copy(message["ally_th"])
         return invertedMessage
 
-    def read(self):
+    def doRead(self):
         # Define o retorno
         self.lib.visionRead.restype = VisionMessage
 
@@ -66,6 +66,12 @@ class Vision:
         
         # Se não, retorna a última mensagem válida
         else: return self.last_message
+
+    def read(self):
+        message = self.doRead()
+        if message is not None and self.team_yellow:
+            message = Vision.invertMessage(message)
+        return message
 
 class Command:
     def __init__(self, vss, ip, port, team_yellow=False):
