@@ -1,3 +1,4 @@
+from abc import ABC
 from .entity.attacker import Attacker
 from .entity.goalKeeper import GoalKeeper
 from .entity.defender import Defender
@@ -7,8 +8,34 @@ from tools import sats, norml
 import numpy as np
 import time
 
-class Strategy:
+class Strategy(ABC):
+    def __init__(self):
+        super().__init__()
+
+    def manageReferee(self, rp, command):
+        if command is None: return
+
+        # Verifica gol
+        if command.foul == Foul.KICKOFF:
+            if RefereeCommands.color2side(command.teamcolor) == self.world.field.side:
+                self.world.addEnemyGoal()
+            elif RefereeCommands.color2side(command.teamcolor) == -self.world.field.side:
+                self.world.addAllyGoal()
+
+        # Inicia jogo
+        elif command.foul == Foul.GAME_ON:
+            for robot in self.world.raw_team: robot.turnOn()
+            
+        # Pausa jogo
+        elif command.foul == Foul.STOP:
+            for robot in self.world.raw_team: robot.turnOff()
+
+        #rp.send([])
+
+class MainStrategy(Strategy):
     def __init__(self, world):
+        super().__init__()
+
         self.world = world
         self.formations = {
             "insane": (Attacker, Attacker, Attacker),
@@ -144,17 +171,8 @@ class Strategy:
         # Executa o estado
         return self.formations[self.formationState]
 
-    def manageReferee(self, command):
-        if command is None: return
-        # Verifica gol
-        if command.foul == Foul.KICKOFF:
-            if RefereeCommands.color2side(command.teamcolor) == self.world.field.side:
-                self.world.addEnemyGoal()
-            elif RefereeCommands.color2side(command.teamcolor) == -self.world.field.side:
-                self.world.addAllyGoal()
-                
-
     def entityDecider(self, formation):
+        if len(self.world.team) == 0: return
         form = list(formation)
         robots= self.world.team.copy()
         if GoalKeeper in formation:
@@ -184,14 +202,15 @@ class Strategy:
                 robot.entity.directionDecider()
                 robot.entity.fieldDecider()
 
-class EnemyStrategy:
+class EnemyStrategy(Strategy):
     def __init__(self, world):
+        super().__init__()
         self.world = world
 
     def entityDecider(self):
-        self.world.team[0].updateEntity(Attacker)
-        self.world.team[1].updateEntity(GoalKeeper)
-        self.world.team[2].updateEntity(Defender)
+        formation = [Attacker, GoalKeeper, Defender]
+        for i,robot in enumerate(self.world.team):
+            robot.updateEntity(formation[i])
     
     def update(self):
         self.entityDecider()

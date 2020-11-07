@@ -13,6 +13,4 @@ class Control(ABC):
 
     def actuate(self, robot):
         v, w = self.output(robot)
-
         return speeds2motors(v, self.world.field.side * w)
-

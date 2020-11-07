@@ -1,20 +1,22 @@
 from client import VSS
 from world import World
-from strategy import Strategy, EnemyStrategy
+from strategy import MainStrategy, EnemyStrategy
 from UVF_screen import UVFScreen
-from client.referee import RefereeCommands
+from client.referee import RefereeCommands, RefereePlacement
 import time
 
 vss = VSS()
 vss_enemy = VSS(team_yellow=True)
 rc = RefereeCommands('224.5.23.2', 10003)
+rp = RefereePlacement('224.5.23.2', 10004)
+rp_enemy = RefereePlacement('224.5.23.2', 10004, True)
 
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
         self.world = World(3, side=1)
         self.enemyWorld = World(3, side=-1)
 
-        self.strategy = Strategy(self.world)
+        self.strategy = MainStrategy(self.world)
         self.enemyStrategy = EnemyStrategy(self.enemyWorld)
 
         # Variáveis
@@ -37,8 +39,9 @@ class Loop:
         self.enemyWorld.update(vss.vision.invertMessage(message))
 
         # Executa estratégia
-        self.strategy.manageReferee(command)
+        self.strategy.manageReferee(rp, command)
         self.strategy.update()
+        self.enemyStrategy.manageReferee(rp_enemy, command)
         self.enemyStrategy.update()
 
         # Executa o controle

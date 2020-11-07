@@ -89,6 +89,7 @@ class TeamRobot(Robot):
 
         self.field = None
         self.vref = math.inf
+        self._on = False
         self.spin = 0
         self.spinTime = 0
         self.spinTimeOut = 0.5
@@ -101,6 +102,18 @@ class TeamRobot(Robot):
         self.spinTimeOut = 0.05
         self.forcedAliveTime = 0
         self.forcedAliveTimeTimeOut = 0
+
+    @property
+    def on(self):
+        return self._on
+
+    def turnOff(self):
+        self._on = False
+        self.entity = None
+        self.spin = 0
+
+    def turnOn(self):
+        self._on = True
 
     def updateField(self, field):
         self.field = field
