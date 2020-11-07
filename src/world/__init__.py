@@ -44,7 +44,7 @@ class Field:
 
 class World:
     def __init__(self, n_robots=5, side=1):
-        self.team = [TeamRobot(self, i) for i in range(n_robots)]
+        self._team = [TeamRobot(self, i) for i in range(n_robots)]
         self.enemies = [TeamRobot(self, i) for i in range(n_robots)]
         self.ball = Ball(self)
         self.field = Field(side)
@@ -75,3 +75,11 @@ class World:
     @property
     def balance(self):
         return self.allyGoals - self.enemyGoals
+
+    @property
+    def team(self):
+        return [robot for robot in self._team if robot.on]
+
+    @property
+    def raw_team(self):
+        return self._team
