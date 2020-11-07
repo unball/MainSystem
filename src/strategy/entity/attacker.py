@@ -67,8 +67,8 @@ class Attacker(Entity):
                     self.robot.direction *= -1
     
     def alignedToGoal(self, rb, rr, rg):
-        rg_up = rb + [0, 20]
-        rg_down = rb + [0, -20]
+        rg_up = rb + [0, 0.17]
+        rg_down = rb + [0, -0.17]
         return (-howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180) or (-howFrontBall(rb, rr, rg_up)  > 0 and abs(howPerpBall(rb, rr, rg_up)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up))) < self.alignmentAngleTrackState * np.pi / 180) or (-howFrontBall(rb, rr, rg_down)  > 0 and abs(howPerpBall(rb, rr, rg_down)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down))) < self.alignmentAngleTrackState * np.pi / 180)
 
     def alignedToGoalRelaxed(self, rb, rr, rg):
@@ -78,8 +78,8 @@ class Attacker(Entity):
         return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and np.abs(rb[1]) > 0.2
 
     def angleToAttack(self, rr, rb, rg):
-        rg_up = rb + [0, 0.20]
-        rg_down = rb + [0, -0.20]
+        rg_up = rb + [0, 0.17]
+        rg_down = rb + [0, -0.17]
         if (-howFrontBall(rb, rr, rg_up)  > 0 and abs(howPerpBall(rb, rr, rg_up)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up))) < self.alignmentAngleTrackState * np.pi / 180):
             return ang(rr, rg_up)
         elif (-howFrontBall(rb, rr, rg_down)  > 0 and abs(howPerpBall(rb, rr, rg_down)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down))) < self.alignmentAngleTrackState * np.pi / 180):
