@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 *pb2.py
+src/constants.py
