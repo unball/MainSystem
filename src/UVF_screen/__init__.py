@@ -39,7 +39,7 @@ class UVFScreen:
     def createRobotsSurface(self):
         self.robots_surf = []
         
-        for index, robot in enumerate(self.world.team):
+        for index, robot in enumerate(self.world.raw_team):
             if index == MAX_ROBOTS_NUMBER:
                 break
 
@@ -62,7 +62,7 @@ class UVFScreen:
             blittedRect = self.screen.blit(self.robots_surf[index], centralField2pygameAxisCoordinate((robot.x,robot.y)))
     
     def drawRobots(self):
-        for index, robot in enumerate(self.world.team):
+        for index, robot in enumerate(self.world.raw_team):
             if index == MAX_ROBOTS_NUMBER:
                 break
 
@@ -98,7 +98,7 @@ class UVFScreen:
 
         self.arrows_surf = []
         
-        robot = self.world.team[self.index_uvf_robot]
+        robot = self.world.raw_team[self.index_uvf_robot]
 
         for index in range(self.arrow_poses.shape[0]):
             #create new surface with white BG
@@ -118,7 +118,7 @@ class UVFScreen:
 
 
     def drawUVF(self):
-        robot = self.world.team[self.index_uvf_robot]
+        robot = self.world.raw_team[self.index_uvf_robot]
 
         if robot.field is None: 
             return

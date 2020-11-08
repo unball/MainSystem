@@ -23,6 +23,10 @@ class Field:
         return self.height / 2
 
     @property
+    def size(self):
+        return (self.maxX, self.maxY)
+
+    @property
     def marginX(self):
         return self.maxX - self.xmargin
     

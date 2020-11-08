@@ -6,7 +6,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     rb = rb.copy()
     #rbp = rb + vb * norm(rb, rr) / (vravg + 0.00001)
 
-    u = np.roots([norml(vb) ** 2 - (vravg+0.2)**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
+    u = np.roots([norml(vb) ** 2 - (vravg)**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
     u = [x for x in u if x >= 0 and not(np.iscomplex(x))]
 
     if len(u) == 0 or norm(rb, rr) < 0.1:
@@ -15,7 +15,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
         rbp = rb + min(u) * vb
 
     #rbp[0] = max(rbp[0], -rl[0])
-    rbp[0] = sat(rbp[0], rg[0])
+    #rbp[0] = sat(rbp[0], rg[0])
     rbp[1] = sat(rbp[1], rl[1])
     offsetVector = offset * unit(angl(rg-rbp))#+ 0.015 * unit(angl(rg-rb) + np.pi/2)
 
