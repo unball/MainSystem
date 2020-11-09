@@ -4,10 +4,13 @@ from strategy import MainStrategy, EnemyStrategy
 from UVF_screen import UVFScreen
 from client.referee import RefereeCommands, RefereePlacement
 import time
+import sys
 
 import constants
 
-vss = VSS(constants.HOST_FIRASIM_VISION, constants.PORT_FIRASIM_VISION, constants.HOST_FIRASIM_COMMAND, constants.PORT_FIRASIM_COMMAND, team_yellow=constants.TEAM_YELLOW)
+team_yellow = True if sys.argv[1] == "yellow" else False
+
+vss = VSS(constants.HOST_FIRASIM_VISION, constants.PORT_FIRASIM_VISION, constants.HOST_FIRASIM_COMMAND, constants.PORT_FIRASIM_COMMAND, team_yellow=team_yellow)
 rc = RefereeCommands(constants.HOST_REFEREE, constants.PORT_REFEREE_COMMAND)
 rp = RefereePlacement(constants.HOST_REFEREE, constants.PORT_REFEREE_REPLACEMENT)
 
@@ -16,7 +19,7 @@ rp = RefereePlacement(constants.HOST_REFEREE, constants.PORT_REFEREE_REPLACEMENT
 
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
-        self.world = World(3, side=-1 if constants.TEAM_YELLOW else 1)
+        self.world = World(3, side=-1 if team_yellow else 1)
         #self.enemyWorld = World(3, side=-1)
 
         self.strategy = MainStrategy(self.world)
