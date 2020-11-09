@@ -199,8 +199,8 @@ class MainStrategy(Strategy):
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()
-                robot.entity.directionDecider()
                 robot.entity.fieldDecider()
+                robot.entity.directionDecider()
 
 class EnemyStrategy(Strategy):
     def __init__(self, world):

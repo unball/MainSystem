@@ -56,7 +56,7 @@ class Attacker(Entity):
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
 
-            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 and time.time()-self.lastChat > .3:
+            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180:# and time.time()-self.lastChat > .3:
                 self.robot.direction *= -1
                 self.lastChat = time.time()
             
@@ -153,6 +153,7 @@ class Attacker(Entity):
 
         # Obtém outros aliados
         otherAllies = [robot for robot in self.world.team if robot != self.robot]
+        enemies = [robot for robot in self.world.enemies]
 
         # Campo para evitar área inimiga
         if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
@@ -160,8 +161,8 @@ class Attacker(Entity):
 
         # Campo para evitar outro robô, (só se não estiver alinhado)
         if self.attackState == 0:
-            for robot in otherAllies:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.10), borderSize=0.10)
+            for robot in otherAllies + enemies:
+                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.10)
 
         # for robot in self.world.team:
         #     if robot.id != self.robot.id:
