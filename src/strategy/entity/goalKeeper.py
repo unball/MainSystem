@@ -29,8 +29,8 @@ class GoalKeeper(Entity):
             rob_th = self.robot.th
             # print('Rob_th:', rob_th)
 
-            if norm(self.robot.pos, self.world.ball.pos) < 0.07:
-                self.robot.setSpin(np.sign(self.robot.y - self.world.ball.y), timeOut=0.1)
+            # if norm(self.robot.pos, self.world.ball.pos) < 0.03:
+            #     self.robot.setSpin(np.sign(self.robot.y - self.world.ball.y), timeOut=0.1)
 
             if abs(angError(ref_th, rob_th)) > 90 * np.pi / 180: #and time.time()-self.lastChat > .3:
                 self.robot.direction *= -1
@@ -49,19 +49,21 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
         rg = -np.array(self.world.field.goalPos)
-        rg[0] += 0.2
+        rg[0] += 0.20
     
          # Aplica o movimento
         self.robot.vref = 0
 
-        self.robot.setSpin(spinGoalKeeper(rb, rr, rg), timeOut = 0.1)
+        self.robot.setSpin(spinGoalKeeper(rb, rr, rg), timeOut = 0.13)
 
         Pb = goalkeep(rb, vb, rr, rg)
 
         if self.state == "Stable":
-            self.state = "Stable" if np.abs(Pb[0]-rr[0]) < 0.08 else "Unstable"
+            if np.abs(rr[0]-rg[0]) > 0.03:
+                self.state = "Unstable"
         else:
-            self.state = "Unstable" if np.abs(Pb[0]-rr[0]) > 0.03 else "Stable"
+            if np.abs(rr[0]-rg[0]) < 0.015:
+                self.state = "Stable"
 
         #self.robot.field = UVF(Pb, spiral=0.01)
         #self.robot.field = DirectionalField(Pb[2], Pb=Pb) if np.abs(rr[0]-Pb[0]) < 0.07 else UVF(Pb, spiral=0.01)

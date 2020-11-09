@@ -7,7 +7,7 @@ from strategy.movements import goalkeep, blockBallElipse
 from tools import angError, howFrontBall, howPerpBall, ang, norml
 from tools.interval import Interval
 from control.UFC import UFC_Simple
-from control.goalKeeper import GoalKeeperControl
+from control.defender import DefenderControl
 import numpy as np
 import math
 
@@ -15,7 +15,7 @@ class Defender(Entity):
     def __init__(self, world, robot, side=1):
         super().__init__(world, robot)
 
-        self._control = GoalKeeperControl(self.world)
+        self._control = DefenderControl(self.world)
     @property
     def control(self):
         return self._control
