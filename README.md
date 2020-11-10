@@ -7,4 +7,4 @@ A integração da UnBall com o FIRASim depende da biblioteca compartilhada `vss.
 - Vá para a pasta `src/client/protobuf` e execute o `protobuf.sh`
 
 ## Execução
-Para executar o sistema rode `python3 src/main.py`
+Para executar o sistema rode `python3 src/main.py [cor do time]`
