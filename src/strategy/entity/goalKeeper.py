@@ -49,7 +49,7 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
         rg = -np.array(self.world.field.goalPos)
-        rg[0] += 0.20
+        rg[0] += 0.18
     
          # Aplica o movimento
         self.robot.vref = 0
@@ -72,5 +72,5 @@ class GoalKeeper(Entity):
             self.robot.field = DirectionalField(Pb[2], Pb=(rr[0], Pb[1], Pb[2]))
         else:
             #self.robot.field = UVF(Pb, radius=0.02)
-            self.robot.field = AttractiveField(Pb)
+            self.robot.field = AttractiveField((rg[0]-0.02, Pb[1], Pb[2]))
         #self.robot.field = DirectionalField(Pb[2], Pb=Pb)

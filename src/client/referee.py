@@ -65,7 +65,7 @@ class RefereePlacement:
 
         placement.world.teamColor = vssref_common_pb2.Color.YELLOW if self.team_yellow else vssref_common_pb2.Color.BLUE
 
-        for i,pos in enumerate(robotsPos):
+        for i,pos in robotsPos:
             robot = placement.world.robots.add()
             robot.robot_id = i
             robot.x = pos[0]
