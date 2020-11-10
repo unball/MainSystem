@@ -76,8 +76,8 @@ class MainStrategy(Strategy):
                 self.world.addAllyGoal()
 
         elif RefereeCommands.color2side(command.teamcolor) != self.world.field.side and command.foul == Foul.PENALTY_KICK:
-            rg = -np.array(self.world.field.goalPos)
-            rg[0] += 0.18
+            rg = -np.array(self.world.field.goalPos) * self.world.field.side
+            rg[0] += 0.18 * self.world.field.side
             positions = [(0, (rg[0], rg[1], 90))]
             positions.append((1, (0,  0.30, 1.2*180)))
             positions.append((2, (0, -0.30, 0.8*180)))
