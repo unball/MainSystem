@@ -49,7 +49,7 @@ class GoalKeeper(Entity):
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
         rg = -np.array(self.world.field.goalPos)
-        rg[0] += 0.2
+        rg[0] += 0.15
     
          # Aplica o movimento
         self.robot.vref = 0
