@@ -12,7 +12,7 @@ team_yellow = True if sys.argv[1] == "yellow" else False
 
 vss = VSS(constants.HOST_FIRASIM_VISION, constants.PORT_FIRASIM_VISION, constants.HOST_FIRASIM_COMMAND, constants.PORT_FIRASIM_COMMAND, team_yellow=team_yellow)
 rc = RefereeCommands(constants.HOST_REFEREE, constants.PORT_REFEREE_COMMAND)
-rp = RefereePlacement(constants.HOST_REFEREE, constants.PORT_REFEREE_REPLACEMENT)
+rp = RefereePlacement(constants.HOST_REFEREE, constants.PORT_REFEREE_REPLACEMENT, team_yellow=team_yellow)
 
 #vss_enemy = VSS(team_yellow=True)
 #rp_enemy = RefereePlacement(constants.HOST_REFEREE, 10004, True)

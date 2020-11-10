@@ -44,6 +44,7 @@ class MainStrategy(Strategy):
             "safe": (Attacker, Defender, GoalKeeper)
         }
         self.lastGoalkeeper = None
+        self.goalkeeperIndx = None
 
         # Variáveis de estado do formationDecider
         self.experimentStartTime = 0
@@ -63,6 +64,33 @@ class MainStrategy(Strategy):
         self.initialBalance = 0
         self.ballAverageX = 0
         self.ballAverageX_n = 0
+
+    def manageReferee(self, rp, command):
+        if command is None: return
+
+        # Verifica gol
+        if command.foul == Foul.KICKOFF:
+            if RefereeCommands.color2side(command.teamcolor) == self.world.field.side:
+                self.world.addEnemyGoal()
+            elif RefereeCommands.color2side(command.teamcolor) == -self.world.field.side:
+                self.world.addAllyGoal()
+
+        elif RefereeCommands.color2side(command.teamcolor) != self.world.field.side and command.foul == Foul.PENALTY_KICK:
+            rg = -np.array(self.world.field.goalPos) * self.world.field.side
+            rg[0] += 0.18 * self.world.field.side
+            positions = [(0, (rg[0], rg[1], 90))]
+            positions.append((1, (0,  0.30, 1.2*180)))
+            positions.append((2, (0, -0.30, 0.8*180)))
+            print(positions)
+            rp.send(positions)
+
+        # Inicia jogo
+        elif command.foul == Foul.GAME_ON:
+            for robot in self.world.raw_team: robot.turnOn()
+            
+        # Pausa jogo
+        elif command.foul == Foul.STOP:
+            for robot in self.world.raw_team: robot.turnOff()
         
     def updateScores(self):
         ballAverageXScore = (self.ballAverageX) / (2 * self.world.field.maxX)

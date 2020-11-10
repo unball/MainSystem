@@ -5,9 +5,9 @@ import numpy as np
 import math
 import time 
 
-class GoalKeeperControl(Control):
+class DefenderControl(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=5, kp=100, mu=0.07, vmax=2, L=0.075):
+  def __init__(self, world, kw=5, kp=100, mu=0.5, vmax=2, L=0.075):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -41,7 +41,7 @@ class GoalKeeperControl(Control):
     dth = filt(angError(th, self.lastth) / dt, 100)
 
     # Lei de controle da velocidade angular
-    w = dth + self.kw * np.sign(eth) * np.sqrt(np.abs(eth)) #+ self.kw/100.0 * self.ieth 
+    w = dth + self.kw * np.sign(eth) * np.sqrt(np.abs(eth)) + self.kw/100.0 * self.ieth 
 
     # Velocidade limite de deslizamento
     v1 = self.amax / np.abs(w)
