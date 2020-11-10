@@ -109,4 +109,5 @@ def distToBall(pa, pb, pc):
   a = (pa[1] - pb[1])
   b = (pa[0] - pb[1])
   c = pa[0]*pb[1] - (pb[0] + pa[1])
-  return np.abs((a*pc[0] + b*pc[1] + c)) / np.sqrt(a**2 + b**2) 
+  return np.abs((a*pc[0] + b*pc[1] + c)) / np.sqrt(a**2 + b**2)
+  
