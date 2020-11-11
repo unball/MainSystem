@@ -2,9 +2,10 @@ from abc import ABC
 from .entity.attacker import Attacker
 from .entity.goalKeeper import GoalKeeper
 from .entity.defender import Defender
+from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml
+from tools import sats, norml, unit
 import numpy as np
 import time
 
@@ -38,9 +39,9 @@ class MainStrategy(Strategy):
 
         self.world = world
         self.formations = {
-            "insane": (Attacker, Attacker, Attacker),
-            "crazy": (Attacker, Attacker, Defender), 
-            "ambitious": (Attacker, Attacker, GoalKeeper),
+            "insane": (Attacker, Attacker, Midfielder),
+            "crazy": (Attacker, Midfielder, Defender), 
+            "ambitious": (Attacker, Midfielder, GoalKeeper),
             "safe": (Attacker, Defender, GoalKeeper)
         }
         self.lastGoalkeeper = None
@@ -75,14 +76,27 @@ class MainStrategy(Strategy):
             elif RefereeCommands.color2side(command.teamcolor) == -self.world.field.side:
                 self.world.addAllyGoal()
 
-        elif RefereeCommands.color2side(command.teamcolor) != self.world.field.side and command.foul == Foul.PENALTY_KICK:
-            rg = -np.array(self.world.field.goalPos) * self.world.field.side
-            rg[0] += 0.18 * self.world.field.side
-            positions = [(0, (rg[0], rg[1], 90))]
-            positions.append((1, (0,  0.30, 1.2*180)))
-            positions.append((2, (0, -0.30, 0.8*180)))
-            print(positions)
-            rp.send(positions)
+        elif command.foul == Foul.PENALTY_KICK:
+            if RefereeCommands.color2side(command.teamcolor) != self.world.field.side:
+                rg = -np.array(self.world.field.goalPos) * self.world.field.side
+                rg[0] += 0.18 * self.world.field.side
+                positions = [(0, (rg[0], rg[1], 90))]
+                positions.append((1, (0,  0.30, 1.2*180)))
+                positions.append((2, (0, -0.30, 0.8*180)))
+                print(positions)
+                rp.send(positions)
+            else:
+                rg = -np.array(self.world.field.goalPos) * self.world.field.side
+                rg[0] += 0.18 * self.world.field.side
+                positions = [(0, (rg[0], rg[1], 90))]
+                penaltiPos = np.array([0.375, 0])
+                ang = 15 
+                robotPos = penaltiPos  - 0.065 * unit(ang*np.pi/180)
+                positions.append((1, (robotPos[0],  robotPos[1], ang)))
+                positions.append((2, (0, -0.30, 3)))
+                print(positions)
+                rp.send(positions)
+
 
         # Inicia jogo
         elif command.foul == Foul.GAME_ON:

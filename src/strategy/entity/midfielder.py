@@ -13,16 +13,17 @@ import numpy as np
 import math
 import time
 
-class Attacker(Entity):
+class Midfielder(Entity):
     def __init__(self, world, robot, 
                  perpBallLimiarTrackState = 0.075 * 0.5, 
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
-                 spiralRadius = 0.05, 
-                 spiralRadiusCorners = 0.05, 
-                 approximationSpeed = 0.8, 
-                 ballOffset = -0.05
+                 spiralRadius = 0.04, 
+                 spiralRadiusCorners = 0.07, 
+                 approximationSpeed = 0, 
+                 ballOffset = -0.03,
+                 midfielderOffset = 0.45
         ):
 
         Entity.__init__(self, world, robot)
@@ -36,6 +37,7 @@ class Attacker(Entity):
         self.spiralRadiusCorners = spiralRadiusCorners
         self.approximationSpeed = approximationSpeed
         self.ballOffset = ballOffset
+        self.midfielderOffset = midfielderOffset
 
         # States
         self.lastDirectionChange = 0
@@ -52,6 +54,7 @@ class Attacker(Entity):
         return self._control
 
     def directionDecider(self):
+        return
         if self.robot.field is not None:
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
@@ -70,19 +73,18 @@ class Attacker(Entity):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
 
     def alignedToGoal(self, rb, rr, rg):
-        rg_up = rb + [0, 0.08]
-        rg_down = rb + [0, -0.08]
-        rg_up_plus = rb + [0, 0.16]
-        rg_down_plus = rb + [0, -0.16]
+        rg_up = rb + [0, 0.12]
+        rg_down = rb + [0, -0.12]
+        rg_up_plus = rb + [0, 0.18]
+        rg_down_plus = rb + [0, -0.18]
         return self.conditionAlignment(rb, rr, rg) or self.conditionAlignment(rb, rr, rg_down) or self.conditionAlignment(rb, rr, rg_up) or self.conditionAlignment(rb, rr, rg_down_plus) or self.conditionAlignment(rb, rr, rg_up_plus)
 
 
     def angleToAttack(self, rr, rb, rg):
-        rg_up = rg + [0, 0.12]
-        rg_down = rg + [0, -0.12]
-        rg_up_plus = rg + [0, 0.18]
-        rg_down_plus = rg + [0, -0.18]
-
+        rg_up = rb + [0, 0.12]
+        rg_down = rb + [0, -0.12]
+        rg_up_plus = rb + [0, 0.18]
+        rg_down_plus = rb + [0, -0.18]
         if (-howFrontBall(rb, rr, rg_up)  > 0 and abs(howPerpBall(rb, rr, rg_up)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up))) < self.alignmentAngleTrackState * np.pi / 180):
             return ang(rr, rg_up)
         elif (-howFrontBall(rb, rr, rg_down)  > 0 and abs(howPerpBall(rb, rr, rg_down)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down))) < self.alignmentAngleTrackState * np.pi / 180):
@@ -98,10 +100,10 @@ class Attacker(Entity):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
 
     def alignedToGoalRelaxed(self, rb, rr, rg):
-        rg_up = rb + [0, 0.08]
-        rg_down = rb + [0, -0.08]
-        rg_up_plus = rb + [0, 0.16]
-        rg_down_plus = rb + [0, -0.16]
+        rg_up = rb + [0, 0.12]
+        rg_down = rb + [0, -0.12]
+        rg_up_plus = rb + [0, 0.18]
+        rg_down_plus = rb + [0, -0.18]
         return self.conditionAlignmentRelaxed(rb, rr, rg) or self.conditionAlignmentRelaxed(rb, rr, rg_up) or self.conditionAlignmentRelaxed(rb, rr, rg_down) or self.conditionAlignmentRelaxed(rb, rr, rg_down_plus) or self.conditionAlignmentRelaxed(rb, rr, rg_up_plus)
 
     def alignedToBall(self, rb, rr):
@@ -127,18 +129,15 @@ class Attacker(Entity):
         if self.attackState == 0:
             if self.alignedToGoal(rb, rr, rg):
                 self.attackState = 1
-                #self.attackAngle = self.angleToAttack(rr, rb, rg)
-                self.attackAngle = ang(rr, rg)
-                self.elapsed = time.time()
+                self.attackAngle = self.angleToAttack(rr, rb, rg)
             elif self.alignedToBall(rb, rr):
                 self.attackState = 2
                 self.attackAngle = ang(rr, rb) # preciso melhorado
-                self.elapsed = time.time()
             else: self.attackState = 0
 
         # Ataque ao gol
         elif self.attackState == 1:
-            if self.alignedToGoalRelaxed(rb, rr, rg) :
+            if self.alignedToGoalRelaxed(rb, rr, rg):
                 self.attackState =  1
             else:
                 self.attackState = 0
@@ -151,9 +150,9 @@ class Attacker(Entity):
                 self.attackState = 0
 
         # Movimento de alinhamento
-        if self.attackState == 0 or time.time()-self.elapsed < .2:
+        if self.attackState == 0:
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
-
+            Pb = np.array([Pb[0]-self.midfielderOffset,Pb[1],Pb[2]])
             if np.abs(rb[1]) > rl[1]:
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
@@ -165,8 +164,6 @@ class Attacker(Entity):
         elif self.attackState == 1 or self.attackState == 2:
             self.robot.vref = math.inf
             self.robot.field = DirectionalField(self.attackAngle)
-        
-        if self.attackState==0: self.elapsed = math.inf
 
         # Campo para evitar área aliada
         a, b = self.world.field.areaEllipseSize

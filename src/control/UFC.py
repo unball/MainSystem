@@ -4,10 +4,17 @@ from control import Control
 import numpy as np
 import math
 import time 
+import matplotlib.pyplot as plt
+
+PLOT_CONTROL = False
+
+def close_event():
+  plt.close() 
+
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=6, kp=10, mu=0.7, vmax=2, L=0.075):
+  def __init__(self, world, kw=4, kp=5, mu=0.65, vmax=2, L=0.075):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -19,9 +26,11 @@ class UFC_Simple(Control):
     self.L = L
 
     self.lastth = 0
+    self.lastdth = 0
     self.interval = Interval(filter=True, initial_dt=0.016)
 
     self.eth = 0
+    self.plots = {"ref":[], "out": [], "eth":[]}
 
   @property
   def error(self):
@@ -30,16 +39,38 @@ class UFC_Simple(Control):
   def output(self, robot):
     if robot.field is None: return 0,0
     # Ângulo de referência
+    #th = (time.time()/1) % (2*np.pi) - np.pi#np.pi/2 * np.sign(time.time() % 3 - 1.5)#robot.field.F(robot.pose)
     th = robot.field.F(robot.pose)
     # Erro angular
     eth = angError(th, robot.th)
+    if PLOT_CONTROL:
+      self.plots["eth"].append(eth * 180 / np.pi)
+      self.plots["ref"].append(th * 180 / np.pi)
+      self.plots["out"].append(robot.th * 180 / np.pi)
+
+      if len(self.plots["eth"]) >= 300 and robot.id == 0:
+        t = np.linspace(0, 300 * 0.016, 300)
+        fig = plt.figure()
+        timer = fig.canvas.new_timer(interval = 5000) 
+        timer.add_callback(close_event)
+        plt.subplot(2,1,1)
+        plt.plot(t, self.plots["eth"])
+        plt.plot(t, np.zeros_like(t), '-')
+        plt.subplot(2,1,2)
+        plt.plot(t, self.plots["ref"])
+        plt.plot(t, self.plots["out"])
+        timer.start()
+        plt.show()
+        timer.stop()
+        for plot in self.plots.keys(): self.plots[plot] = []
+
     # Tempo desde a última atuação
-    dt = self.interval.getInterval()
+    dt = 0.016#self.interval.getInterval()
     # Derivada da referência
-    dth = filt(angError(th, self.lastth) / dt, 100)
+    dth = filt((th - self.lastth) / dt, 10)
 
     # Lei de controle da velocidade angular
-    w = dth + self.kw * np.sign(eth) * np.sqrt(np.abs(eth))
+    w = dth + self.kw * eth
 
     # Velocidade limite de deslizamento
     v1 = self.amax / np.abs(w)
@@ -59,6 +90,7 @@ class UFC_Simple(Control):
 
     # Atualiza variáveis de estado
     self.eth = eth
+    self.lastdth = dth
     
     if robot.spin == 0: return (v * robot.direction, w)
     else: return (0, 60 * robot.spin)
