@@ -70,10 +70,10 @@ class Attacker(Entity):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
 
     def alignedToGoal(self, rb, rr, rg):
-        rg_up = rb + [0, 0.12]
-        rg_down = rb + [0, -0.12]
-        rg_up_plus = rb + [0, 0.18]
-        rg_down_plus = rb + [0, -0.18]
+        rg_up = rb + [0, 0.08]
+        rg_down = rb + [0, -0.08]
+        rg_up_plus = rb + [0, 0.16]
+        rg_down_plus = rb + [0, -0.16]
         return self.conditionAlignment(rb, rr, rg) or self.conditionAlignment(rb, rr, rg_down) or self.conditionAlignment(rb, rr, rg_up) or self.conditionAlignment(rb, rr, rg_down_plus) or self.conditionAlignment(rb, rr, rg_up_plus)
 
 
@@ -82,6 +82,7 @@ class Attacker(Entity):
         rg_down = rg + [0, -0.12]
         rg_up_plus = rg + [0, 0.18]
         rg_down_plus = rg + [0, -0.18]
+
         if (-howFrontBall(rb, rr, rg_up)  > 0 and abs(howPerpBall(rb, rr, rg_up)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up))) < self.alignmentAngleTrackState * np.pi / 180):
             return ang(rr, rg_up)
         elif (-howFrontBall(rb, rr, rg_down)  > 0 and abs(howPerpBall(rb, rr, rg_down)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down))) < self.alignmentAngleTrackState * np.pi / 180):
@@ -97,10 +98,10 @@ class Attacker(Entity):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
 
     def alignedToGoalRelaxed(self, rb, rr, rg):
-        rg_up = rb + [0, 0.12]
-        rg_down = rb + [0, -0.12]
-        rg_up_plus = rb + [0, 0.18]
-        rg_down_plus = rb + [0, -0.18]
+        rg_up = rb + [0, 0.08]
+        rg_down = rb + [0, -0.08]
+        rg_up_plus = rb + [0, 0.16]
+        rg_down_plus = rb + [0, -0.16]
         return self.conditionAlignmentRelaxed(rb, rr, rg) or self.conditionAlignmentRelaxed(rb, rr, rg_up) or self.conditionAlignmentRelaxed(rb, rr, rg_down) or self.conditionAlignmentRelaxed(rb, rr, rg_down_plus) or self.conditionAlignmentRelaxed(rb, rr, rg_up_plus)
 
     def alignedToBall(self, rb, rr):
