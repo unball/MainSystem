@@ -4,9 +4,10 @@ from control import Control
 import numpy as np
 import math
 import time 
-import matplotlib.pyplot as plt
 
 PLOT_CONTROL = False
+if PLOT_CONTROL:
+  import matplotlib.pyplot as plt
 
 def close_event():
   plt.close() 
