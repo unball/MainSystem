@@ -20,9 +20,9 @@ class Attacker(Entity):
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
                  spiralRadius = 0.04, 
-                 spiralRadiusCorners = 0.07, 
+                 spiralRadiusCorners = 0.04, 
                  approximationSpeed = 0.5, 
-                 ballOffset = -0.03
+                 ballOffset = -0.07
         ):
 
         Entity.__init__(self, world, robot)
