@@ -19,10 +19,10 @@ class Attacker(Entity):
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
-                 spiralRadius = 0.07, 
+                 spiralRadius = 0.04, 
                  spiralRadiusCorners = 0.07, 
                  approximationSpeed = 0.5, 
-                 ballOffset = 0.015
+                 ballOffset = -0.03
         ):
 
         Entity.__init__(self, world, robot)
@@ -52,6 +52,7 @@ class Attacker(Entity):
         return self._control
 
     def directionDecider(self):
+        return
         if self.robot.field is not None:
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th

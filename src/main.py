@@ -30,7 +30,7 @@ class Loop:
         self.running = True 
         self.draw_UVF = draw_UVF
         if self.draw_UVF:
-            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
+            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=0)
 
     def loop(self):
         # Recebe dados do Referee
@@ -77,6 +77,8 @@ class Loop:
 
             # Dorme para que a próxima chamada seja 
             time.sleep(max(self.loopTime - (time.time()-t0), 0))
+
+            #time.sleep(1)
 
 # Instancia o programa principal
 loop = Loop(draw_UVF=False)

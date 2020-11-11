@@ -39,9 +39,9 @@ class MainStrategy(Strategy):
         self.world = world
         self.formations = {
             "insane": (Attacker, Attacker, Attacker),
-            "crazy": (Attacker, Attacker, Defender), 
-            "ambitious": (Attacker, Attacker, GoalKeeper),
-            "safe": (Attacker, Defender, GoalKeeper)
+            "crazy": (Attacker, Attacker, Attacker), 
+            "ambitious": (Attacker, Attacker, Attacker),
+            "safe": (Attacker, Attacker, Attacker)
         }
         self.lastGoalkeeper = None
         self.goalkeeperIndx = None
