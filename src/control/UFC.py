@@ -14,7 +14,7 @@ def close_event():
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=4, kp=5, mu=0.6, vmax=2, L=0.075):
+  def __init__(self, world, kw=4, kp=5, mu=0.65, vmax=2, L=0.075):
     Control.__init__(self, world)
 
     self.g = 9.8
