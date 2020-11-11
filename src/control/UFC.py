@@ -6,13 +6,15 @@ import math
 import time 
 import matplotlib.pyplot as plt
 
+PLOT_CONTROL = False
+
 def close_event():
   plt.close() 
 
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=9, kp=5, mu=0.1, vmax=2, L=0.075):
+  def __init__(self, world, kw=4, kp=5, mu=0.6, vmax=2, L=0.075):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -41,30 +43,31 @@ class UFC_Simple(Control):
     th = robot.field.F(robot.pose)
     # Erro angular
     eth = angError(th, robot.th)
-    self.plots["eth"].append(eth * 180 / np.pi)
-    self.plots["ref"].append(th * 180 / np.pi)
-    self.plots["out"].append(robot.th * 180 / np.pi)
+    if PLOT_CONTROL:
+      self.plots["eth"].append(eth * 180 / np.pi)
+      self.plots["ref"].append(th * 180 / np.pi)
+      self.plots["out"].append(robot.th * 180 / np.pi)
 
-    if len(self.plots["eth"]) >= 240 and robot.id == 0:
-      t = np.linspace(0, 240 * 0.016, 240)
-      fig = plt.figure()
-      timer = fig.canvas.new_timer(interval = 5000) 
-      timer.add_callback(close_event)
-      plt.subplot(2,1,1)
-      plt.plot(t, self.plots["eth"])
-      plt.plot(t, np.zeros_like(t), '-')
-      plt.subplot(2,1,2)
-      plt.plot(t, self.plots["ref"])
-      plt.plot(t, self.plots["out"])
-      timer.start()
-      plt.show()
-      timer.stop()
-      for plot in self.plots.keys(): self.plots[plot] = []
+      if len(self.plots["eth"]) >= 300 and robot.id == 0:
+        t = np.linspace(0, 300 * 0.016, 300)
+        fig = plt.figure()
+        timer = fig.canvas.new_timer(interval = 5000) 
+        timer.add_callback(close_event)
+        plt.subplot(2,1,1)
+        plt.plot(t, self.plots["eth"])
+        plt.plot(t, np.zeros_like(t), '-')
+        plt.subplot(2,1,2)
+        plt.plot(t, self.plots["ref"])
+        plt.plot(t, self.plots["out"])
+        timer.start()
+        plt.show()
+        timer.stop()
+        for plot in self.plots.keys(): self.plots[plot] = []
 
     # Tempo desde a última atuação
     dt = 0.016#self.interval.getInterval()
     # Derivada da referência
-    dth = filt((th - self.lastth) / dt, 100)
+    dth = filt((th - self.lastth) / dt, 10)
 
     # Lei de controle da velocidade angular
     w = dth + self.kw * eth
