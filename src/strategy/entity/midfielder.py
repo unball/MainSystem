@@ -24,7 +24,7 @@ class Midfielder(Entity):
                  spiralRadiusCorners = 0.07, 
                  approximationSpeed = 0, 
                  ballOffset = -0.03,
-                 midfielderOffset = 0.45
+                 midfielderOffset = 0.35
         ):
 
         Entity.__init__(self, world, robot)
@@ -62,17 +62,17 @@ class Midfielder(Entity):
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
 
-            if not self.followLine and abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 or \
-                   self.followLine and abs(angError(ref_th, rob_th)) >  90 * np.pi / 180:
+            if  time.time()-self.lastChat > .3 and (not self.followLine and abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 or \
+                   self.followLine and abs(angError(ref_th, rob_th)) >  90 * np.pi / 180):
                 self.robot.direction *= -1
                 self.lastChat = time.time()
             
             # Inverter a direção se o robô ficar preso em algo
             elif not self.robot.isAlive() and self.robot.spin == 0:
-                # if time.time()-self.lastChat > .3:
-                #     self.lastChat = time.time()
-                #     self.robot.direction *= -1
-                self.robot.setSpin(1 if rr[1] > rb[1] else -1, timeOut = 0.13)
+                if time.time()-self.lastChat > .3:
+                    self.lastChat = time.time()
+                    self.robot.direction *= -1
+                # self.robot.setSpin(1 if rr[1] > rb[1] else -1, timeOut = 0.13)
                 
     
     def conditionAlignment(self, rb, rr, rg):

@@ -70,42 +70,29 @@ class Attacker(Entity):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
 
     def alignedToGoal(self, rb, rr, rg):
-        th = self.robot.th
-
-        rg_min = [0, -0.20]
-        rg_max = [0, +0.20]
-
-        th_max = ang(rb, rg_max)
-        th_min = ang(rb, rg_min)
-
-        return howPerpBall(rb, rr, rg_max) > self.perpBallLimiarAtackState and \
-               howPerpBall(rb, rr, rg_min) < self.perpBallLimiarAtackState and \
-               th > th_min and \
-               th < th_max
-
-        # rg_up = rb + [0, 0.08]
-        # rg_down = rb + [0, -0.08]
-        # rg_up_plus = rb + [0, 0.16]
-        # rg_down_plus = rb + [0, -0.16]
-        # return self.conditionAlignment(rb, rr, rg) or self.conditionAlignment(rb, rr, rg_down) or self.conditionAlignment(rb, rr, rg_up) or self.conditionAlignment(rb, rr, rg_down_plus) or self.conditionAlignment(rb, rr, rg_up_plus)
+        rg_up = rb + [0, 0.08]
+        rg_down = rb + [0, -0.08]
+        rg_up_plus = rb + [0, 0.16]
+        rg_down_plus = rb + [0, -0.16]
+        return self.conditionAlignment(rb, rr, rg) or self.conditionAlignment(rb, rr, rg_down) or self.conditionAlignment(rb, rr, rg_up) or self.conditionAlignment(rb, rr, rg_down_plus) or self.conditionAlignment(rb, rr, rg_up_plus)
 
 
     def angleToAttack(self, rr, rb, rg):
-        # rg_up = rg + [0, 0.12]
-        # rg_down = rg + [0, -0.12]
-        # rg_up_plus = rg + [0, 0.18]
-        # rg_down_plus = rg + [0, -0.18]
+        rg_up = rg + [0, 0.12]
+        rg_down = rg + [0, -0.12]
+        rg_up_plus = rg + [0, 0.18]
+        rg_down_plus = rg + [0, -0.18]
 
-        # if (-howFrontBall(rb, rr, rg_up)  > 0 and abs(howPerpBall(rb, rr, rg_up)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up))) < self.alignmentAngleTrackState * np.pi / 180):
-        #     return ang(rr, rg_up)
-        # elif (-howFrontBall(rb, rr, rg_down)  > 0 and abs(howPerpBall(rb, rr, rg_down)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down))) < self.alignmentAngleTrackState * np.pi / 180):
-        #     return ang(rr, rg_down)
-        # elif (-howFrontBall(rb, rr, rg_down_plus)  > 0 and abs(howPerpBall(rb, rr, rg_down_plus)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down_plus))) < self.alignmentAngleTrackState * np.pi / 180):
-        #     return ang(rr, rg_down_plus)
-        # elif (-howFrontBall(rb, rr, rg_up_plus)  > 0 and abs(howPerpBall(rb, rr, rg_up_plus)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up_plus))) < self.alignmentAngleTrackState * np.pi / 180):
-        #     return ang(rr, rg_up_plus)
-        # else:
-        #     return ang(rr, rg)
+        if (-howFrontBall(rb, rr, rg_up)  > 0 and abs(howPerpBall(rb, rr, rg_up)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up))) < self.alignmentAngleTrackState * np.pi / 180):
+            return ang(rr, rg_up)
+        elif (-howFrontBall(rb, rr, rg_down)  > 0 and abs(howPerpBall(rb, rr, rg_down)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down))) < self.alignmentAngleTrackState * np.pi / 180):
+            return ang(rr, rg_down)
+        elif (-howFrontBall(rb, rr, rg_down_plus)  > 0 and abs(howPerpBall(rb, rr, rg_down_plus)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down_plus))) < self.alignmentAngleTrackState * np.pi / 180):
+            return ang(rr, rg_down_plus)
+        elif (-howFrontBall(rb, rr, rg_up_plus)  > 0 and abs(howPerpBall(rb, rr, rg_up_plus)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up_plus))) < self.alignmentAngleTrackState * np.pi / 180):
+            return ang(rr, rg_up_plus)
+        else:
+            return ang(rr, rg)
 
     def conditionAlignmentRelaxed(self, rb, rr, rg):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
@@ -171,7 +158,7 @@ class Attacker(Entity):
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
-                self.robot.vref = self.approximationSpeed
+                self.robot.vref = self.approximationSpeed + 2 * norml(vb)
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
         
         # Movimento reto
