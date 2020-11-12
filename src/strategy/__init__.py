@@ -5,7 +5,7 @@ from .entity.defender import Defender
 from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml, unit, angl, angError
+from tools import sats, norml, unit, angl, angError, projectLine
 import numpy as np
 import time
 
@@ -47,6 +47,7 @@ class MainStrategy(Strategy):
         self.lastGoalkeeper = None
         self.goalkeeperIndx = None
         self.AttackerIdx = None
+
 
         # Variáveis de estado do formationDecider
         self.experimentStartTime = 0
@@ -90,7 +91,7 @@ class MainStrategy(Strategy):
                 rg = -np.array(self.world.field.goalPos) * self.world.field.side
                 rg[0] += 0.18 * self.world.field.side
                 positions = [(0, (rg[0], rg[1], 90))]
-                penaltiPos = np.array([0.375, 0])
+                penaltiPos = np.array([0.360, 0])
                 ang = 15 
                 robotPos = penaltiPos  - 0.065 * unit(ang*np.pi/180)
                 positions.append((1, (robotPos[0],  robotPos[1], ang)))
@@ -153,7 +154,6 @@ class MainStrategy(Strategy):
         # Inicia um novo experimento
         if time.time() - self.experimentStartTime > self.experimentPeriod:
             self.initExperiment()
-
         
     def formationDecider(self):
         rb = np.array(self.world.ball.pos)
@@ -178,7 +178,6 @@ class MainStrategy(Strategy):
             return self.formationDeciderInsane()
         else:
             return self.formationDeciderNormal()
-
 
     def formationDeciderNormal(self):
         rb = np.array(self.world.ball.pos)
@@ -205,7 +204,10 @@ class MainStrategy(Strategy):
         rb = np.array(self.world.ball.pos)
 
         if self.formationState == "insane":
-            if rb[0] < self.safeLineX - self.safeLineHyst: self.formationState = "ambitious"
+            if rb[0] < self.safeLineX - self.safeLineHyst or \
+            (self.world.ball.velmod > .5 and \
+                np.abs(projectLine(rb, self.world.ball.v, -self.world.field.goalPos[0])) <= .2 ):
+                self.formationState  = "ambitious"
         elif self.formationState == "ambitious":
             if rb[0] > self.safeLineX + self.safeLineHyst: self.formationState = "insane"
         else:
@@ -218,53 +220,56 @@ class MainStrategy(Strategy):
         if len(self.world.team) == 0: return
         form = list(formation)
         robots= self.world.team.copy()
-        
+
         if GoalKeeper in formation:
             rg = - np.array(self.world.field.goalPos)
             dist = [norml(np.array(rr.pos)-rg) for rr in self.world.team]
-            nearst = np.argmin(dist)
+            nearest = np.argmin(dist)
             minDist = np.min(dist)
 
-            if(self.lastGoalkeeper != nearst):
-                if(self.lastGoalkeeper is None or 2*minDist <= dist[self.lastGoalkeeper]):
-                    self.goalkeeperIndx = nearst
-                    robots[self.goalkeeperIndx].updateEntity(GoalKeeper)
+            if(self.goalkeeperIndx != nearest):
+                if(self.goalkeeperIndx is None or 2*minDist <= dist[self.goalkeeperIndx]):
+                    self.goalkeeperIndx = nearest
+            robots[self.goalkeeperIndx].updateEntity(GoalKeeper)
             form.remove(GoalKeeper)
             _ = robots.pop(self.goalkeeperIndx)
         else:
             self.goalkeeperIndx = None
         
         if Attacker in formation:
-            if self.goalkeeperIndx != None and \
-               self.AttackerIdx != None and self.AttackerIdx > self.goalkeeperIndx:
-                attackerIdx = self.AttackerIdx -1
-            else:
-                attackerIdx = self.AttackerIdx
             rb = np.array(self.world.ball.pos)
+
+            if self.AttackerIdx is not None and self.AttackerIdx!=self.goalkeeperIndx  : 
+                attacker= self.world.team[self.AttackerIdx]
+                attackToBall = norml(rb - np.array(attacker.pos))
+                angAttacker =  angError(angl(rb - np.array(attacker.pos)),  attacker.th)
+            else:
+                attackToBall = np.infty
+                angAttacker =  np.infty
+                self.AttackerIdx = None
+
             dist = [norml(rb - np.array(rr.pos)) for rr in robots]
-            nearst = np.argmin(dist)
+            nearest = robots[np.argmin(dist)]
             minDist = np.min(dist)
-            if(attackerIdx != nearst):
-                if(attackerIdx is None or 2*minDist <= dist[attackerIdx]):
-                    angNearst = angError(angl(rb - np.array(robots[nearst].pos)), robots[nearst].th)
-                    angLastAttacker = angError(angl(rb - np.array( robots[attackerIdx].pos)),  robots[attackerIdx].th) if not attackerIdx is None else 2*np.pi
-                    if attackerIdx is None or (np.abs(angNearst) <= np.pi/4 and np.abs(angNearst) < np.abs(angLastAttacker)):
-                        attackerIdx = nearst 
-                        self.AttackerIdx = robots[nearst].id
-                        robots[nearst].updateEntity(Attacker)
-            form.remove(Attacker)
-            robots[attackerIdx].updateEntity(Attacker)            
-            _ = robots.pop(attackerIdx)
+            if(self.AttackerIdx != nearest.id):
+                if(self.AttackerIdx is None or 2*minDist <= attackToBall):
+                    angNearest = angError(angl(rb - np.array(nearest.pos)), nearest.th)
+                    if self.AttackerIdx is None or (np.abs(angNearest) <= np.pi/4 and np.abs(angNearest) < np.abs(angAttacker)):
+                        self.AttackerIdx = nearest.id
+            
+
+            self.world.team[self.AttackerIdx].updateEntity(Attacker)
+            _ = robots.remove(self.world.team[self.AttackerIdx])
+            form.remove(Attacker)         
         else:
             self.AttackerIdx = None
+        
         # quem sobra
-        print(form)
         for r, e in zip(robots, form):
             r.updateEntity(e)
 
         print([robot.entity.__class__.__name__ for robot in self.world.team])
-
-    
+        
     def update(self):
         formation = self.formationDecider()
         self.entityDecider(formation)
