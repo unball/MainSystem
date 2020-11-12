@@ -20,6 +20,7 @@ class GoalKeeperControl(Control):
 
     self.lastth = 0
     self.ieth = 0
+    self.iep = 0
     self.interval = Interval(filter=True, initial_dt=0.016)
 
     self.eth = 0
@@ -50,8 +51,11 @@ class GoalKeeperControl(Control):
     v2 = self.vmax - self.L * np.abs(w) / 2
 
     # Velocidade limite de aproximação
-    dTarget = norm(robot.pos, robot.field.Pb)
-    v3 = self.kp * (dTarget-0.02) ** 2 + robot.vref if dTarget > 0.02 else 0
+    dTarget = norm(robot.pos, robot.field.Pb) if robot.pos[0] > -.6 else np.abs(robot.field.Pb[1] - robot.pos[1])
+    e = (dTarget-0.015) ** 2
+    self.iep = self.iep + dt*e if self.iep < 1.5 else 0
+
+    v3 = self.kp * e + self.kp/80 * self.iep  + robot.vref if dTarget > 0.015 else 0
 
     # Velocidade linear é menor de todas
     v  = max(min(v1, v2, v3), 0)

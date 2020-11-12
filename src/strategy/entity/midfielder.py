@@ -5,8 +5,9 @@ from strategy.field.areaAvoidance.avoidanceField import AvoidanceField
 from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
+from ..entity.attacker import Attacker
 from strategy.movements import goToBall
-from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, sat
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
@@ -44,6 +45,7 @@ class Midfielder(Entity):
         self.attackAngle = None
         self.attackState = 0
         self.vravg = 0
+        self.followLine = False
         
         
         self.lastChat = 0
@@ -54,12 +56,12 @@ class Midfielder(Entity):
         return self._control
 
     def directionDecider(self):
-        return
         if self.robot.field is not None:
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
 
-            if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180:# and time.time()-self.lastChat > .3:
+            if not self.followLine and abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 or \
+                   self.followLine and abs(angError(ref_th, rob_th)) >  90 * np.pi / 180:
                 self.robot.direction *= -1
                 self.lastChat = time.time()
             
@@ -153,12 +155,29 @@ class Midfielder(Entity):
         if self.attackState == 0:
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
             Pb = np.array([Pb[0]-self.midfielderOffset,Pb[1],Pb[2]])
-            if np.abs(rb[1]) > rl[1]:
-                self.robot.vref = math.inf
-                self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
-            else:
-                self.robot.vref = self.approximationSpeed
-                self.robot.field = UVF(Pb, radius=self.spiralRadius)
+            otherAttackers = [robot for robot in self.world.team if type(robot.entity) == Attacker]
+            
+            if len(otherAttackers) > 0:
+                otherAttacker = otherAttackers[0]
+                rro = np.array(otherAttacker.pos)
+
+                if rro[0] > 0.4:
+                    self.robot.vref = 0
+                    self.robot.field = UVF((0.4, sat(rb[1], 0.35), np.pi/2 * np.sign(rb[1]-rr[1])), radius=self.spiralRadius)
+                    self.followLine = True
+
+                else:
+                    self.followLine = False
+                
+            else: self.followLine = False
+            
+            if not self.followLine:
+                if np.abs(rb[1]) > rl[1]:
+                    self.robot.vref = math.inf
+                    self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
+                else:
+                    self.robot.vref = self.approximationSpeed
+                    self.robot.field = UVF(Pb, radius=self.spiralRadius)
         
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:

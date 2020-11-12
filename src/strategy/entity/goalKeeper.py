@@ -52,7 +52,7 @@ class GoalKeeper(Entity):
         rg[0] += 0.18
     
          # Aplica o movimento
-        self.robot.vref = 0
+        self.robot.vref = 0.2
 
         self.robot.setSpin(spinGoalKeeper(rb, rr, rg), timeOut = 0.13)
 
