@@ -21,7 +21,7 @@ class Attacker(Entity):
                  alignmentAngleAtackState = 90, 
                  spiralRadius = 0.05, 
                  spiralRadiusCorners = 0.05, 
-                 approximationSpeed = 0.8, 
+                 approximationSpeed = 0.5, 
                  ballOffset = -0.05
         ):
 
@@ -158,7 +158,7 @@ class Attacker(Entity):
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
-                self.robot.vref = self.approximationSpeed
+                self.robot.vref = self.approximationSpeed + 2 * norml(vb)
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
         
         # Movimento reto

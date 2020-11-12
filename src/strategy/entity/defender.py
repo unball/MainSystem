@@ -3,8 +3,8 @@ from strategy.field.UVF import UVF
 from strategy.field.DirectionalField import DirectionalField
 from strategy.field.goalKeeper import GoalKeeperField
 from strategy.field.ellipse import DefenderField
-from strategy.movements import goalkeep, blockBallElipse
-from tools import angError, howFrontBall, howPerpBall, ang, norml
+from strategy.movements import goalkeep, blockBallElipse, spinGoalKeeper
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 from control.defender import DefenderControl
@@ -34,6 +34,7 @@ class Defender(Entity):
         vr = np.array(self.robot.v)
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
+        rg = -np.array(self.world.field.goalPos)
 
         # Executa spin se estiver morto
         if not self.robot.isAlive():
@@ -42,6 +43,9 @@ class Defender(Entity):
         
          # Aplica o movimento
         self.robot.vref = 0
+
+        if norm(rr, rg) < norm(rb, rg):
+            self.robot.setSpin(spinGoalKeeper(rb, rr, rg), timeOut = 0.13)
 
         if np.sign(rb[1]) > 0 and rb[1] > rr[1] and rb[0] < -0.60 and rr[1] > 0.25 and np.abs(rr[0]-rb[0]) < 0.07:
             pose = (rr[0], rb[1], np.pi/2)
