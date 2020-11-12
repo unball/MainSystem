@@ -34,6 +34,7 @@ class Defender(Entity):
         vr = np.array(self.robot.v)
         rb = np.array(self.world.ball.pos)
         vb = np.array(self.world.ball.v)
+        rg = -np.array(self.world.field.goalPos)
 
         # Executa spin se estiver morto
         if not self.robot.isAlive():

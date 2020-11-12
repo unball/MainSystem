@@ -81,7 +81,7 @@ class Midfielder(Entity):
     def alignedToGoal(self, rb, rr, rg):
         rg_up = rb + [0, 0.12]
         rg_down = rb + [0, -0.12]
-        rg_up_plus = rb + [0, 0.18]g
+        rg_up_plus = rb + [0, 0.18]
         rg_down_plus = rb + [0, -0.18]
         return self.conditionAlignment(rb, rr, rg) or self.conditionAlignment(rb, rr, rg_down) or self.conditionAlignment(rb, rr, rg_up) or self.conditionAlignment(rb, rr, rg_down_plus) or self.conditionAlignment(rb, rr, rg_up_plus)
 

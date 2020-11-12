@@ -80,16 +80,16 @@ class MainStrategy(Strategy):
 
         elif command.foul == Foul.PENALTY_KICK:
             if RefereeCommands.color2side(command.teamcolor) != self.world.field.side:
-                rg = -np.array(self.world.field.goalPos) * self.world.field.side
-                rg[0] += 0.18 * self.world.field.side
+                rg = -np.array(self.world.field.goalPos)
+                rg[0] += 0.18
                 positions = [(0, (rg[0], rg[1], 90))]
                 positions.append((1, (0,  0.30, 1.2*180)))
                 positions.append((2, (0, -0.30, 0.8*180)))
                 print(positions)
                 rp.send(positions)
             else:
-                rg = -np.array(self.world.field.goalPos) * self.world.field.side
-                rg[0] += 0.18 * self.world.field.side
+                rg = -np.array(self.world.field.goalPos)
+                rg[0] += 0.18
                 positions = [(0, (rg[0], rg[1], 90))]
                 penaltiPos = np.array([0.360, 0])
                 ang = 15 
