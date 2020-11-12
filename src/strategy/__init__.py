@@ -252,12 +252,17 @@ class MainStrategy(Strategy):
                         attackerIdx = nearst 
                         self.AttackerIdx = robots[nearst].id
                         robots[nearst].updateEntity(Attacker)
-                form.remove(Attacker)
-                _ = robots.pop(attackerIdx)
-
+            form.remove(Attacker)
+            robots[attackerIdx].updateEntity(Attacker)            
+            _ = robots.pop(attackerIdx)
+        else:
+            self.AttackerIdx = None
         # quem sobra
+        print(form)
         for r, e in zip(robots, form):
             r.updateEntity(e)
+
+        print([robot.entity.__class__.__name__ for robot in self.world.team])
 
     
     def update(self):

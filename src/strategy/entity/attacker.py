@@ -21,8 +21,9 @@ class Attacker(Entity):
                  alignmentAngleAtackState = 90, 
                  spiralRadius = 0.05, 
                  spiralRadiusCorners = 0.05, 
-                 approximationSpeed = 0.8, 
-                 ballOffset = -0.05
+                 approximationSpeed = 0.5, 
+                 ballOffset = -0.065,
+                 timeout = .2
         ):
 
         Entity.__init__(self, world, robot)
@@ -36,6 +37,7 @@ class Attacker(Entity):
         self.spiralRadiusCorners = spiralRadiusCorners
         self.approximationSpeed = approximationSpeed
         self.ballOffset = ballOffset
+        self.timeout = timeout
 
         # States
         self.lastDirectionChange = 0
@@ -151,14 +153,14 @@ class Attacker(Entity):
                 self.attackState = 0
 
         # Movimento de alinhamento
-        if self.attackState == 0 or time.time()-self.elapsed < .2:
+        if self.attackState == 0 or time.time()-self.elapsed < self.timeout:
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
 
             if np.abs(rb[1]) > rl[1]:
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
-                self.robot.vref = self.approximationSpeed
+                self.robot.vref = self.approximationSpeed + 2 * norml(vb) 
                 self.robot.field = UVF(Pb, radius=self.spiralRadius)
         
         # Movimento reto
@@ -184,7 +186,7 @@ class Attacker(Entity):
         # Campo para evitar outro robô, (só se não estiver alinhado)
         if self.attackState == 0:
             for robot in otherAllies + enemies:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.10)
+                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.10), borderSize=0.10)
 
         # for robot in self.world.team:
         #     if robot.id != self.robot.id:
