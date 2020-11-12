@@ -65,11 +65,11 @@ class RefereePlacement:
 
         placement.world.teamColor = vssref_common_pb2.Color.YELLOW if self.team_yellow else vssref_common_pb2.Color.BLUE
 
-        for i,pos in enumerate(robotsPos):
+        for i,pos in robotsPos:
             robot = placement.world.robots.add()
             robot.robot_id = i
-            robot.x = pos[0]
-            robot.y = pos[1]
+            robot.x = pos[0] * RefereeCommands.color2side(placement.world.teamColor)
+            robot.y = pos[1] * RefereeCommands.color2side(placement.world.teamColor)
             robot.orientation = pos[2]
 
         self.socket.send(placement.SerializeToString())

@@ -13,6 +13,8 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
         rbp = rb
     else:
         rbp = rb + min(u) * vb
+        
+    rbp = rb
 
     #rbp[0] = max(rbp[0], -rl[0])
     #rbp[0] = sat(rbp[0], rg[0])
@@ -74,7 +76,7 @@ def blockBallElipse(rb, vb, rr, rm, a, b):
     # return (r[0], r[1], r_ort_angle)
     
 def spinGoalKeeper(rb, rr, rm):
-    if norm(rr, rb) < 0.09:
+    if norm(rr, rb) < 0.08:
         spin = 1 if rr[1] > rb[1] else -1
     else:
         spin = 0

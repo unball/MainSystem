@@ -2,9 +2,10 @@ from abc import ABC
 from .entity.attacker import Attacker
 from .entity.goalKeeper import GoalKeeper
 from .entity.defender import Defender
+from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml
+from tools import sats, norml, unit, angl, angError, projectLine
 import numpy as np
 import time
 
@@ -38,12 +39,15 @@ class MainStrategy(Strategy):
 
         self.world = world
         self.formations = {
-            "insane": (Attacker, Attacker, Attacker),
-            "crazy": (Attacker, Attacker, Defender), 
-            "ambitious": (Attacker, Attacker, GoalKeeper),
+            "insane": (Attacker, Attacker, Midfielder),
+            "crazy": (Attacker, Midfielder, Defender), 
+            "ambitious": (Attacker, Midfielder, GoalKeeper),
             "safe": (Attacker, Defender, GoalKeeper)
         }
         self.lastGoalkeeper = None
+        self.goalkeeperIndx = None
+        self.AttackerIdx = None
+
 
         # Variáveis de estado do formationDecider
         self.experimentStartTime = 0
@@ -63,6 +67,46 @@ class MainStrategy(Strategy):
         self.initialBalance = 0
         self.ballAverageX = 0
         self.ballAverageX_n = 0
+
+    def manageReferee(self, rp, command):
+        if command is None: return
+
+        # Verifica gol
+        if command.foul == Foul.KICKOFF:
+            if RefereeCommands.color2side(command.teamcolor) == self.world.field.side:
+                self.world.addEnemyGoal()
+            elif RefereeCommands.color2side(command.teamcolor) == -self.world.field.side:
+                self.world.addAllyGoal()
+
+        elif command.foul == Foul.PENALTY_KICK:
+            if RefereeCommands.color2side(command.teamcolor) != self.world.field.side:
+                rg = -np.array(self.world.field.goalPos) * self.world.field.side
+                rg[0] += 0.18 * self.world.field.side
+                positions = [(0, (rg[0], rg[1], 90))]
+                positions.append((1, (0,  0.30, 1.2*180)))
+                positions.append((2, (0, -0.30, 0.8*180)))
+                print(positions)
+                rp.send(positions)
+            else:
+                rg = -np.array(self.world.field.goalPos) * self.world.field.side
+                rg[0] += 0.18 * self.world.field.side
+                positions = [(0, (rg[0], rg[1], 90))]
+                penaltiPos = np.array([0.360, 0])
+                ang = 15 
+                robotPos = penaltiPos  - 0.065 * unit(ang*np.pi/180)
+                positions.append((1, (robotPos[0],  robotPos[1], ang)))
+                positions.append((2, (0, -0.30, 3)))
+                print(positions)
+                rp.send(positions)
+
+
+        # Inicia jogo
+        elif command.foul == Foul.GAME_ON:
+            for robot in self.world.raw_team: robot.turnOn()
+            
+        # Pausa jogo
+        elif command.foul == Foul.STOP:
+            for robot in self.world.raw_team: robot.turnOff()
         
     def updateScores(self):
         ballAverageXScore = (self.ballAverageX) / (2 * self.world.field.maxX)
@@ -110,7 +154,6 @@ class MainStrategy(Strategy):
         # Inicia um novo experimento
         if time.time() - self.experimentStartTime > self.experimentPeriod:
             self.initExperiment()
-
         
     def formationDecider(self):
         rb = np.array(self.world.ball.pos)
@@ -135,7 +178,6 @@ class MainStrategy(Strategy):
             return self.formationDeciderInsane()
         else:
             return self.formationDeciderNormal()
-
 
     def formationDeciderNormal(self):
         rb = np.array(self.world.ball.pos)
@@ -162,7 +204,10 @@ class MainStrategy(Strategy):
         rb = np.array(self.world.ball.pos)
 
         if self.formationState == "insane":
-            if rb[0] < self.safeLineX - self.safeLineHyst: self.formationState = "ambitious"
+            if rb[0] < self.safeLineX - self.safeLineHyst or \
+            (self.world.ball.velmod > .5 and \
+                np.abs(projectLine(rb, self.world.ball.v, -self.world.field.goalPos[0])) <= .2 ):
+                self.formationState  = "ambitious"
         elif self.formationState == "ambitious":
             if rb[0] > self.safeLineX + self.safeLineHyst: self.formationState = "insane"
         else:
@@ -175,24 +220,56 @@ class MainStrategy(Strategy):
         if len(self.world.team) == 0: return
         form = list(formation)
         robots= self.world.team.copy()
+
         if GoalKeeper in formation:
             rg = - np.array(self.world.field.goalPos)
             dist = [norml(np.array(rr.pos)-rg) for rr in self.world.team]
-            nearst = np.argmin(dist)
+            nearest = np.argmin(dist)
             minDist = np.min(dist)
 
-            if(self.lastGoalkeeper != nearst):
-                if(self.lastGoalkeeper is None or 2*minDist <= dist[self.lastGoalkeeper]):
-                    self.goalkeeperIndx = nearst
-                    robots[self.goalkeeperIndx].updateEntity(GoalKeeper)
+            if(self.goalkeeperIndx != nearest):
+                if(self.goalkeeperIndx is None or 2*minDist <= dist[self.goalkeeperIndx]):
+                    self.goalkeeperIndx = nearest
+            robots[self.goalkeeperIndx].updateEntity(GoalKeeper)
             form.remove(GoalKeeper)
             _ = robots.pop(self.goalkeeperIndx)
         else:
             self.goalkeeperIndx = None
+        
+        if Attacker in formation:
+            rb = np.array(self.world.ball.pos)
+
+            if self.AttackerIdx is not None and self.AttackerIdx!=self.goalkeeperIndx  : 
+                attacker= self.world.team[self.AttackerIdx]
+                attackToBall = norml(rb - np.array(attacker.pos))
+                angAttacker =  angError(angl(rb - np.array(attacker.pos)),  attacker.th)
+            else:
+                attackToBall = np.infty
+                angAttacker =  np.infty
+                self.AttackerIdx = None
+
+            dist = [norml(rb - np.array(rr.pos)) for rr in robots]
+            nearest = robots[np.argmin(dist)]
+            minDist = np.min(dist)
+            if(self.AttackerIdx != nearest.id):
+                if(self.AttackerIdx is None or 2*minDist <= attackToBall):
+                    angNearest = angError(angl(rb - np.array(nearest.pos)), nearest.th)
+                    if self.AttackerIdx is None or (np.abs(angNearest) <= np.pi/4 and np.abs(angNearest) < np.abs(angAttacker)):
+                        self.AttackerIdx = nearest.id
+            
+
+            self.world.team[self.AttackerIdx].updateEntity(Attacker)
+            _ = robots.remove(self.world.team[self.AttackerIdx])
+            form.remove(Attacker)         
+        else:
+            self.AttackerIdx = None
+        
+        # quem sobra
         for r, e in zip(robots, form):
             r.updateEntity(e)
 
-    
+        print([robot.entity.__class__.__name__ for robot in self.world.team])
+        
     def update(self):
         formation = self.formationDecider()
         self.entityDecider(formation)
