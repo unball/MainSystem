@@ -56,6 +56,8 @@ class Midfielder(Entity):
         return self._control
 
     def directionDecider(self):
+        rr = np.array(self.robot.pos)
+        rb = np.array(self.world.ball.pos)
         if self.robot.field is not None:
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
@@ -67,9 +69,11 @@ class Midfielder(Entity):
             
             # Inverter a direção se o robô ficar preso em algo
             elif not self.robot.isAlive() and self.robot.spin == 0:
-                if time.time()-self.lastChat > .3:
-                    self.lastChat = time.time()
-                    self.robot.direction *= -1
+                # if time.time()-self.lastChat > .3:
+                #     self.lastChat = time.time()
+                #     self.robot.direction *= -1
+                self.robot.setSpin(1 if rr[1] > rb[1] else -1, timeOut = 0.13)
+                
     
     def conditionAlignment(self, rb, rr, rg):
         return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
@@ -77,7 +81,7 @@ class Midfielder(Entity):
     def alignedToGoal(self, rb, rr, rg):
         rg_up = rb + [0, 0.12]
         rg_down = rb + [0, -0.12]
-        rg_up_plus = rb + [0, 0.18]
+        rg_up_plus = rb + [0, 0.18]g
         rg_down_plus = rb + [0, -0.18]
         return self.conditionAlignment(rb, rr, rg) or self.conditionAlignment(rb, rr, rg_down) or self.conditionAlignment(rb, rr, rg_up) or self.conditionAlignment(rb, rr, rg_down_plus) or self.conditionAlignment(rb, rr, rg_up_plus)
 
