@@ -5,8 +5,9 @@ from strategy.field.areaAvoidance.avoidanceField import AvoidanceField
 from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
+from ..entity.attacker import Attacker
 from strategy.movements import goToBall
-from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, sat
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
@@ -153,12 +154,25 @@ class Midfielder(Entity):
         if self.attackState == 0:
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
             Pb = np.array([Pb[0]-self.midfielderOffset,Pb[1],Pb[2]])
-            if np.abs(rb[1]) > rl[1]:
-                self.robot.vref = math.inf
-                self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
-            else:
-                self.robot.vref = self.approximationSpeed
-                self.robot.field = UVF(Pb, radius=self.spiralRadius)
+            otherAttackers = [robot for robot in self.world.team if type(self.robot.entity) == Attacker]
+
+            followLine = False
+            if len(otherAttackers) > 0:
+                otherAttacker = otherAttackers[0]
+                rro = np.array(otherAttacker.pos)
+
+                if rro[0] > 0.4:
+                    self.robot.vref = 0
+                    self.robot.field = UVF((0.4, sat(rb[1], 0.35), np.pi/2 * np.sign(rb[1]-rr[1])), radius=self.spiralRadius)
+                    followLine = True
+            
+            if not followLine:
+                if np.abs(rb[1]) > rl[1]:
+                    self.robot.vref = math.inf
+                    self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
+                else:
+                    self.robot.vref = self.approximationSpeed
+                    self.robot.field = UVF(Pb, radius=self.spiralRadius)
         
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:

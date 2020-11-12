@@ -5,7 +5,7 @@ from .entity.defender import Defender
 from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml, unit
+from tools import sats, norml, unit, angl, angError
 import numpy as np
 import time
 
@@ -46,6 +46,7 @@ class MainStrategy(Strategy):
         }
         self.lastGoalkeeper = None
         self.goalkeeperIndx = None
+        self.AttackerIdx = None
 
         # Variáveis de estado do formationDecider
         self.experimentStartTime = 0
@@ -217,6 +218,7 @@ class MainStrategy(Strategy):
         if len(self.world.team) == 0: return
         form = list(formation)
         robots= self.world.team.copy()
+        
         if GoalKeeper in formation:
             rg = - np.array(self.world.field.goalPos)
             dist = [norml(np.array(rr.pos)-rg) for rr in self.world.team]
@@ -231,6 +233,29 @@ class MainStrategy(Strategy):
             _ = robots.pop(self.goalkeeperIndx)
         else:
             self.goalkeeperIndx = None
+        
+        if Attacker in formation:
+            if self.goalkeeperIndx != None and \
+               self.AttackerIdx != None and self.AttackerIdx > self.goalkeeperIndx:
+                attackerIdx = self.AttackerIdx -1
+            else:
+                attackerIdx = self.AttackerIdx
+            rb = np.array(self.world.ball.pos)
+            dist = [norml(rb - np.array(rr.pos)) for rr in robots]
+            nearst = np.argmin(dist)
+            minDist = np.min(dist)
+            if(attackerIdx != nearst):
+                if(attackerIdx is None or 2*minDist <= dist[attackerIdx]):
+                    angNearst = angError(angl(rb - np.array(robots[nearst].pos)), robots[nearst].th)
+                    angLastAttacker = angError(angl(rb - np.array( robots[attackerIdx].pos)),  robots[attackerIdx].th) if not attackerIdx is None else 2*np.pi
+                    if attackerIdx is None or (np.abs(angNearst) <= np.pi/4 and np.abs(angNearst) < np.abs(angLastAttacker)):
+                        attackerIdx = nearst 
+                        self.AttackerIdx = robots[nearst].id
+                        robots[nearst].updateEntity(Attacker)
+                form.remove(Attacker)
+                _ = robots.pop(attackerIdx)
+
+        # quem sobra
         for r, e in zip(robots, form):
             r.updateEntity(e)
 
