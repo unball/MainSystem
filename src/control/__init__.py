@@ -12,5 +12,7 @@ class Control(ABC):
         pass
 
     def actuate(self, robot):
+        if not robot.on: return (0,0)
+
         v, w = self.output(robot)
         return speeds2motors(v, self.world.field.side * w)
