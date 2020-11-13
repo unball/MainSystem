@@ -204,12 +204,12 @@ class MainStrategy(Strategy):
         rb = np.array(self.world.ball.pos)
 
         if self.formationState == "insane":
-            if rb[0] < - self.safeLineHyst or \
+            if rb[0] < .1 - self.safeLineHyst or \
             (self.world.ball.velmod > .1 and \
-                np.abs(projectLine(rb, self.world.ball.v, -self.world.field.goalPos[0])) <= .2 ):
+                np.abs(projectLine(rb, self.world.ball.v, -self.world.field.goalPos[0])) <= .4 ):
                 self.formationState  = "ambitious"
         elif self.formationState == "ambitious":
-            if rb[0] > self.safeLineHyst: self.formationState = "insane"
+            if rb[0] > .1 + self.safeLineHyst: self.formationState = "insane"
         else:
             print("ESTADO INSANO INVÁLIDO!")
 
