@@ -205,7 +205,7 @@ class MainStrategy(Strategy):
 
         if self.formationState == "insane":
             if rb[0] < - self.safeLineHyst or \
-            (self.world.ball.velmod > .5 and \
+            (self.world.ball.velmod > .1 and \
                 np.abs(projectLine(rb, self.world.ball.v, -self.world.field.goalPos[0])) <= .2 ):
                 self.formationState  = "ambitious"
         elif self.formationState == "ambitious":
@@ -268,7 +268,7 @@ class MainStrategy(Strategy):
         for r, e in zip(robots, form):
             r.updateEntity(e)
 
-        print([robot.entity.__class__.__name__ for robot in self.world.team])
+        # print([robot.entity.__class__.__name__ for robot in self.world.team])
         
     def update(self):
         formation = self.formationDecider()
