@@ -21,7 +21,7 @@ class Attacker(Entity):
                  alignmentAngleAtackState = 90, 
                  spiralRadius = 0.05, 
                  spiralRadiusCorners = 0.05, 
-                 approximationSpeed = 0.5, 
+                 approximationSpeed = 0.8, 
                  ballOffset = -0.05
         ):
 
