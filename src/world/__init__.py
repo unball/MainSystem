@@ -82,7 +82,7 @@ class World:
 
     @property
     def team(self):
-        return [robot for robot in self._team if robot.on]
+        return self._team#[robot for robot in self._team if robot.on]
 
     @property
     def raw_team(self):

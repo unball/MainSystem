@@ -70,6 +70,8 @@ class MainStrategy(Strategy):
 
     def manageReferee(self, rp, command):
         if command is None: return
+        self.goalkeeperIndx = None
+        self.AttackerIdx = None
 
         # Verifica gol
         if command.foul == Foul.KICKOFF:
