@@ -3,23 +3,30 @@ from world import World
 from strategy import MainStrategy, EnemyStrategy
 from UVF_screen import UVFScreen
 from client.referee import RefereeCommands, RefereePlacement
+import matplotlib.pyplot as plt
 import time
 import sys
+import numpy as np
 
-import constants
+# Verifia a cor do time
+if sys.argv[1] == "yellow":
+    team_yellow = True
+    team_side = -1
+else:
+    team_yellow = False
+    team_side = 1
 
-team_yellow = True if sys.argv[1] == "yellow" else False
+# Instancia interface com o simulador
+vss = VSS(team_yellow=team_yellow)
 
-vss = VSS(constants.HOST_FIRASIM_VISION, constants.PORT_FIRASIM_VISION, constants.HOST_FIRASIM_COMMAND, constants.PORT_FIRASIM_COMMAND, team_yellow=team_yellow)
-rc = RefereeCommands(constants.HOST_REFEREE, constants.PORT_REFEREE_COMMAND)
-rp = RefereePlacement(constants.HOST_REFEREE, constants.PORT_REFEREE_REPLACEMENT, team_yellow=team_yellow)
+# Instancia interfaces com o referee
+rc = RefereeCommands()
+rp = RefereePlacement(team_yellow=team_yellow)
 
-#vss_enemy = VSS(team_yellow=True)
-#rp_enemy = RefereePlacement(constants.HOST_REFEREE, 10004, True)
-
+# Classe do programa principal
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
-        self.world = World(3, side=-1 if team_yellow else 1)
+        self.world = World(3, side=team_side)
         #self.enemyWorld = World(3, side=-1)
 
         self.strategy = MainStrategy(self.world)
@@ -27,7 +34,9 @@ class Loop:
 
         # Variáveis
         self.loopTime = 1.0 / loopFreq
-        self.running = True 
+        self.running = True
+
+        # Interface gráfica para mostrar campos
         self.draw_UVF = draw_UVF
         if self.draw_UVF:
             self.UVF_screen = UVFScreen(self.world, index_uvf_robot=0)
@@ -52,7 +61,6 @@ class Loop:
 
         # Executa o controle
         vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
-        #vss_enemy.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.enemyWorld.team if robot.entity is not None])
 
         if self.draw_UVF:
             self.UVF_screen.updateScreen()
