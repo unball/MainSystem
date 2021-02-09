@@ -26,7 +26,7 @@ rp = RefereePlacement(team_yellow=team_yellow)
 # Classe do programa principal
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
-        self.world = World(3, side=team_side)
+        self.world = World(3, side=team_side, vss=vss)
         #self.enemyWorld = World(3, side=-1)
 
         self.strategy = MainStrategy(self.world)
@@ -41,6 +41,15 @@ class Loop:
         if self.draw_UVF:
             self.UVF_screen = UVFScreen(self.world, index_uvf_robot=0)
 
+        vss.command.write(0, 0, 0)
+        time.sleep(0.5)
+        vss.command.setPos(0, 0, 1, 0)
+        vss.command.setBallPos(10, 10)
+        time.sleep(0.5)
+
+        self.v = []
+        self.t = []
+
     def loop(self):
         # Recebe dados do Referee
         command = rc.receive()
@@ -51,6 +60,8 @@ class Loop:
 
         # Atualiza o estado de jogo
         self.world.update(message)
+        self.v.append(self.world.team[0].w)
+        self.t.append(time.time())
         #self.enemyWorld.update(vss.vision.invertMessage(message))
 
         # Executa estratégia
@@ -61,6 +72,13 @@ class Loop:
 
         # Executa o controle
         vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
+        #vss.command.write(0, 10, 30)
+
+        # if len(self.v) > 100:
+        #     plt.plot(np.array(self.t)-min(self.t), self.v)
+        #     plt.show()
+        #     self.v = []
+        #     self.t = []
 
         if self.draw_UVF:
             self.UVF_screen.updateScreen()

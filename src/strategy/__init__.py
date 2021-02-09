@@ -273,13 +273,14 @@ class MainStrategy(Strategy):
         # print([robot.entity.__class__.__name__ for robot in self.world.team])
         
     def update(self):
-        formation = self.formationDecider()
-        self.entityDecider(formation)
+        # formation = self.formationDecider()
+        # self.entityDecider(formation)
+        self.world.team[0].updateEntity(Attacker)
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()
                 robot.entity.fieldDecider()
-                robot.entity.directionDecider()
+                #robot.entity.directionDecider()
 
 class EnemyStrategy(Strategy):
     def __init__(self, world):

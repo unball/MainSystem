@@ -1,11 +1,11 @@
-from tools import norm, ang, angError, sat, speeds2motors, fixAngle, filt
+from tools import norm, ang, angError, sat, speeds2motors, fixAngle, filt, L
 from tools.interval import Interval
 from control import Control
 import numpy as np
 import math
 import time 
 
-PLOT_CONTROL = False
+PLOT_CONTROL = True
 if PLOT_CONTROL:
   import matplotlib.pyplot as plt
 
@@ -15,7 +15,7 @@ def close_event():
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=4, kp=5, mu=0.65, vmax=2, L=0.075):
+  def __init__(self, world, kw=3, kp=5, mu=0.6, vmax=2, L=L):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -31,7 +31,7 @@ class UFC_Simple(Control):
     self.interval = Interval(filter=True, initial_dt=0.016)
 
     self.eth = 0
-    self.plots = {"ref":[], "out": [], "eth":[]}
+    self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": []}
 
   @property
   def error(self):
@@ -44,29 +44,10 @@ class UFC_Simple(Control):
     th = robot.field.F(robot.pose)
     # Erro angular
     eth = angError(th, robot.th)
-    if PLOT_CONTROL:
-      self.plots["eth"].append(eth * 180 / np.pi)
-      self.plots["ref"].append(th * 180 / np.pi)
-      self.plots["out"].append(robot.th * 180 / np.pi)
-
-      if len(self.plots["eth"]) >= 300 and robot.id == 0:
-        t = np.linspace(0, 300 * 0.016, 300)
-        fig = plt.figure()
-        timer = fig.canvas.new_timer(interval = 5000) 
-        timer.add_callback(close_event)
-        plt.subplot(2,1,1)
-        plt.plot(t, self.plots["eth"])
-        plt.plot(t, np.zeros_like(t), '-')
-        plt.subplot(2,1,2)
-        plt.plot(t, self.plots["ref"])
-        plt.plot(t, self.plots["out"])
-        timer.start()
-        plt.show()
-        timer.stop()
-        for plot in self.plots.keys(): self.plots[plot] = []
 
     # Tempo desde a última atuação
     dt = 0.016#self.interval.getInterval()
+
     # Derivada da referência
     dth = filt((th - self.lastth) / dt, 10)
 
@@ -84,6 +65,9 @@ class UFC_Simple(Control):
 
     # Velocidade linear é menor de todas
     v  = max(min(v1, v2, v3), 0)
+
+    v = 0.01#0.5*np.sin(2*time.time())+0.5
+    w = 50#1#2*np.sin(5*time.time())
     
     # Atualiza a última referência
     self.lastth = th
@@ -92,6 +76,37 @@ class UFC_Simple(Control):
     # Atualiza variáveis de estado
     self.eth = eth
     self.lastdth = dth
+
+    if PLOT_CONTROL:
+      self.plots["eth"].append(eth * 180 / np.pi)
+      self.plots["ref"].append(th * 180 / np.pi)
+      self.plots["out"].append(robot.th * 180 / np.pi)
+      self.plots["vref"].append(abs(v))
+      self.plots["wref"].append(w)
+      self.plots["v"].append(robot.velmod)
+      self.plots["w"].append(robot.w)
+
+      if len(self.plots["eth"]) >= 300 and robot.id == 0:
+        t = np.linspace(0, 300 * 0.016, 300)
+        fig = plt.figure()
+        #timer = fig.canvas.new_timer(interval = 5000) 
+        #timer.add_callback(close_event)
+        plt.subplot(4,1,1)
+        plt.plot(t, self.plots["eth"])
+        plt.plot(t, np.zeros_like(t), '-')
+        plt.subplot(4,1,2)
+        plt.plot(t, self.plots["ref"])
+        plt.plot(t, self.plots["out"])
+        plt.subplot(4,1,3)
+        plt.plot(t, self.plots["vref"], '--')
+        plt.plot(t, self.plots["v"])
+        plt.subplot(4,1,4)
+        plt.plot(t, self.plots["wref"], '--')
+        plt.plot(t, self.plots["w"])
+        #timer.start()
+        plt.show()
+        #timer.stop()
+        for plot in self.plots.keys(): self.plots[plot] = []
     
     if robot.spin == 0: return (v * robot.direction, w)
     else: return (0, 60 * robot.spin)

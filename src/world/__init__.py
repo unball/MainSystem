@@ -47,22 +47,23 @@ class Field:
         return (self.goalAreaWidth, self.goalAreaHeight)
 
 class World:
-    def __init__(self, n_robots=5, side=1):
+    def __init__(self, n_robots=5, side=1, vss=None):
         self._team = [TeamRobot(self, i) for i in range(n_robots)]
         self.enemies = [TeamRobot(self, i) for i in range(n_robots)]
         self.ball = Ball(self)
         self.field = Field(side)
+        self.vss = vss
 
         self.allyGoals = 0
         self.enemyGoals = 0
 
     def update(self, message):
-        teamPos = zip(message["ally_x"], message["ally_y"], message["ally_th"])
-        enemiesPos = zip(message["enemy_x"], message["enemy_y"], message["enemy_th"])
+        teamPos = zip(message["ally_x"], message["ally_y"], message["ally_th"], message["ally_vx"], message["ally_vy"], message["ally_w"])
+        enemiesPos = zip(message["enemy_x"], message["enemy_y"], message["enemy_th"], message["enemy_vx"], message["enemy_vy"], message["enemy_w"])
 
         for robot, pos in zip(self.team, teamPos): robot.update(*pos)
         for robot, pos in zip(self.enemies, enemiesPos): robot.update(*pos)
-        self.ball.update(message["ball_x"], message["ball_y"])
+        self.ball.update(message["ball_x"], message["ball_y"], message["ball_vx"], message["ball_vy"])
 
     def addAllyGoal(self):
         print("Gol aliado!")

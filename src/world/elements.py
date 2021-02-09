@@ -22,11 +22,15 @@ class Element:
         self.world = world
         self.xvec = EntriesVec()
         self.yvec = EntriesVec()
+        self.linvel = (0,0)
+        self.angvel = 0
         self.interval = Interval(initial_dt=0.016)
 
-    def update(self, x, y):
+    def update(self, x, y, vx, vy, w=0):
         self.xvec.add(x)
         self.yvec.add(y)
+        self.linvel = (vx, vy)
+        self.angvel = w
         self.interval.update()
 
     @property
@@ -51,7 +55,7 @@ class Element:
 
     @property
     def vx_raw(self):
-        return derivative(self.xvec.vec, self.interval.dt)
+        return self.linvel[0]
 
     @property
     def vx(self):
@@ -59,7 +63,7 @@ class Element:
 
     @property
     def vy_raw(self):
-        return derivative(self.yvec.vec, self.interval.dt)
+        return self.linvel[1]
 
     @property
     def vy(self):
@@ -79,9 +83,9 @@ class Robot(Element):
         self.id = id
         self.thvec_raw = EntriesVec()
 
-    def update(self, x, y, th):
+    def update(self, x, y, th, vx, vy, w):
         self.thvec_raw.add(th)
-        super().update(x,y)
+        super().update(x,y,vx,vy,w)
 
 class TeamRobot(Robot):
     def __init__(self, world, id, control=None):
@@ -153,7 +157,7 @@ class TeamRobot(Robot):
 
     @property
     def w_raw(self):
-        return angularDerivative(self.thvec, self.interval.dt)
+        return self.angvel
 
     @property
     def w(self):
