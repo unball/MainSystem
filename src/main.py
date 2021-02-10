@@ -101,7 +101,7 @@ class Loop:
 
         while self.running:
             # Tempo inicial do loop
-            print(1000 * (time.time() - t0))
+            #print(1000 * (time.time() - t0))
             t0 = time.time()
 
             # Executa o loop

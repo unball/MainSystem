@@ -1,11 +1,11 @@
-from tools import norm, ang, angError, sat, speeds2motors, fixAngle, filt, L
+from tools import norm, ang, angError, sat, speeds2motors, fixAngle, filt, L, unit, angl
 from tools.interval import Interval
 from control import Control
 import numpy as np
 import math
 import time 
 
-PLOT_CONTROL = True
+PLOT_CONTROL = False
 if PLOT_CONTROL:
   import matplotlib.pyplot as plt
 
@@ -15,7 +15,7 @@ def close_event():
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=3, kp=5, mu=0.6, vmax=2, L=L):
+  def __init__(self, world, kw=5, kp=20, mu=0.3, vmax=1.5, L=L):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -25,17 +25,31 @@ class UFC_Simple(Control):
     self.amax = self.mu * self.g
     self.vmax = vmax
     self.L = L
+    self.kv = 10
+    self.vbias = 0.2
+    self.kapd = 3
 
-    self.lastth = 0
+    self.lastth = [0,0,0,0]
     self.lastdth = 0
     self.interval = Interval(filter=True, initial_dt=0.016)
 
     self.eth = 0
-    self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": []}
+    self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": [], "sd": [], "dth": []}
 
   @property
   def error(self):
     return self.eth
+
+  def abs_path_dth(self, initial_pose, error, field, step = 0.001, n = 10):
+    pos = np.array(initial_pose[:2])
+    thlist = np.array([])
+
+    for i in range(n):
+      th = field.F(pos)
+      thlist = np.append(thlist, th)
+      pos = pos + step * unit(th)
+  
+    return 10*np.sum(np.abs(thlist[1:] - thlist[:-1])) + abs(error)
 
   def output(self, robot):
     if robot.field is None: return 0,0
@@ -49,10 +63,11 @@ class UFC_Simple(Control):
     dt = 0.016#self.interval.getInterval()
 
     # Derivada da referência
-    dth = filt((th - self.lastth) / dt, 10)
+    dth = filt(0.5 * (th - self.lastth[-1]) / dt + 0.2 * (th - self.lastth[-2]) / (2*dt) + 0.2 * (th - self.lastth[-3]) / (3*dt) + 0.1 * (th - self.lastth[-4]) / (4*dt), 10)
+    #dth = filt((th - self.lastth) / dt, 10)
 
     # Lei de controle da velocidade angular
-    w = dth + self.kw * eth
+    w = dth + self.kw * np.sqrt(abs(eth)) * np.sign(eth) * robot.velmod
 
     # Velocidade limite de deslizamento
     v1 = self.amax / np.abs(w)
@@ -63,14 +78,17 @@ class UFC_Simple(Control):
     # Velocidade limite de aproximação
     v3 = self.kp * norm(robot.pos, robot.field.Pb) ** 2 + robot.vref
 
-    # Velocidade linear é menor de todas
-    v  = max(min(v1, v2, v3), 0)
+    v4 = self.kv / abs(eth) + self.vbias
 
-    v = 0.01#0.5*np.sin(2*time.time())+0.5
-    w = 50#1#2*np.sin(5*time.time())
+    # Velocidade linear é menor de todas
+    sd = self.abs_path_dth(robot.pose, eth, robot.field)
+    v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3)#max(min(v1, v2, v3, v4), 0)
+
+    # v = 0.25#0.5*np.sin(2*time.time())+0.5
+    # w = 0#2*np.sin(5*time.time())
     
     # Atualiza a última referência
-    self.lastth = th
+    self.lastth = self.lastth[1:] + [th]
     robot.lastControlLinVel = v
 
     # Atualiza variáveis de estado
@@ -85,24 +103,30 @@ class UFC_Simple(Control):
       self.plots["wref"].append(w)
       self.plots["v"].append(robot.velmod)
       self.plots["w"].append(robot.w)
+      self.plots["sd"].append(sd)
+      self.plots["dth"].append(dth)
 
       if len(self.plots["eth"]) >= 300 and robot.id == 0:
         t = np.linspace(0, 300 * 0.016, 300)
         fig = plt.figure()
         #timer = fig.canvas.new_timer(interval = 5000) 
         #timer.add_callback(close_event)
-        plt.subplot(4,1,1)
+        plt.subplot(6,1,1)
         plt.plot(t, self.plots["eth"])
-        plt.plot(t, np.zeros_like(t), '-')
-        plt.subplot(4,1,2)
-        plt.plot(t, self.plots["ref"])
+        plt.plot(t, np.zeros_like(t), '--')
+        plt.subplot(6,1,2)
+        plt.plot(t, self.plots["ref"], '--')
         plt.plot(t, self.plots["out"])
-        plt.subplot(4,1,3)
+        plt.subplot(6,1,3)
         plt.plot(t, self.plots["vref"], '--')
         plt.plot(t, self.plots["v"])
-        plt.subplot(4,1,4)
+        plt.subplot(6,1,4)
         plt.plot(t, self.plots["wref"], '--')
         plt.plot(t, self.plots["w"])
+        plt.subplot(6,1,5)
+        plt.plot(t, self.plots["sd"])
+        plt.subplot(6,1,6)
+        plt.plot(t, self.plots["dth"])
         #timer.start()
         plt.show()
         #timer.stop()

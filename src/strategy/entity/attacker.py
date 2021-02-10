@@ -15,7 +15,7 @@ import time
 
 class Attacker(Entity):
     def __init__(self, world, robot, 
-                 perpBallLimiarTrackState = 0.075 * 0.5, 
+                 perpBallLimiarTrackState = 0.075 * 0.10, 
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
@@ -159,7 +159,7 @@ class Attacker(Entity):
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed + 2 * norml(vb)
-                self.robot.field = UVF(Pb, radius=self.spiralRadius)
+                self.robot.field = UVF(Pb, radius=self.spiralRadius, Kr=0.1)
         
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
@@ -184,7 +184,7 @@ class Attacker(Entity):
         # Campo para evitar outro robô, (só se não estiver alinhado)
         if self.attackState == 0:
             for robot in otherAllies + enemies:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.10)
+                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
 
         # for robot in self.world.team:
         #     if robot.id != self.robot.id:
