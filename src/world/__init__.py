@@ -47,23 +47,31 @@ class Field:
         return (self.goalAreaWidth, self.goalAreaHeight)
 
 class World:
-    def __init__(self, n_robots=5, side=1, vss=None):
+    def __init__(self, n_robots=5, side=1, vss=None, team_yellow=False):
         self._team = [TeamRobot(self, i) for i in range(n_robots)]
         self.enemies = [TeamRobot(self, i) for i in range(n_robots)]
         self.ball = Ball(self)
         self.field = Field(side)
         self.vss = vss
+        self.team_yellow = team_yellow
 
         self.allyGoals = 0
         self.enemyGoals = 0
 
     def update(self, message):
-        teamPos = zip(message["ally_x"], message["ally_y"], message["ally_th"], message["ally_vx"], message["ally_vy"], message["ally_w"])
-        enemiesPos = zip(message["enemy_x"], message["enemy_y"], message["enemy_th"], message["enemy_vx"], message["enemy_vy"], message["enemy_w"])
+        # teamPos = zip(message["ally_x"], message["ally_y"], message["ally_th"], message["ally_vx"], message["ally_vy"], message["ally_w"])
+        # enemiesPos = zip(message["enemy_x"], message["enemy_y"], message["enemy_th"], message["enemy_vx"], message["enemy_vy"], message["enemy_w"])
 
-        for robot, pos in zip(self.team, teamPos): robot.update(*pos)
-        for robot, pos in zip(self.enemies, enemiesPos): robot.update(*pos)
-        self.ball.update(message["ball_x"], message["ball_y"], message["ball_vx"], message["ball_vy"])
+        for robot in message.frame.robots_blue:
+            self.team[robot.robot_id].update(robot.x, robot.y, robot.orientation, robot.vx, robot.vy, robot.vorientation)
+
+        for robot in message.frame.robots_yellow:
+            self.enemies[robot.robot_id].update(robot.x, robot.y, robot.orientation, robot.vx, robot.vy, robot.vorientation)
+
+        # for robot, pos in zip(self.team, teamPos): robot.update(*pos)
+        # for robot, pos in zip(self.enemies, enemiesPos): robot.update(*pos)
+        #self.ball.update(message["ball_x"], message["ball_y"], message["ball_vx"], message["ball_vy"])
+        self.ball.update(message.frame.ball.x, message.frame.ball.y, message.frame.ball.vx, message.frame.ball.vy)
 
     def addAllyGoal(self):
         print("Gol aliado!")

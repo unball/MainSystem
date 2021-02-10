@@ -43,8 +43,10 @@ class Loop:
 
         vss.command.write(0, 0, 0)
         time.sleep(0.5)
-        vss.command.setPos(0, 0, 1, 0)
-        vss.command.setBallPos(10, 10)
+        # vss.command.setPos(0, 0, 1, 0)
+        #vss.command.setBallPos(10, 10)
+        vss.command.setPos(0, -0.4, 0.4, 0)
+        vss.command.setBallPos(0, 0)
         time.sleep(0.5)
 
         self.v = []
@@ -54,12 +56,14 @@ class Loop:
         # Recebe dados do Referee
         command = rc.receive()
 
-        # Executa visão
-        message = vss.vision.read()
-        if message is None: return
+        # # Executa visão
+        # message = vss.vision.read()
+        # if message is not None:
+        #     self.world.update(message)
+
+        #print(self.world.team[0].y)
 
         # Atualiza o estado de jogo
-        self.world.update(message)
         self.v.append(self.world.team[0].w)
         self.t.append(time.time())
         #self.enemyWorld.update(vss.vision.invertMessage(message))
@@ -71,7 +75,7 @@ class Loop:
         #self.enemyStrategy.update()
 
         # Executa o controle
-        vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
+        if not self.draw_UVF: vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
         #vss.command.write(0, 10, 30)
 
         # if len(self.v) > 100:
@@ -85,6 +89,7 @@ class Loop:
 
         if self.draw_UVF:
             self.UVF_screen.updateScreen()
+            time.sleep(1)
 
     def run(self):
 
@@ -92,8 +97,11 @@ class Loop:
             self.UVF_screen.initialiazeScreen()
             self.UVF_screen.initialiazeObjects()
 
+        t0 = 0
+
         while self.running:
             # Tempo inicial do loop
+            print(1000 * (time.time() - t0))
             t0 = time.time()
 
             # Executa o loop
@@ -102,7 +110,11 @@ class Loop:
             #print((time.time()-t0)*1000)
 
             # Dorme para que a próxima chamada seja 
-            time.sleep(max(self.loopTime - (time.time()-t0), 0))
+            #time.sleep(max(self.loopTime - (time.time()-t0), 0))
+            while time.time() - t0 < self.loopTime:
+                message = vss.vision.read()
+                if message is not None:
+                    self.world.update(message)
 
             #time.sleep(1)
 
