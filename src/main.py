@@ -26,7 +26,7 @@ rp = RefereePlacement(team_yellow=team_yellow)
 # Classe do programa principal
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
-        self.world = World(3, side=team_side, vss=vss)
+        self.world = World(3, side=team_side, vss=vss, team_yellow=team_yellow)
         #self.enemyWorld = World(3, side=-1)
 
         self.strategy = MainStrategy(self.world)
