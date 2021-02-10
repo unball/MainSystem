@@ -67,7 +67,7 @@ class Attacker(Entity):
                     self.robot.direction *= -1
     
     def conditionAlignment(self, rb, rr, rg):
-        return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
+        return -howFrontBall(rb, rr, rg)  > 0.1 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
 
     def alignedToGoal(self, rb, rr, rg):
         rg_up = rb + [0, 0.08]
