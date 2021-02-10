@@ -32,6 +32,7 @@ class UFC_Simple(Control):
     self.lastth = [0,0,0,0]
     self.lastdth = 0
     self.interval = Interval(filter=True, initial_dt=0.016)
+    self.lastnorm = 0
 
     self.eth = 0
     self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": [], "sd": [], "dth": []}
@@ -82,13 +83,16 @@ class UFC_Simple(Control):
 
     # Velocidade linear é menor de todas
     sd = self.abs_path_dth(robot.pose, eth, robot.field)
-    v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3)#max(min(v1, v2, v3, v4), 0)
+    currentnorm = norm(robot.pos, robot.field.Pb)
+    injection = 0.0010 / abs(currentnorm - self.lastnorm)
+    v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) + injection#max(min(v1, v2, v3, v4), 0)
 
     # v = 0.25#0.5*np.sin(2*time.time())+0.5
     # w = 0#2*np.sin(5*time.time())
     
     # Atualiza a última referência
     self.lastth = self.lastth[1:] + [th]
+    self.lastnorm = currentnorm
     robot.lastControlLinVel = v
 
     # Atualiza variáveis de estado
