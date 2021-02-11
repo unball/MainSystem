@@ -84,7 +84,7 @@ class UFC_Simple(Control):
     # Velocidade linear é menor de todas
     sd = self.abs_path_dth(robot.pose, eth, robot.field)
     currentnorm = norm(robot.pos, robot.field.Pb)
-    injection = 0.0010 / abs(currentnorm - self.lastnorm)
+    injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-20)
     v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) + injection#max(min(v1, v2, v3, v4), 0)
 
     # v = 0.25#0.5*np.sin(2*time.time())+0.5
