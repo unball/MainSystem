@@ -6,7 +6,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     rb = rb.copy()
     #rbp = rb + vb * norm(rb, rr) / (vravg + 0.00001)
 
-    u = np.roots([norml(vb) ** 2 - (max(vravg-0.1, 0))**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
+    u = np.roots([norml(vb) ** 2 - (max(vravg-0.05, 0))**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
     u = [x for x in u if x >= 0 and not(np.iscomplex(x))]
 
     if len(u) == 0 or norm(rb, rr) < 0.1:
@@ -25,7 +25,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     
     # Ângulo da bola até o gol
     if abs(rbp[1]) >= rl[1]: angle = 0
-    else: angle = ang(target, rg)
+    else: angle = ang(target + vb, rg)
 
     return np.array([*target[:2], angle])
 
