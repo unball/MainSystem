@@ -182,9 +182,9 @@ class Attacker(Entity):
             self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
 
         # Campo para evitar outro robô, (só se não estiver alinhado)
-        if self.attackState == 0:
-            for robot in otherAllies + enemies:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
+        #if self.attackState == 0:
+        #    for robot in otherAllies + enemies:
+        #        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
 
         # for robot in self.world.team:
         #     if robot.id != self.robot.id:
