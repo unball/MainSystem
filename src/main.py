@@ -18,6 +18,7 @@ else:
 
 # Instancia interface com o simulador
 vss = VSS(team_yellow=team_yellow)
+vss_enemy = VSS(team_yellow=not team_yellow)
 
 # Instancia interfaces com o referee
 rc = RefereeCommands()
@@ -27,10 +28,10 @@ rp = RefereePlacement(team_yellow=team_yellow)
 class Loop:
     def __init__(self, loopFreq = 60, draw_UVF = False):
         self.world = World(3, side=team_side, vss=vss, team_yellow=team_yellow)
-        #self.enemyWorld = World(3, side=-1)
+        self.enemyWorld = World(3, side=-1, team_yellow=not team_yellow)
 
         self.strategy = MainStrategy(self.world)
-        #self.enemyStrategy = EnemyStrategy(self.enemyWorld)
+        self.enemyStrategy = EnemyStrategy(self.enemyWorld)
 
         # Variáveis
         self.loopTime = 1.0 / loopFreq
@@ -71,11 +72,13 @@ class Loop:
         # Executa estratégia
         self.strategy.manageReferee(rp, command)
         self.strategy.update()
-        #self.enemyStrategy.manageReferee(rp_enemy, command)
+        #self.enemyStrategy.manageReferee(rp, command)
         #self.enemyStrategy.update()
 
         # Executa o controle
-        if not self.draw_UVF: vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
+        if not self.draw_UVF: 
+            vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
+            #vss_enemy.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.enemyWorld.team if robot.entity is not None])
         #vss.command.write(0, 10, 30)
 
         # if len(self.v) > 100:
@@ -115,6 +118,7 @@ class Loop:
                 message = vss.vision.read()
                 if message is not None:
                     self.world.update(message)
+                    self.enemyWorld.update(message)
 
             #time.sleep(1)
 

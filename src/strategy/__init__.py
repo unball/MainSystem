@@ -276,6 +276,7 @@ class MainStrategy(Strategy):
         # formation = self.formationDecider()
         # self.entityDecider(formation)
         self.world.team[0].updateEntity(Attacker)
+        #self.world.team[1].updateEntity(Attacker)
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()
