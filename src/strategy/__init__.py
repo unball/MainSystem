@@ -5,7 +5,8 @@ from .entity.defender import Defender
 from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml, unit, angl, angError, projectLine
+from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall
+from .decider.attackerDecider import AttackerDecider
 import numpy as np
 import time
 
@@ -67,6 +68,8 @@ class MainStrategy(Strategy):
         self.initialBalance = 0
         self.ballAverageX = 0
         self.ballAverageX_n = 0
+
+        self.attackerDecider = AttackerDecider(world)
 
     def manageReferee(self, rp, command):
         if command is None: return
@@ -271,12 +274,17 @@ class MainStrategy(Strategy):
             r.updateEntity(e)
 
         # print([robot.entity.__class__.__name__ for robot in self.world.team])
-        
+
     def update(self):
         # formation = self.formationDecider()
         # self.entityDecider(formation)
+        # decisionList = [0,1]
+        # attackerIndex = self.attackerDecider.decide(decisionList)
+        # self.world.team[attackerIndex].updateEntity(Attacker)
+        # for otherIndex in [index for index in decisionList if index != attackerIndex]:
+        #     self.world.team[otherIndex].updateEntity(Midfielder)
         self.world.team[0].updateEntity(Attacker)
-        #self.world.team[1].updateEntity(Attacker)
+        self.world.team[1].updateEntity(Midfielder)
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()

@@ -15,7 +15,7 @@ def close_event():
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=5, kp=20, mu=0.3, vmax=1.5, L=L):
+  def __init__(self, world, kw=4, kp=20, mu=0.3, vmax=1.5, L=L, enableInjection=False):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -33,6 +33,9 @@ class UFC_Simple(Control):
     self.lastdth = 0
     self.interval = Interval(filter=True, initial_dt=0.016)
     self.lastnorm = 0
+    self.enableInjection = enableInjection
+    self.lastwref = 0
+    self.lastvref = 0
 
     self.eth = 0
     self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": [], "sd": [], "dth": []}
@@ -67,8 +70,12 @@ class UFC_Simple(Control):
     dth = filt(0.5 * (th - self.lastth[-1]) / dt + 0.2 * (th - self.lastth[-2]) / (2*dt) + 0.2 * (th - self.lastth[-3]) / (3*dt) + 0.1 * (th - self.lastth[-4]) / (4*dt), 10)
     #dth = filt((th - self.lastth) / dt, 10)
 
+    # Erro de velocidade angular
+    ew = self.lastwref - robot.w
+
     # Lei de controle da velocidade angular
-    w = dth + self.kw * np.sqrt(abs(eth)) * np.sign(eth) * robot.velmod
+    w = dth + self.kw * np.sqrt(abs(eth)) * np.sign(eth) * (robot.velmod + 0.001)
+    #w = self.kw * eth + 0.3 * ew
 
     # Velocidade limite de deslizamento
     v1 = self.amax / np.abs(w)
@@ -83,10 +90,15 @@ class UFC_Simple(Control):
 
     # Velocidade linear é menor de todas
     sd = self.abs_path_dth(robot.pose, eth, robot.field)
-    currentnorm = norm(robot.pos, robot.field.Pb)
-    injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-20)
+    if self.enableInjection:
+      currentnorm = norm(robot.pos, robot.field.Pb)
+      injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-20)
+    else:
+      currentnorm = 0
+      injection = 0
     v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) + injection#max(min(v1, v2, v3, v4), 0)
-
+    #ev = self.lastvref - robot.velmod
+    #v = 1 * norm(robot.pos, robot.field.Pb) + 0.1 * ev + 0.2
     # v = 0.25#0.5*np.sin(2*time.time())+0.5
     # w = 0#2*np.sin(5*time.time())
     
@@ -98,6 +110,8 @@ class UFC_Simple(Control):
     # Atualiza variáveis de estado
     self.eth = eth
     self.lastdth = dth
+    self.lastwref = w
+    self.lastvref = v
 
     if PLOT_CONTROL:
       self.plots["eth"].append(eth * 180 / np.pi)

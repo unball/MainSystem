@@ -40,7 +40,7 @@ class Loop:
         # Interface gráfica para mostrar campos
         self.draw_UVF = draw_UVF
         if self.draw_UVF:
-            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=0)
+            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
 
         vss.command.write(0, 0, 0)
         time.sleep(0.5)
@@ -79,6 +79,8 @@ class Loop:
         if not self.draw_UVF: 
             vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
             #vss_enemy.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.enemyWorld.team if robot.entity is not None])
+        else:
+            vss.command.writeMulti([(0,0) for robot in self.world.team])
         #vss.command.write(0, 10, 30)
 
         # if len(self.v) > 100:
@@ -86,13 +88,6 @@ class Loop:
         #     plt.show()
         #     self.v = []
         #     self.t = []
-
-        if self.draw_UVF:
-            self.UVF_screen.updateScreen()
-
-        if self.draw_UVF:
-            self.UVF_screen.updateScreen()
-            time.sleep(1)
 
     def run(self):
 
@@ -120,9 +115,12 @@ class Loop:
                     self.world.update(message)
                     self.enemyWorld.update(message)
 
+            if self.draw_UVF:
+                self.UVF_screen.updateScreen()
+
             #time.sleep(1)
 
 # Instancia o programa principal
-loop = Loop(draw_UVF=False)
+loop = Loop(draw_UVF=True)
 
 loop.run()

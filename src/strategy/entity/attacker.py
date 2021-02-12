@@ -15,7 +15,7 @@ import time
 
 class Attacker(Entity):
     def __init__(self, world, robot, 
-                 perpBallLimiarTrackState = 0.075 * 0.10, 
+                 perpBallLimiarTrackState = 0.075 * 0.20, 
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
@@ -46,7 +46,7 @@ class Attacker(Entity):
         
         self.lastChat = 0
 
-        self._control = UFC_Simple(self.world)
+        self._control = UFC_Simple(self.world, enableInjection=True)
     @property
     def control(self):
         return self._control
@@ -67,7 +67,7 @@ class Attacker(Entity):
                     self.robot.direction *= -1
     
     def conditionAlignment(self, rb, rr, rg):
-        return -howFrontBall(rb, rr, rg)  > 0.1 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
+        return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
 
     def alignedToGoal(self, rb, rr, rg):
         rg_up = rb + [0, 0.08]
