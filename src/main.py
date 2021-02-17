@@ -46,8 +46,8 @@ class Loop:
         time.sleep(0.5)
         # vss.command.setPos(0, 0, 1, 0)
         #vss.command.setBallPos(10, 10)
-        vss.command.setPos(0, -0.4, 0.4, 0)
-        vss.command.setBallPos(0, 0)
+        #vss.command.setPos(0, -0.4, 0.4, 0)
+        #vss.command.setBallPos(0, 0)
         time.sleep(0.5)
 
         self.v = []
