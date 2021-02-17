@@ -119,8 +119,17 @@ class Attacker(Entity):
         rg = np.array(self.world.field.goalPos)
         rl = np.array(self.world.field.size) - np.array([0, 0.14])
 
+        # Obtém outros aliados
+        otherAllies = [robot for robot in self.world.team if robot != self.robot]
+        enemies = [robot for robot in self.world.enemies]
+
         # Atualiza histórico de velocidade do robô
         self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
+        
+        if norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
+            self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
+        else:
+            self.robot.setSpin(0)
 
         # Define estado do movimento
         # Ir até a bola
@@ -172,10 +181,6 @@ class Attacker(Entity):
         a, b = self.world.field.areaEllipseSize
         center = self.world.field.areaEllipseCenter
         self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(center, 0.6*a, 0.80*b), borderSize=0.15)
-
-        # Obtém outros aliados
-        otherAllies = [robot for robot in self.world.team if robot != self.robot]
-        enemies = [robot for robot in self.world.enemies]
 
         # Campo para evitar área inimiga
         if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
