@@ -57,10 +57,10 @@ class Loop:
         # Recebe dados do Referee
         command = rc.receive()
 
-        # # Executa visão
-        # message = vss.vision.read()
-        # if message is not None:
-        #     self.world.update(message)
+        # Executa visão
+        message = vss.vision.read()
+        if message is not None:
+            self.world.update(message)
 
         #print(self.world.team[0].y)
 
