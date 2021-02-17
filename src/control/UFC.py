@@ -36,6 +36,7 @@ class UFC_Simple(Control):
     self.enableInjection = enableInjection
     self.lastwref = 0
     self.lastvref = 0
+    self.integrateinjection = 0
 
     self.eth = 0
     self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": [], "sd": [], "dth": []}
@@ -74,7 +75,7 @@ class UFC_Simple(Control):
     ew = self.lastwref - robot.w
 
     # Lei de controle da velocidade angular
-    w = dth + self.kw * np.sqrt(abs(eth)) * np.sign(eth) * (robot.velmod + 0.001)
+    w = dth + self.kw * np.sqrt(abs(eth)) * np.sign(eth) #* (robot.velmod + 1)
     #w = self.kw * eth + 0.3 * ew
 
     # Velocidade limite de deslizamento
@@ -92,10 +93,17 @@ class UFC_Simple(Control):
     sd = self.abs_path_dth(robot.pose, eth, robot.field)
     if self.enableInjection:
       currentnorm = norm(robot.pos, robot.field.Pb)
-      injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-20)
+      #print(self.integrateinjection)
+      # if self.integrateinjection > 10:
+      #   injection = 0
+      # else:
+      #   injection = 0.0015 / (abs(currentnorm - self.lastnorm) + 1e-3)
+      # self.integrateinjection = max(self.integrateinjection + injection - 0.5, 0)
+      injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-3)
     else:
       currentnorm = 0
       injection = 0
+
     v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) + injection#max(min(v1, v2, v3, v4), 0)
     #ev = self.lastvref - robot.velmod
     #v = 1 * norm(robot.pos, robot.field.Pb) + 0.1 * ev + 0.2
