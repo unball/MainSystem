@@ -121,6 +121,6 @@ class Loop:
             #time.sleep(1)
 
 # Instancia o programa principal
-loop = Loop(draw_UVF=True)
+loop = Loop(draw_UVF=False)
 
 loop.run()
