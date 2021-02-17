@@ -36,7 +36,7 @@ class Midfielder(Attacker):
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
 
-            if  time.time()-self.lastChat > .3 and (not self.followLine and abs(angError(ref_th, rob_th)) > 120 * np.pi / 180 or \
+            if  time.time()-self.lastChat > .3 and (not self.followLine and abs(angError(ref_th, rob_th)) > 90 * np.pi / 180 or \
                    self.followLine and abs(angError(ref_th, rob_th)) >  90 * np.pi / 180):
                 self.robot.direction *= -1
                 self.lastChat = time.time()
