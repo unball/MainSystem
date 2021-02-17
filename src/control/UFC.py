@@ -1,4 +1,4 @@
-from tools import norm, ang, angError, sat, speeds2motors, fixAngle, filt, L, unit, angl
+from tools import norm, ang, angError, sat, speeds2motors, fixAngle, filt, L, unit, angl, norml
 from tools.interval import Interval
 from control import Control
 import numpy as np
@@ -15,7 +15,7 @@ def close_event():
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=4, kp=20, mu=0.3, vmax=1.5, L=L, enableInjection=False):
+  def __init__(self, world, kw=3, kp=20, mu=0.3, vmax=1.5, L=L, enableInjection=False):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -37,6 +37,8 @@ class UFC_Simple(Control):
     self.lastwref = 0
     self.lastvref = 0
     self.integrateinjection = 0
+    self.loadedInjection = 0
+    self.lastPb = np.array([0,0])
 
     self.eth = 0
     self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": [], "sd": [], "dth": []}
@@ -91,6 +93,9 @@ class UFC_Simple(Control):
 
     # Velocidade linear é menor de todas
     sd = self.abs_path_dth(robot.pose, eth, robot.field)
+    Pb = np.array(robot.field.Pb[:2])
+    vtarget = (Pb - self.lastPb) / dt
+
     if self.enableInjection:
       currentnorm = norm(robot.pos, robot.field.Pb)
       #print(self.integrateinjection)
@@ -99,12 +104,19 @@ class UFC_Simple(Control):
       # else:
       #   injection = 0.0015 / (abs(currentnorm - self.lastnorm) + 1e-3)
       # self.integrateinjection = max(self.integrateinjection + injection - 0.5, 0)
-      injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-3)
+      # if abs(currentnorm - self.lastnorm) < 0.001:
+      #   self.loadedInjection = 0.90 * self.loadedInjection + 10 * 0.10
+      # else:
+      #   self.loadedInjection = 0.90 * self.loadedInjection
+      #injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-3)
+      injection = 2 * norml(vtarget) * (np.dot(vtarget, unit(robot.field.Pb[2])) < 0) * 0.10 / norm(robot.pos, robot.field.Pb[:2])
     else:
       currentnorm = 0
       injection = 0
 
-    v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) + injection#max(min(v1, v2, v3, v4), 0)
+    v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) + injection
+    #print(vtarget)
+    #v  = max(min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3), self.loadedInjection * vtarget)#max(min(v1, v2, v3, v4), 0)
     #ev = self.lastvref - robot.velmod
     #v = 1 * norm(robot.pos, robot.field.Pb) + 0.1 * ev + 0.2
     # v = 0.25#0.5*np.sin(2*time.time())+0.5
@@ -120,6 +132,7 @@ class UFC_Simple(Control):
     self.lastdth = dth
     self.lastwref = w
     self.lastvref = v
+    self.lastPb = Pb
 
     if PLOT_CONTROL:
       self.plots["eth"].append(eth * 180 / np.pi)
@@ -138,21 +151,22 @@ class UFC_Simple(Control):
         #timer = fig.canvas.new_timer(interval = 5000) 
         #timer.add_callback(close_event)
         plt.subplot(6,1,1)
-        plt.plot(t, self.plots["eth"])
+        plt.plot(t, self.plots["eth"], label='eth')
         plt.plot(t, np.zeros_like(t), '--')
         plt.subplot(6,1,2)
-        plt.plot(t, self.plots["ref"], '--')
-        plt.plot(t, self.plots["out"])
+        plt.plot(t, self.plots["ref"], '--', label='th_ref')
+        plt.plot(t, self.plots["out"], label='th')
         plt.subplot(6,1,3)
-        plt.plot(t, self.plots["vref"], '--')
-        plt.plot(t, self.plots["v"])
+        plt.plot(t, self.plots["vref"], '--', label='vref')
+        plt.plot(t, self.plots["v"], label='v')
         plt.subplot(6,1,4)
-        plt.plot(t, self.plots["wref"], '--')
-        plt.plot(t, self.plots["w"])
+        plt.plot(t, self.plots["wref"], '--', label='wref')
+        plt.plot(t, self.plots["w"], label='w')
         plt.subplot(6,1,5)
-        plt.plot(t, self.plots["sd"])
+        plt.plot(t, self.plots["sd"], label='sd')
         plt.subplot(6,1,6)
-        plt.plot(t, self.plots["dth"])
+        plt.plot(t, self.plots["dth"], label='dth')
+        plt.legend()
         #timer.start()
         plt.show()
         #timer.stop()
