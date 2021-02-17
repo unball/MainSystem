@@ -57,6 +57,7 @@ class World:
 
         self.allyGoals = 0
         self.enemyGoals = 0
+        self.updateCount = 0
 
     def update(self, message):
         # teamPos = zip(message["ally_x"], message["ally_y"], message["ally_th"], message["ally_vx"], message["ally_vy"], message["ally_w"])
@@ -79,6 +80,8 @@ class World:
         # for robot, pos in zip(self.enemies, enemiesPos): robot.update(*pos)
         #self.ball.update(message["ball_x"], message["ball_y"], message["ball_vx"], message["ball_vy"])
         self.ball.update(message.frame.ball.x, message.frame.ball.y, message.frame.ball.vx, message.frame.ball.vy)
+
+        self.updateCount += 1
 
     def addAllyGoal(self):
         print("Gol aliado!")

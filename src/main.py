@@ -52,6 +52,9 @@ class Loop:
 
         self.v = []
         self.t = []
+        self.lastupdatecount = 0
+        self.lastupdatecount2 = 0
+        self.shouldPrintRateTime = 0
 
     def loop(self):
         # Recebe dados do Referee
@@ -61,6 +64,11 @@ class Loop:
         message = vss.vision.read()
         if message is not None:
             self.world.update(message)
+
+        if self.world.updateCount == self.lastupdatecount:
+            #print("Não recebeu pacote!")
+            return
+        self.lastupdatecount = self.world.updateCount
 
         #print(self.world.team[0].y)
 
@@ -106,6 +114,10 @@ class Loop:
             self.loop()
 
             #print((time.time()-t0)*1000)
+            # if time.time() > self.shouldPrintRateTime:
+            #     print(self.world.updateCount - self.lastupdatecount2)
+            #     self.lastupdatecount2 = self.world.updateCount
+            #     self.shouldPrintRateTime = time.time() + 1
 
             # Dorme para que a próxima chamada seja 
             #time.sleep(max(self.loopTime - (time.time()-t0), 0))
