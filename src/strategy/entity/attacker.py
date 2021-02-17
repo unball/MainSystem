@@ -168,7 +168,7 @@ class Attacker(Entity):
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed + 2 * norml(vb)
-                self.robot.field = UVF(Pb, radius=self.spiralRadius, Kr=0.1)
+                self.robot.field = UVF(Pb, radius=self.spiralRadius, Kr=0.03)
         
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
