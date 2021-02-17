@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine, insideEllipse, howPerpBall
 import math
 
@@ -82,3 +83,48 @@ def spinGoalKeeper(rb, rr, rm):
         spin = 0
 
     return spin
+
+def intercept(rr, rb, direction, rg, vb, vrref=0.5, arref=1.4):
+
+    A = np.array([
+        [direction[0] * vrref, -vb[0]],
+        [direction[1] * vrref, -vb[1]],
+    ])
+
+    B = np.array([
+        rb[0] - rr[0],
+        rb[1] - rr[1]
+    ])
+
+    try:
+        tvec = scipy.linalg.solve(A, B)
+        #if tvec[0] < 0: return False
+
+        t1 = tvec[0]#np.sqrt(2 * tvec[0])
+        t2 = tvec[1]
+
+        r = rb + t2 * vb
+        #print([t1, t2])
+        if abs(t1 - t2) < 0.09 and t1 >= 0 and r[0] < rg[0] - 0.1 and r[0] >= 0:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+    # r1 = rr - rb
+    # r2 = vb - unit(ang(rr, rg)) * vrref
+
+    # t1 = r1[0] / r2[0]
+    # t2 = r1[1] / r2[1]
+
+    # rp1 = rb + t2 * vb
+    # rp2 = rr + unit(ang(rr, rg)) * vrref * t1
+
+    # #print("t1: {}\tt2: {}".format(t1, t2))
+
+    # if norm(rp1, rp2) < 0.05 and t1 >= 0 and rp1[0] < rg[0]:
+    #     return True
+
+    # else:
+    #     return False

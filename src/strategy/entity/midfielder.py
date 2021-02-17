@@ -6,8 +6,8 @@ from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
 from ..entity.attacker import Attacker
-from strategy.movements import goToBall
-from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, sat, sats
+from strategy.movements import goToBall, intercept
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, sat, sats, unit
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
@@ -57,24 +57,34 @@ class Midfielder(Attacker):
         rg = np.array(self.world.field.goalPos)
         rl = np.array(self.world.field.size) - np.array([0, 0.14])
 
+        otherAttackers = [robot for robot in self.world.team if type(robot.entity) == Attacker]
+        otherAttacker = otherAttackers[0]
+
+        goal = [rg[0], 0.10 * np.sign(otherAttacker.y)]
+        #print(goal)
         # Atualiza histórico de velocidade do robô
         self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
 
         # Define estado do movimento
         # Ir até a bola
         if self.attackState == 0:
-            if self.alignedToGoal(rb, rr, rg):
-                self.attackState = 1
-                self.attackAngle = self.angleToAttack(rr, rb, rg)
-            # elif self.alignedToBall(rb, rr):
-            #     self.attackState = 2
-            #     self.attackAngle = ang(rr, rb) # preciso melhorado
-            else: self.attackState = 0
+            if otherAttacker.entity.attackState == 1: self.attackState = 0
+            else:
+                #if self.alignedToGoal(rb, rr, rg):
+                if intercept(rr, rb, unit(self.robot.th), goal, vb, vrref=0.5) or self.alignedToGoal(rb, rr, rg):
+                    self.attackState = 1
+                    self.attackAngle = self.robot.th#ang(rr, goal)#self.angleToAttack(rr, rb, rg)
+                    self.interceptTimeOver = time.time() + 1
+                # elif self.alignedToBall(rb, rr):
+                #     self.attackState = 2
+                #     self.attackAngle = ang(rr, rb) # preciso melhorado
+                else: self.attackState = 0
 
         # Ataque ao gol
         elif self.attackState == 1:
-            if self.alignedToGoalRelaxed(rb, rr, rg):
-                self.attackState =  1
+            #if self.alignedToGoalRelaxed(rb, rr, rg):
+            if time.time() < self.interceptTimeOver or self.alignedToGoalRelaxed(rb, rr, rg):
+                self.attackState = 1
             else:
                 self.attackState = 0
 
@@ -89,10 +99,8 @@ class Midfielder(Attacker):
         if self.attackState == 0:
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
             Pb = np.array([Pb[0]-self.midfielderOffset,Pb[1],Pb[2]])
-            otherAttackers = [robot for robot in self.world.team if type(robot.entity) == Attacker]
             
             if len(otherAttackers) > 0:
-                otherAttacker = otherAttackers[0]
                 rro = np.array(otherAttacker.pos)
 
                 if rro[0] > 0.4:
@@ -108,8 +116,8 @@ class Midfielder(Attacker):
             
             if not self.followLine:
                 self.robot.vref = 0
-                PmidFilder = [sats(rb[0] - 0.15, -0.1, 0.4), -0.10 * np.sign(otherAttacker.y)]
-                self.robot.field = UVF((*PmidFilder, ang(PmidFilder, rb)), radius=0.05)
+                PmidFilder = [0.1, -0.15 * np.sign(otherAttacker.y)]
+                self.robot.field = UVF((*PmidFilder, ang(PmidFilder, goal)), radius=0.05)
 
                 # if np.abs(rb[1]) > rl[1]:
                 #     self.robot.vref = math.inf
@@ -120,8 +128,8 @@ class Midfielder(Attacker):
         
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
-            self.robot.vref = math.inf
-            self.robot.field = DirectionalField(self.attackAngle)
+            self.robot.vref = 1#sats(norml(vb), 0.5, math.inf)
+            self.robot.field = DirectionalField(self.attackAngle, Pb=rr)
 
         # Campo para evitar área aliada
         a, b = self.world.field.areaEllipseSize
