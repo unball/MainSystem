@@ -285,6 +285,7 @@ class MainStrategy(Strategy):
         #     self.world.team[otherIndex].updateEntity(Midfielder)
         self.world.team[0].updateEntity(Attacker)
         self.world.team[1].updateEntity(Midfielder)
+        self.world.team[2].updateEntity(GoalKeeper)
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()
