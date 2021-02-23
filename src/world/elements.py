@@ -123,7 +123,7 @@ class TeamRobot(Robot):
         self.field = field
 
     def updateEntity(self, entityClass, forced_update=False, **kwargs):
-        if type(self.entity) != entityClass or forced_update:
+        if self.entity is None or self.entity.__class__.__name__ != entityClass.__name__ or forced_update:
             self.entity = entityClass(self.world, self, **kwargs)
 
     def isEntityLocked(self):
