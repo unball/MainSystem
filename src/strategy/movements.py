@@ -42,7 +42,7 @@ def goalkeep(rb, vb, rr, rg):
         return (xGoal, ytarget, angle)
 
     #Se não, acompanha o y
-    ytarget = sat(rb[1],0.25)
+    ytarget = sat(rb[1], 0.25 + 0.10 * (rb[0] < -0.6 and abs(rb[1]) < 0.35))
     angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
     return np.array([xGoal, ytarget, angle])
  
