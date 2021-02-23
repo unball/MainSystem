@@ -110,7 +110,7 @@ class MainStrategy(Strategy):
             for robot in self.world.raw_team: robot.turnOn()
             
         # Pausa jogo
-        elif command.foul == Foul.STOP:
+        elif command.foul == Foul.STOP or command.foul == Foul.HALT:
             for robot in self.world.raw_team: robot.turnOff()
         
     def updateScores(self):
