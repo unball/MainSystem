@@ -57,13 +57,13 @@ class Loop:
         self.shouldPrintRateTime = 0
 
     def loop(self):
-        # Recebe dados do Referee
-        command = rc.receive()
+        # # Recebe dados do Referee
+        # command = rc.receive()
 
-        # Executa visão
-        message = vss.vision.read()
-        if message is not None:
-            self.world.update(message)
+        # # Executa visão
+        # message = vss.vision.read()
+        # if message is not None:
+        #     self.world.update(message)
 
         if self.world.updateCount == self.lastupdatecount:
             #print("Não recebeu pacote!")
@@ -78,7 +78,6 @@ class Loop:
         #self.enemyWorld.update(vss.vision.invertMessage(message))
 
         # Executa estratégia
-        self.strategy.manageReferee(rp, command)
         self.strategy.update()
         #self.enemyStrategy.manageReferee(rp, command)
         #self.enemyStrategy.update()
@@ -97,6 +96,16 @@ class Loop:
         #     self.v = []
         #     self.t = []
 
+    def busyLoop(self):
+        message = vss.vision.read()
+        if message is not None:
+            self.world.update(message)
+            self.enemyWorld.update(message)
+        
+        command = rc.receive()
+        if command is not None:
+            self.strategy.manageReferee(rp, command)
+
     def run(self):
 
         if self.draw_UVF:
@@ -106,6 +115,12 @@ class Loop:
         t0 = 0
 
         while self.running:
+            
+            # Executa o loop de visão e referee até dar o tempo de executar o resto
+            self.busyLoop()
+            while time.time() - t0 < self.loopTime:
+                self.busyLoop()
+                
             # Tempo inicial do loop
             #print(1000 * (time.time() - t0))
             t0 = time.time()
@@ -121,11 +136,6 @@ class Loop:
 
             # Dorme para que a próxima chamada seja 
             #time.sleep(max(self.loopTime - (time.time()-t0), 0))
-            while time.time() - t0 < self.loopTime:
-                message = vss.vision.read()
-                if message is not None:
-                    self.world.update(message)
-                    self.enemyWorld.update(message)
 
             if self.draw_UVF:
                 self.UVF_screen.updateScreen()
