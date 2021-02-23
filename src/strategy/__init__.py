@@ -5,7 +5,7 @@ from .entity.defender import Defender
 from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall
+from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm
 from .decider.attackerDecider import AttackerDecider
 import numpy as np
 import time
@@ -235,9 +235,13 @@ class MainStrategy(Strategy):
             dist = [norml(np.array(rr.pos)-rg) for rr in robots]
             nearest = robots[np.argmin(dist)]
             minDist = np.min(dist)
+            if self.goalkeeperIndx is not None:
+                currentRobotToGoalDist = norm(self.world.team[self.goalkeeperIndx].pos, rg)
+            else:
+                currentRobotToGoalDist = np.infty
 
             if(self.goalkeeperIndx != nearest.id):
-                if(self.goalkeeperIndx is None or 2*minDist <= dist[self.goalkeeperIndx]):
+                if(self.goalkeeperIndx is None or 2*minDist <= currentRobotToGoalDist):
                     self.goalkeeperIndx = nearest.id
             
             chosenGoalKeeper = self.world.team[self.goalkeeperIndx]
