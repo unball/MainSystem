@@ -268,7 +268,7 @@ class MainStrategy(Strategy):
             minDist = np.min(dist)
             if(self.AttackerIdx != nearest.id):
 
-                if(self.AttackerIdx is None or 1.3*minDist <= attackToBall):
+                if(self.AttackerIdx is None or 1.1*minDist <= attackToBall):
                     angNearest = angError(angl(rb - np.array(nearest.pos)), nearest.th)
                     if self.AttackerIdx is None or (np.abs(angNearest) <= np.pi/4 and np.abs(angNearest) < np.abs(angAttacker)):
                         self.AttackerIdx = nearest.id
