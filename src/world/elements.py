@@ -126,6 +126,10 @@ class TeamRobot(Robot):
         if type(self.entity) != entityClass or forced_update:
             self.entity = entityClass(self.world, self, **kwargs)
 
+    def isEntityLocked(self):
+        if self.entity is None: return False
+        else: return self.entity.isLocked()
+
     # def setSpin(self, dir=1, timeout=0.25):
     #     if dir != 0: 
     #         # Atualiza a direção do spin

@@ -51,6 +51,9 @@ class Attacker(Entity):
     def control(self):
         return self._control
 
+    def isLocked(self):
+        return self.attackState == 1 or self.attackState == 2
+
     def directionDecider(self):
         if self.robot.field is not None:
             ref_th = self.robot.field.F(self.robot.pose)
