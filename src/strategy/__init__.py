@@ -285,28 +285,29 @@ class MainStrategy(Strategy):
         # print(formation)
         # print(rem)
         for r, e in zip(robots[:rem], form[:rem]):
-            print("No for")
-            print(r.id)
-            print(e)
+            # print("No for")
+            # print(r.id)
+            # print(e)
             # print(type(e))
             # print(type(r.entity))
-            print(r.entity)
+            #print(r.entity)
             r.updateEntity(e)
-            print(r.entity)
+            #print(r.entity)
 
         # print([robot.entity.__class__.__name__ for robot in self.world.team])
 
     def update(self):
         formation = self.formationDecider()
+        #self.entityDecider([GoalKeeper, Attacker, Midfielder])
         self.entityDecider(formation)
         # decisionList = [0,1]
         # attackerIndex = self.attackerDecider.decide(decisionList)
         # self.world.team[attackerIndex].updateEntity(Attacker)
         # for otherIndex in [index for index in decisionList if index != attackerIndex]:
         #     self.world.team[otherIndex].updateEntity(Midfielder)
-        # self.world.team[0].updateEntity(Attacker)
-        # self.world.team[1].updateEntity(Midfielder)
-        # self.world.team[2].updateEntity(GoalKeeper)
+        #self.world.team[0].updateEntity(Attacker)
+        #self.world.team[1].updateEntity(Midfielder)
+        #self.world.team[2].updateEntity(GoalKeeper)
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()
