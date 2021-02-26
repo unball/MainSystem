@@ -93,7 +93,7 @@ class TeamRobot(Robot):
 
         self.field = None
         self.vref = math.inf
-        self._on = True
+        self._on = False
         self.spin = 0
         self.spinTime = 0
         self.spinTimeOut = 0.5
