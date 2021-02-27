@@ -22,7 +22,7 @@ class Attacker(Entity):
                  spiralRadius = 0.05, 
                  spiralRadiusCorners = 0.05, 
                  approximationSpeed = 0.8, 
-                 ballOffset = -0.05
+                 ballOffset = -0.03
         ):
 
         Entity.__init__(self, world, robot)
@@ -108,7 +108,7 @@ class Attacker(Entity):
         return self.conditionAlignmentRelaxed(rb, rr, rg) or self.conditionAlignmentRelaxed(rb, rr, rg_up) or self.conditionAlignmentRelaxed(rb, rr, rg_down) or self.conditionAlignmentRelaxed(rb, rr, rg_down_plus) or self.conditionAlignmentRelaxed(rb, rr, rg_up_plus)
 
     def alignedToBall(self, rb, rr):
-        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and np.abs(rb[1]) > 0.2
+        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and rr[0] <= rb[0] #and np.abs(rb[1]) > 0.2
 
     def alignedToBallRelaxed(self, rb, rr):
         return (norm(rr, rb) < 0.15 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2
