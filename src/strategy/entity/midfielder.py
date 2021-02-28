@@ -115,9 +115,14 @@ class Midfielder(Attacker):
             else: self.followLine = False
             
             if not self.followLine:
-                self.robot.vref = 0
-                PmidFilder = [0.1, -0.15 * np.sign(otherAttacker.y)]
-                self.robot.field = UVF((*PmidFilder, ang(PmidFilder, goal)), radius=0.05)
+
+                if rb[0] > 0.6:
+                    self.robot.vref = 0
+                    PmidFilder = [0.1, -0.15 * np.sign(otherAttacker.y)]
+                    self.robot.field = UVF((*PmidFilder, ang(PmidFilder, goal)), radius=0.05)
+                else:
+                    Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
+                    self.robot.field = UVF(Pb, radius=self.spiralRadius, Kr=0.3)
 
                 # if np.abs(rb[1]) > rl[1]:
                 #     self.robot.vref = math.inf

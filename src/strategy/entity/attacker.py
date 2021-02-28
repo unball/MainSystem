@@ -6,7 +6,7 @@ from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
 from strategy.movements import goToBall
-from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, unit
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, unit, angl
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
@@ -195,6 +195,11 @@ class Attacker(Entity):
         # Campo para evitar área inimiga
         if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
             self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
+        
+        if self.attackState == 0 and rr[0] > 0 and norm(rr, rb) > 0.10:
+           for robot in enemies:#otherAllies + enemies:
+               if np.abs(ang(unit(angl(robot.pos-rr)), unit(self.robot.th))) < 30 * np.pi / 180:
+                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
 
         # Campo para evitar outro robô, (só se não estiver alinhado)
         #if self.attackState == 0:
