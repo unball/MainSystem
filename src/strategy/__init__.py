@@ -229,7 +229,7 @@ class MainStrategy(Strategy):
         for robot, entity in [(robot,robot.entity.__class__) for robot in self.world.team.copy() if robot.isEntityLocked()]:
             if entity in form: form.remove(entity)
             robots.remove(robot)
-
+        if not robots: return 
         if GoalKeeper in form:
             rg = - np.array(self.world.field.goalPos)
             dist = [norml(np.array(rr.pos)-rg) for rr in robots]
