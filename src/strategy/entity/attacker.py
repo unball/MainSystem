@@ -6,7 +6,7 @@ from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
 from strategy.movements import goToBall
-from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, unit
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
@@ -110,8 +110,15 @@ class Attacker(Entity):
     def alignedToBall(self, rb, rr):
         return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and rr[0] <= rb[0] #and np.abs(rb[1]) > 0.2
 
+    def alignedToBall2(self, rb, rr):
+        return (np.abs(np.dot(rb - rr[:2], unit(self.robot.th + np.pi/2.0))) < .023  or np.abs(np.dot(rb - rr[:2], unit(self.robot.th + 3.0*np.pi/2.0))) < .023) and rr[0] <= rb[0] 
+
+    def alignedToBallRelaxed2(self, rb, rr):
+        return (np.abs(np.dot(rb - rr[:2], unit(self.robot.th + np.pi/2.0))) < .08  or np.abs(np.dot(rb - rr[:2], unit(self.robot.th + 3.0*np.pi/2.0))) < .08)
+
+
     def alignedToBallRelaxed(self, rb, rr):
-        return (norm(rr, rb) < 0.15 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2
+        return (norm(rr, rb) < 0.15 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) #and np.abs(self.robot.th) < np.pi / 2
 
     def fieldDecider(self):
         # Variáveis úteis
@@ -129,7 +136,7 @@ class Attacker(Entity):
         # Atualiza histórico de velocidade do robô
         self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
         
-        if norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
+        if self.attackState == 0 and norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
             self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
         else:
             self.robot.setSpin(0)
@@ -142,9 +149,9 @@ class Attacker(Entity):
                 #self.attackAngle = self.angleToAttack(rr, rb, rg)
                 self.attackAngle = ang(rr, rg)
                 self.elapsed = time.time()
-            elif self.alignedToBall(rb, rr):
+            elif self.alignedToBall2(rb, rr):
                 self.attackState = 2
-                self.attackAngle = ang(rr, rb) # preciso melhorado
+                self.attackAngle =  self.robot.th if np.dot(unit(self.robot.th), rb- rr[:2]) > 0 else self.robot.th+np.pi #ang(rr, rb) # preciso melhorado
                 self.elapsed = time.time()
             else: self.attackState = 0
 
@@ -157,7 +164,7 @@ class Attacker(Entity):
 
         # Ataque à bola
         elif self.attackState == 2:
-            if  self.alignedToBallRelaxed(rb, rr):
+            if  self.alignedToBallRelaxed2(rb, rr):
                 self.attackState =  2
             else:
                 self.attackState = 0
