@@ -13,7 +13,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     if len(u) == 0 or norm(rb, rr) < 0.1:
         rbp = rb
     else:
-        rbp = rb + min(u) * vb
+        rbp = rb + u * vb
         
     #rbp = rb
 
@@ -35,14 +35,14 @@ def goalkeep(rb, vb, rr, rg):
 
     #projeta a velocidade da bola 
     ytarget = projectLine(rb, vb, xGoal+0.05)
-    if ((vb[0]) < -0.05): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
+    if ((vb[0]) < -0.03): #and  ((rb[0]) > .15) and np.abs(ytarget) < 0.2:
         #verificar se a projeção está no gol
-        ytarget = sat(ytarget, 0.25)
+        ytarget = sat(ytarget, 0.2)
         angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
         return (xGoal, ytarget, angle)
 
     #Se não, acompanha o y
-    ytarget = sat(rb[1], 0.25 + 0.10 * (rb[0] < -0.6 and abs(rb[1]) < 0.35))
+    ytarget = sat(rb[1], 0.2 + 0.27 * (rb[0] < -0.6 and abs(rb[1]) < 0.37))
     angle = np.pi/2 if rr[1] < ytarget else -np.pi/2
     return np.array([xGoal, ytarget, angle])
  
