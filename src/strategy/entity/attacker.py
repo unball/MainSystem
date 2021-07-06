@@ -6,7 +6,7 @@ from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
 from strategy.movements import goToBall
-from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse
+from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, unit, angl
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 import numpy as np
@@ -15,14 +15,14 @@ import time
 
 class Attacker(Entity):
     def __init__(self, world, robot, 
-                 perpBallLimiarTrackState = 0.075 * 0.5, 
+                 perpBallLimiarTrackState = 0.075 * 0.20, 
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
                  spiralRadius = 0.05, 
                  spiralRadiusCorners = 0.05, 
                  approximationSpeed = 0.8, 
-                 ballOffset = -0.05
+                 ballOffset = -0.03
         ):
 
         Entity.__init__(self, world, robot)
@@ -46,10 +46,13 @@ class Attacker(Entity):
         
         self.lastChat = 0
 
-        self._control = UFC_Simple(self.world)
+        self._control = UFC_Simple(self.world, enableInjection=True)
     @property
     def control(self):
         return self._control
+
+    def isLocked(self):
+        return self.attackState == 1 or self.attackState == 2
 
     def directionDecider(self):
         if self.robot.field is not None:
@@ -105,10 +108,17 @@ class Attacker(Entity):
         return self.conditionAlignmentRelaxed(rb, rr, rg) or self.conditionAlignmentRelaxed(rb, rr, rg_up) or self.conditionAlignmentRelaxed(rb, rr, rg_down) or self.conditionAlignmentRelaxed(rb, rr, rg_down_plus) or self.conditionAlignmentRelaxed(rb, rr, rg_up_plus)
 
     def alignedToBall(self, rb, rr):
-        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and np.abs(rb[1]) > 0.2
+        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and rr[0] <= rb[0] #and np.abs(rb[1]) > 0.2
+
+    def alignedToBall2(self, rb, rr):
+        return (np.abs(np.dot(rb - rr[:2], unit(self.robot.th + np.pi/2.0))) < .023  or np.abs(np.dot(rb - rr[:2], unit(self.robot.th + 3.0*np.pi/2.0))) < .023) and rr[0] <= rb[0] 
+
+    def alignedToBallRelaxed2(self, rb, rr):
+        return (np.abs(np.dot(rb - rr[:2], unit(self.robot.th + np.pi/2.0))) < .08  or np.abs(np.dot(rb - rr[:2], unit(self.robot.th + 3.0*np.pi/2.0))) < .08)
+
 
     def alignedToBallRelaxed(self, rb, rr):
-        return (norm(rr, rb) < 0.15 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2
+        return (norm(rr, rb) < 0.15 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) #and np.abs(self.robot.th) < np.pi / 2
 
     def fieldDecider(self):
         # Variáveis úteis
@@ -119,8 +129,17 @@ class Attacker(Entity):
         rg = np.array(self.world.field.goalPos)
         rl = np.array(self.world.field.size) - np.array([0, 0.14])
 
+        # Obtém outros aliados
+        otherAllies = [robot for robot in self.world.team if robot != self.robot]
+        enemies = [robot for robot in self.world.enemies]
+
         # Atualiza histórico de velocidade do robô
         self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
+        
+        if self.attackState == 0 and norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
+            self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
+        else:
+            self.robot.setSpin(0)
 
         # Define estado do movimento
         # Ir até a bola
@@ -130,9 +149,9 @@ class Attacker(Entity):
                 #self.attackAngle = self.angleToAttack(rr, rb, rg)
                 self.attackAngle = ang(rr, rg)
                 self.elapsed = time.time()
-            elif self.alignedToBall(rb, rr):
+            elif self.alignedToBall2(rb, rr):
                 self.attackState = 2
-                self.attackAngle = ang(rr, rb) # preciso melhorado
+                self.attackAngle =  self.robot.th if np.dot(unit(self.robot.th), rb- rr[:2]) > 0 else self.robot.th+np.pi #ang(rr, rb) # preciso melhorado
                 self.elapsed = time.time()
             else: self.attackState = 0
 
@@ -145,7 +164,7 @@ class Attacker(Entity):
 
         # Ataque à bola
         elif self.attackState == 2:
-            if  self.alignedToBallRelaxed(rb, rr):
+            if  self.alignedToBallRelaxed2(rb, rr):
                 self.attackState =  2
             else:
                 self.attackState = 0
@@ -159,7 +178,7 @@ class Attacker(Entity):
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 self.robot.vref = self.approximationSpeed + 2 * norml(vb)
-                self.robot.field = UVF(Pb, radius=self.spiralRadius)
+                self.robot.field = UVF(Pb, radius=self.spiralRadius, Kr=0.03)
         
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
@@ -173,18 +192,19 @@ class Attacker(Entity):
         center = self.world.field.areaEllipseCenter
         self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(center, 0.6*a, 0.80*b), borderSize=0.15)
 
-        # Obtém outros aliados
-        otherAllies = [robot for robot in self.world.team if robot != self.robot]
-        enemies = [robot for robot in self.world.enemies]
-
         # Campo para evitar área inimiga
         if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
             self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
+        
+        if self.attackState == 0 and rr[0] > 0 and norm(rr, rb) > 0.10:
+           for robot in enemies:#otherAllies + enemies:
+               if np.abs(ang(unit(angl(robot.pos-rr)), unit(self.robot.th))) < 30 * np.pi / 180:
+                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
 
         # Campo para evitar outro robô, (só se não estiver alinhado)
-        if self.attackState == 0:
-            for robot in otherAllies + enemies:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.05), borderSize=0.10)
+        #if self.attackState == 0:
+        #    for robot in otherAllies + enemies:
+        #        self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
 
         # for robot in self.world.team:
         #     if robot.id != self.robot.id:

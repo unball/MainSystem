@@ -22,11 +22,15 @@ class Element:
         self.world = world
         self.xvec = EntriesVec()
         self.yvec = EntriesVec()
+        self.linvel = (0,0)
+        self.angvel = 0
         self.interval = Interval(initial_dt=0.016)
 
-    def update(self, x, y):
+    def update(self, x, y, vx, vy, w=0):
         self.xvec.add(x)
         self.yvec.add(y)
+        self.linvel = (vx, vy)
+        self.angvel = w
         self.interval.update()
 
     @property
@@ -51,7 +55,7 @@ class Element:
 
     @property
     def vx_raw(self):
-        return derivative(self.xvec.vec, self.interval.dt)
+        return self.linvel[0]
 
     @property
     def vx(self):
@@ -59,7 +63,7 @@ class Element:
 
     @property
     def vy_raw(self):
-        return derivative(self.yvec.vec, self.interval.dt)
+        return self.linvel[1]
 
     @property
     def vy(self):
@@ -79,9 +83,9 @@ class Robot(Element):
         self.id = id
         self.thvec_raw = EntriesVec()
 
-    def update(self, x, y, th):
+    def update(self, x, y, th, vx, vy, w):
         self.thvec_raw.add(th)
-        super().update(x,y)
+        super().update(x,y,vx,vy,w)
 
 class TeamRobot(Robot):
     def __init__(self, world, id, control=None):
@@ -119,8 +123,12 @@ class TeamRobot(Robot):
         self.field = field
 
     def updateEntity(self, entityClass, forced_update=False, **kwargs):
-        if type(self.entity) != entityClass or forced_update:
+        if self.entity is None or self.entity.__class__.__name__ != entityClass.__name__ or forced_update:
             self.entity = entityClass(self.world, self, **kwargs)
+
+    def isEntityLocked(self):
+        if self.entity is None: return False
+        else: return self.entity.isLocked()
 
     # def setSpin(self, dir=1, timeout=0.25):
     #     if dir != 0: 
@@ -153,7 +161,7 @@ class TeamRobot(Robot):
 
     @property
     def w_raw(self):
-        return angularDerivative(self.thvec, self.interval.dt)
+        return self.angvel
 
     @property
     def w(self):
@@ -176,12 +184,12 @@ class TeamRobot(Robot):
     
     def isAlive(self):
         """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
-        if time.time() - self.forcedAliveTime < self.forcedAliveTimeTimeOut:
-            return True
+        # if time.time() - self.forcedAliveTime < self.forcedAliveTimeTimeOut:
+        #     return True
 
         ctrlVel = np.abs(self.lastControlLinVel)
         
-        if ctrlVel < 0.01:
+        if ctrlVel < 0.01 or self.spin != 0:
             self.timeLastResponse = time.time()
             return True
         
@@ -189,7 +197,7 @@ class TeamRobot(Robot):
             if self.timeLastResponse is not None:
                 dt = time.time() - self.timeLastResponse
                 if dt is not None and dt > 0.33:
-                    self.keepAlive(3)
+                    # self.keepAlive(3)
                     return False
         else:
             self.timeLastResponse = time.time()

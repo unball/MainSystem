@@ -5,7 +5,8 @@ from .entity.defender import Defender
 from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml, unit, angl, angError, projectLine
+from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm
+from .decider.attackerDecider import AttackerDecider
 import numpy as np
 import time
 
@@ -68,6 +69,8 @@ class MainStrategy(Strategy):
         self.ballAverageX = 0
         self.ballAverageX_n = 0
 
+        self.attackerDecider = AttackerDecider(world)
+
     def manageReferee(self, rp, command):
         if command is None: return
         self.goalkeeperIndx = None
@@ -107,7 +110,7 @@ class MainStrategy(Strategy):
             for robot in self.world.raw_team: robot.turnOn()
             
         # Pausa jogo
-        elif command.foul == Foul.STOP:
+        elif command.foul == Foul.STOP or command.foul == Foul.HALT:
             for robot in self.world.raw_team: robot.turnOff()
         
     def updateScores(self):
@@ -221,24 +224,34 @@ class MainStrategy(Strategy):
     def entityDecider(self, formation):
         if len(self.world.team) == 0: return
         form = list(formation)
-        robots= self.world.team.copy()
+        robots = self.world.team.copy()
 
-        if GoalKeeper in formation:
+        for robot, entity in [(robot,robot.entity.__class__) for robot in self.world.team.copy() if robot.isEntityLocked()]:
+            if entity in form: form.remove(entity)
+            robots.remove(robot)
+        if not robots: return 
+        if GoalKeeper in form:
             rg = - np.array(self.world.field.goalPos)
-            dist = [norml(np.array(rr.pos)-rg) for rr in self.world.team]
-            nearest = np.argmin(dist)
+            dist = [norml(np.array(rr.pos)-rg) for rr in robots]
+            nearest = robots[np.argmin(dist)]
             minDist = np.min(dist)
+            if self.goalkeeperIndx is not None:
+                currentRobotToGoalDist = norm(self.world.team[self.goalkeeperIndx].pos, rg)
+            else:
+                currentRobotToGoalDist = np.infty
 
-            if(self.goalkeeperIndx != nearest):
-                if(self.goalkeeperIndx is None or 2*minDist <= dist[self.goalkeeperIndx]):
-                    self.goalkeeperIndx = nearest
-            robots[self.goalkeeperIndx].updateEntity(GoalKeeper)
+            if(self.goalkeeperIndx != nearest.id):
+                if(self.goalkeeperIndx is None or 2*minDist <= currentRobotToGoalDist):
+                    self.goalkeeperIndx = nearest.id
+            
+            chosenGoalKeeper = self.world.team[self.goalkeeperIndx]
+            chosenGoalKeeper.updateEntity(GoalKeeper)
             form.remove(GoalKeeper)
-            _ = robots.pop(self.goalkeeperIndx)
+            if chosenGoalKeeper in robots: robots.remove(chosenGoalKeeper)
         else:
             self.goalkeeperIndx = None
         
-        if Attacker in formation:
+        if Attacker in form:
             rb = np.array(self.world.ball.pos)
 
             if self.AttackerIdx is not None and self.AttackerIdx!=self.goalkeeperIndx  : 
@@ -254,27 +267,47 @@ class MainStrategy(Strategy):
             nearest = robots[np.argmin(dist)]
             minDist = np.min(dist)
             if(self.AttackerIdx != nearest.id):
-                if(self.AttackerIdx is None or 2*minDist <= attackToBall):
+
+                if(self.AttackerIdx is None or 1.1*minDist <= attackToBall):
                     angNearest = angError(angl(rb - np.array(nearest.pos)), nearest.th)
                     if self.AttackerIdx is None or (np.abs(angNearest) <= np.pi/4 and np.abs(angNearest) < np.abs(angAttacker)):
                         self.AttackerIdx = nearest.id
             
-
-            self.world.team[self.AttackerIdx].updateEntity(Attacker)
-            _ = robots.remove(self.world.team[self.AttackerIdx])
+            chosenAttacker = self.world.team[self.AttackerIdx]
+            chosenAttacker.updateEntity(Attacker)
+            if chosenAttacker in robots: robots.remove(chosenAttacker)
             form.remove(Attacker)         
         else:
             self.AttackerIdx = None
         
         # quem sobra
-        for r, e in zip(robots, form):
+        rem = min(len(robots), len(form))
+        # print(formation)
+        # print(rem)
+        for r, e in zip(robots[:rem], form[:rem]):
+            # print("No for")
+            # print(r.id)
+            # print(e)
+            # print(type(e))
+            # print(type(r.entity))
+            #print(r.entity)
             r.updateEntity(e)
+            #print(r.entity)
 
         # print([robot.entity.__class__.__name__ for robot in self.world.team])
-        
+
     def update(self):
         formation = self.formationDecider()
+        #self.entityDecider([GoalKeeper, Attacker, Midfielder])
         self.entityDecider(formation)
+        # decisionList = [0,1]
+        # attackerIndex = self.attackerDecider.decide(decisionList)
+        # self.world.team[attackerIndex].updateEntity(Attacker)
+        # for otherIndex in [index for index in decisionList if index != attackerIndex]:
+        #     self.world.team[otherIndex].updateEntity(Midfielder)
+        #self.world.team[0].updateEntity(Attacker)
+        #self.world.team[1].updateEntity(Midfielder)
+        #self.world.team[2].updateEntity(GoalKeeper)
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()

@@ -5,15 +5,7 @@ import numpy as np
 import math
 import time 
 
-PLOT_CONTROL = False
-if PLOT_CONTROL:
-  import matplotlib.pyplot as plt
-
-def close_event():
-  plt.close() 
-
-
-class UFC_Simple(Control):
+class MidfielderControl(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
   def __init__(self, world, kw=4, kp=20, mu=0.3, vmax=1.5, L=L, enableInjection=False):
     Control.__init__(self, world)
@@ -26,40 +18,27 @@ class UFC_Simple(Control):
     self.vmax = vmax
     self.L = L
     self.kv = 10
-    self.vbias = 0.4
-    self.kapd = 2
+    self.vbias = 0.2
+    self.kapd = 3
 
     self.lastth = [0,0,0,0]
     self.lastdth = 0
     self.interval = Interval(filter=True, initial_dt=0.016)
     self.lastnorm = 0
-    self.enableInjection = enableInjection
     self.lastwref = 0
     self.lastvref = 0
-    self.integrateinjection = 0
-    self.loadedInjection = 0
-    self.lastPb = np.array([0,0])
 
     self.eth = 0
-    self.plots = {"ref":[], "out": [], "eth":[], "vref": [], "v": [], "wref": [], "w": [], "sd": [], "dth": []}
 
   @property
   def error(self):
-    return self.eth
-
-  def abs_path_dth(self, initial_pose, error, field, step = 0.001, n = 10):
-    pos = np.array(initial_pose[:2])
-    thlist = np.array([])
-
-    for i in range(n):
-      th = field.F(pos)
-      thlist = np.append(thlist, th)
-      pos = pos + step * unit(th)
-  
-    return 10*np.sum(np.abs(thlist[1:] - thlist[:-1])) + abs(error)
+    return self.epos
 
   def output(self, robot):
     if robot.field is None: return 0,0
+
+    epos = norml(self.point2intercep - rb) - norml(self.point2intercep - rr)
+    v = epos*k
     # Ângulo de referência
     #th = (time.time()/1) % (2*np.pi) - np.pi#np.pi/2 * np.sign(time.time() % 3 - 1.5)#robot.field.F(robot.pose)
     th = robot.field.F(robot.pose)
@@ -92,85 +71,23 @@ class UFC_Simple(Control):
     v4 = self.kv / abs(eth) + self.vbias
 
     # Velocidade linear é menor de todas
-    sd = self.abs_path_dth(robot.pose, eth, robot.field)
-    Pb = np.array(robot.field.Pb[:2])
-    vtarget = (Pb - self.lastPb) / dt
-
-    if self.enableInjection:
-      currentnorm = norm(robot.pos, robot.field.Pb)
-      #print(self.integrateinjection)
-      # if self.integrateinjection > 10:
-      #   injection = 0
-      # else:
-      #   injection = 0.0015 / (abs(currentnorm - self.lastnorm) + 1e-3)
-      # self.integrateinjection = max(self.integrateinjection + injection - 0.5, 0)
-      # if abs(currentnorm - self.lastnorm) < 0.001:
-      #   self.loadedInjection = 0.90 * self.loadedInjection + 10 * 0.10
-      # else:
-      #   self.loadedInjection = 0.90 * self.loadedInjection
-      #injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-3)
-      injection = 2 * norml(vtarget) * (np.dot(vtarget, unit(robot.field.Pb[2])) < 0) * 0.10 / norm(robot.pos, robot.field.Pb[:2])
-    else:
-      currentnorm = 0
-      injection = 0
-
-    v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) + injection
-    #print(vtarget)
-    #v  = max(min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3), self.loadedInjection * vtarget)#max(min(v1, v2, v3, v4), 0)
-    #ev = self.lastvref - robot.velmod
-    #v = 1 * norm(robot.pos, robot.field.Pb) + 0.1 * ev + 0.2
-    # v = 0.25#0.5*np.sin(2*time.time())+0.5
-    # w = 0#2*np.sin(5*time.time())
+    # sd = self.abs_path_dth(robot.pose, eth, robot.field)
     
+    currentnorm = 0
+    
+    # v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) 
+    # v  = min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3) 
+
     # Atualiza a última referência
     self.lastth = self.lastth[1:] + [th]
     self.lastnorm = currentnorm
     robot.lastControlLinVel = v
 
     # Atualiza variáveis de estado
-    self.eth = eth
+    self.epos = epos
     self.lastdth = dth
     self.lastwref = w
     self.lastvref = v
-    self.lastPb = Pb
-
-    if PLOT_CONTROL:
-      self.plots["eth"].append(eth * 180 / np.pi)
-      self.plots["ref"].append(th * 180 / np.pi)
-      self.plots["out"].append(robot.th * 180 / np.pi)
-      self.plots["vref"].append(abs(v))
-      self.plots["wref"].append(w)
-      self.plots["v"].append(robot.velmod)
-      self.plots["w"].append(robot.w)
-      self.plots["sd"].append(sd)
-      self.plots["dth"].append(dth)
-
-      if len(self.plots["eth"]) >= 300 and robot.id == 0:
-        t = np.linspace(0, 300 * 0.016, 300)
-        fig = plt.figure()
-        #timer = fig.canvas.new_timer(interval = 5000) 
-        #timer.add_callback(close_event)
-        plt.subplot(6,1,1)
-        plt.plot(t, self.plots["eth"], label='eth')
-        plt.plot(t, np.zeros_like(t), '--')
-        plt.subplot(6,1,2)
-        plt.plot(t, self.plots["ref"], '--', label='th_ref')
-        plt.plot(t, self.plots["out"], label='th')
-        plt.subplot(6,1,3)
-        plt.plot(t, self.plots["vref"], '--', label='vref')
-        plt.plot(t, self.plots["v"], label='v')
-        plt.subplot(6,1,4)
-        plt.plot(t, self.plots["wref"], '--', label='wref')
-        plt.plot(t, self.plots["w"], label='w')
-        plt.subplot(6,1,5)
-        plt.plot(t, self.plots["sd"], label='sd')
-        plt.subplot(6,1,6)
-        plt.plot(t, self.plots["dth"], label='dth')
-        plt.legend()
-        #timer.start()
-        plt.show()
-        #timer.stop()
-        for plot in self.plots.keys(): self.plots[plot] = []
     
     if robot.spin == 0: return (v * robot.direction, w)
     else: return (0, 60 * robot.spin)

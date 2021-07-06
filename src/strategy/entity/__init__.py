@@ -18,3 +18,8 @@ class Entity(ABC):
     @abstractmethod
     def directionDecider(self):
         pass
+
+    def isLocked(self):
+        return False
+    
+    

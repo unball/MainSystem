@@ -2,9 +2,14 @@ import numpy as np
 
 # Constantes físicas do robô
 wheel_reduction = 5
-r = 0.0325
-L = 0.075
-#L = 0.18
+
+# Supostamente devia ser
+#r = 0.0325
+#L = 0.075
+
+# O que realmente é
+r = 0.02
+L = 0.080
 
 def speeds2motors(v: float, w: float) -> (int, int):
   """Recebe velocidade linear e angular e retorna velocidades para as duas rodas"""

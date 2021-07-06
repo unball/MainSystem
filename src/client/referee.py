@@ -7,9 +7,10 @@ print(moduleFolder + '/protobuf/')
 import vssref_command_pb2
 import vssref_common_pb2
 import vssref_placement_pb2
+import constants
 
 class RefereeCommands:
-    def __init__(self, host, port):
+    def __init__(self, host=constants.HOST_REFEREE, port=constants.PORT_REFEREE_COMMAND):
         self.host = host
         self.port = port
         self.socket = self.createSocket(host, port)
@@ -47,7 +48,7 @@ class RefereeCommands:
             return None
 
 class RefereePlacement:
-    def __init__(self, host, port, team_yellow = False):
+    def __init__(self, host=constants.HOST_REFEREE, port=constants.PORT_REFEREE_REPLACEMENT, team_yellow = False):
         self.host = host
         self.port = port
         self.team_yellow = team_yellow
