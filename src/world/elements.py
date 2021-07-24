@@ -93,7 +93,7 @@ class TeamRobot(Robot):
 
         self.field = None
         self.vref = math.inf
-        self._on = False
+        self._on = True
         self.spin = 0
         self.spinTime = 0
         self.spinTimeOut = 0.5
@@ -121,6 +121,9 @@ class TeamRobot(Robot):
 
     def updateField(self, field):
         self.field = field
+
+    def stop(self):
+        self.world.vss.command.write(self.id, 0, 0)
 
     def updateEntity(self, entityClass, forced_update=False, **kwargs):
         if self.entity is None or self.entity.__class__.__name__ != entityClass.__name__ or forced_update:
