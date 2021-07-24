@@ -69,56 +69,14 @@ class Attacker(Entity):
                     self.lastChat = time.time()
                     self.robot.direction *= -1
     
-    def conditionAlignment(self, rb, rr, rg):
-        return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
+    def inAttackRegion(self, rb, rr, rg, yrange=0.15):
+        return np.abs(rr[1] + (rg[0] - rr[0]) / (rb[0] - rr[0]) * (rb[1] - rr[1])) < yrange
 
     def alignedToGoal(self, rb, rr, rg):
-        rg_up = rb + [0, 0.08]
-        rg_down = rb + [0, -0.08]
-        rg_up_plus = rb + [0, 0.16]
-        rg_down_plus = rb + [0, -0.16]
-        return self.conditionAlignment(rb, rr, rg) or self.conditionAlignment(rb, rr, rg_down) or self.conditionAlignment(rb, rr, rg_up) or self.conditionAlignment(rb, rr, rg_down_plus) or self.conditionAlignment(rb, rr, rg_up_plus)
-
-
-    def angleToAttack(self, rr, rb, rg):
-        rg_up = rg + [0, 0.12]
-        rg_down = rg + [0, -0.12]
-        rg_up_plus = rg + [0, 0.18]
-        rg_down_plus = rg + [0, -0.18]
-
-        if (-howFrontBall(rb, rr, rg_up)  > 0 and abs(howPerpBall(rb, rr, rg_up)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up))) < self.alignmentAngleTrackState * np.pi / 180):
-            return ang(rr, rg_up)
-        elif (-howFrontBall(rb, rr, rg_down)  > 0 and abs(howPerpBall(rb, rr, rg_down)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down))) < self.alignmentAngleTrackState * np.pi / 180):
-            return ang(rr, rg_down)
-        elif (-howFrontBall(rb, rr, rg_down_plus)  > 0 and abs(howPerpBall(rb, rr, rg_down_plus)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_down_plus))) < self.alignmentAngleTrackState * np.pi / 180):
-            return ang(rr, rg_down_plus)
-        elif (-howFrontBall(rb, rr, rg_up_plus)  > 0 and abs(howPerpBall(rb, rr, rg_up_plus)) < self.perpBallLimiarTrackState and abs(angError(self.robot.th, ang(rb, rg_up_plus))) < self.alignmentAngleTrackState * np.pi / 180):
-            return ang(rr, rg_up_plus)
-        else:
-            return ang(rr, rg)
-
-    def conditionAlignmentRelaxed(self, rb, rr, rg):
-        return -howFrontBall(rb, rr, rg)  > 0 and abs(howPerpBall(rb, rr, rg)) < self.perpBallLimiarAtackState and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
+        return self.inAttackRegion(rb, rr, rg) and howFrontBall(rb, rr, rg) < 0 and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
 
     def alignedToGoalRelaxed(self, rb, rr, rg):
-        rg_up = rb + [0, 0.08]
-        rg_down = rb + [0, -0.08]
-        rg_up_plus = rb + [0, 0.16]
-        rg_down_plus = rb + [0, -0.16]
-        return self.conditionAlignmentRelaxed(rb, rr, rg) or self.conditionAlignmentRelaxed(rb, rr, rg_up) or self.conditionAlignmentRelaxed(rb, rr, rg_down) or self.conditionAlignmentRelaxed(rb, rr, rg_down_plus) or self.conditionAlignmentRelaxed(rb, rr, rg_up_plus)
-
-    def alignedToBall(self, rb, rr):
-        return (norm(rr, rb) < 0.10 or abs(angError(self.robot.th, ang(rr, rb))) < 30 * np.pi / 180) and np.abs(self.robot.th) < np.pi / 2 and rr[0] <= rb[0] #and np.abs(rb[1]) > 0.2
-
-    def alignedToBall2(self, rb, rr):
-        return (np.abs(np.dot(rb - rr[:2], unit(self.robot.th + np.pi/2.0))) < .023  or np.abs(np.dot(rb - rr[:2], unit(self.robot.th + 3.0*np.pi/2.0))) < .023) and rr[0] <= rb[0] 
-
-    def alignedToBallRelaxed2(self, rb, rr):
-        return (np.abs(np.dot(rb - rr[:2], unit(self.robot.th + np.pi/2.0))) < .08  or np.abs(np.dot(rb - rr[:2], unit(self.robot.th + 3.0*np.pi/2.0))) < .08)
-
-
-    def alignedToBallRelaxed(self, rb, rr):
-        return (norm(rr, rb) < 0.15 or abs(angError(self.robot.th, ang(rr, rb))) < 70 * np.pi / 180) #and np.abs(self.robot.th) < np.pi / 2
+        return self.inAttackRegion(rb, rr, rg, 0.50) and howFrontBall(rb, rr, rg) < 0.10 and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
 
     def fieldDecider(self):
         # Variáveis úteis
@@ -136,23 +94,24 @@ class Attacker(Entity):
         # Atualiza histórico de velocidade do robô
         self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
         
-        if self.attackState == 0 and norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
-            self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
-        else:
-            self.robot.setSpin(0)
+        # if self.attackState == 0 and norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
+        #     self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
+        # else:
+        #     self.robot.setSpin(0)
 
         # Define estado do movimento
         # Ir até a bola
         if self.attackState == 0:
             if self.alignedToGoal(rb, rr, rg):
                 self.attackState = 1
+                print("atacando")
                 #self.attackAngle = self.angleToAttack(rr, rb, rg)
                 self.attackAngle = ang(rr, rg)
                 self.elapsed = time.time()
-            elif self.alignedToBall2(rb, rr):
-                self.attackState = 2
-                self.attackAngle =  self.robot.th if np.dot(unit(self.robot.th), rb- rr[:2]) > 0 else self.robot.th+np.pi #ang(rr, rb) # preciso melhorado
-                self.elapsed = time.time()
+            # elif self.alignedToBall2(rb, rr):
+            #     self.attackState = 2
+            #     self.attackAngle =  self.robot.th if np.dot(unit(self.robot.th), rb- rr[:2]) > 0 else self.robot.th+np.pi #ang(rr, rb) # preciso melhorado
+            #     self.elapsed = time.time()
             else: self.attackState = 0
 
         # Ataque ao gol
@@ -160,14 +119,15 @@ class Attacker(Entity):
             if self.alignedToGoalRelaxed(rb, rr, rg) :
                 self.attackState =  1
             else:
+                print("indo até a bola")
                 self.attackState = 0
 
-        # Ataque à bola
-        elif self.attackState == 2:
-            if  self.alignedToBallRelaxed2(rb, rr):
-                self.attackState =  2
-            else:
-                self.attackState = 0
+        # # Ataque à bola
+        # elif self.attackState == 2:
+        #     if  self.alignedToBallRelaxed2(rb, rr):
+        #         self.attackState =  2
+        #     else:
+        #         self.attackState = 0
 
         # Movimento de alinhamento
         if self.attackState == 0 or time.time()-self.elapsed < .2:
@@ -187,14 +147,14 @@ class Attacker(Entity):
         
         if self.attackState==0: self.elapsed = math.inf
 
-        # Campo para evitar área aliada
-        a, b = self.world.field.areaEllipseSize
-        center = self.world.field.areaEllipseCenter
-        self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(center, 0.6*a, 0.80*b), borderSize=0.15)
+        # # Campo para evitar área aliada
+        # a, b = self.world.field.areaEllipseSize
+        # center = self.world.field.areaEllipseCenter
+        # self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(center, 0.6*a, 0.80*b), borderSize=0.15)
 
-        # Campo para evitar área inimiga
-        if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
-            self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
+        # # Campo para evitar área inimiga
+        # if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
+        #     self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
         
         if self.attackState == 0 and rr[0] > 0 and norm(rr, rb) > 0.10:
            for robot in enemies:#otherAllies + enemies:
