@@ -311,10 +311,12 @@ class MainStrategy(Strategy):
         d1 = norm(self.world.team[1].pos, self.world.ball.pos)
         d2 = norm(self.world.team[2].pos, self.world.ball.pos)
 
-        if self.currentAttacker == 1 and d2 < d1:
+        if self.currentAttacker == 1 and d2 + 0.20 < d1:
             self.currentAttacker = 2
-        elif self.currentAttacker == 2 and d1 < d2:
+            print("atacante é o 2")
+        elif self.currentAttacker == 2 and d1 + 0.20 < d2:
             self.currentAttacker = 1
+            print("atacante é o 1")
         
         self.world.team[0].updateEntity(GoalKeeper)
         self.world.team[1].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker != 1 else 0, slave = self.currentAttacker != 1)
