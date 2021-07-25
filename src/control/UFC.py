@@ -15,7 +15,7 @@ def close_event():
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=4, kp=20, mu=0.3, vmax=1.5, L=L, enableInjection=False):
+  def __init__(self, world, kw=4, kp=20, mu=0.3, vmax=2, L=L, enableInjection=False):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -28,9 +28,8 @@ class UFC_Simple(Control):
     self.kv = 10
     self.vbias = 0.4
 
-    self.sd_min = 1e-4
+    self.sd_min = 1e-3
     self.sd_max = 0.2
-    self.sd_scale = 2
 
     self.lastth = [0,0,0,0]
     self.lastdth = 0
@@ -51,16 +50,23 @@ class UFC_Simple(Control):
   def error(self):
     return self.eth
 
-  def abs_path_dth(self, initial_pose, error, field, step = 0.02, n = 10):
+  def abs_path_dth(self, initial_pose, error, field, step = 0.01, n = 10):
     pos = np.array(initial_pose[:2])
     thlist = np.array([])
 
+    count = 0
+
     for i in range(n):
+      if norm(pos, field.Pb[:2]) < 0.05:
+        break
       th = field.F(pos)
       thlist = np.append(thlist, th)
       pos = pos + step * unit(th)
+      count += 1
+
+    aes = np.sum(np.abs(angError(thlist[1:], thlist[:-1]))) / count if count > 0 else 0
   
-    return np.sum(np.abs(angError(thlist[1:], thlist[:-1]))) / (n-1) + 0.1 * abs(error)
+    return aes + 0.05 * abs(error)
 
   def controlLine(self, x, xmax, xmin):
     return sats((xmax - x) / (xmax - xmin), 0, 1)
@@ -117,13 +123,27 @@ class UFC_Simple(Control):
       # else:
       #   self.loadedInjection = 0.90 * self.loadedInjection
       #injection = 0.0010 / (abs(currentnorm - self.lastnorm) + 1e-3)
-      injection = 2 * norml(self.vPb) * (np.dot(self.vPb, unit(robot.field.Pb[2])) < 0) * 0.10 / norm(robot.pos, robot.field.Pb[:2])
+      #injection = 2 * norml(self.vPb) * (np.dot(self.vPb, unit(robot.field.Pb[2])) < 0) * 0.10 / norm(robot.pos, robot.field.Pb[:2])
+      
+      # Only apply injection near
+      d = norm(robot.pos, robot.field.Pb[:2])
+      r1 = 0.10
+      r2 = 0.50
+      eta = sats((r2 - d) / (r2 - r1), 0, 1)
+
+      # Injection if ball runs in oposite direction
+      if np.dot(self.vPb, unit(robot.field.Pb[2])) < 0:
+        raw_injection = max(-np.dot(self.vPb, unit(robot.field.Pb[2])), 0)
+      else:
+        raw_injection = 0.1 * max(np.dot(self.vPb, unit(robot.field.Pb[2])), 0)
+
+      injection = raw_injection * eta
     else:
       currentnorm = 0
       injection = 0
 
-    v5 = self.vbias + (self.vmax-self.vbias) * self.controlLine(np.log(sd / self.sd_scale), np.log(self.sd_max / self.sd_scale), np.log(self.sd_min / self.sd_scale))
-    v  = min(v5, v3) #+ sat(injection, 1)
+    v5 = self.vbias + (self.vmax-self.vbias) * self.controlLine(np.log(sd), np.log(self.sd_max), np.log(self.sd_min))
+    v  = min(v5, v3) + sat(injection, 1)
     #print(vtarget)
     #v  = max(min(self.vbias + (self.vmax-self.vbias) * np.exp(-self.kapd * sd), v3), self.loadedInjection * vtarget)#max(min(v1, v2, v3, v4), 0)
     #ev = self.lastvref - robot.velmod

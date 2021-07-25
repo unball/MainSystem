@@ -22,7 +22,9 @@ class Attacker(Entity):
                  spiralRadius = 0.05, 
                  spiralRadiusCorners = 0.05, 
                  approximationSpeed = 0.8, 
-                 ballOffset = -0.03
+                 ballOffset = -0.03,
+                 ballShift = 0,
+                 slave = False
         ):
 
         Entity.__init__(self, world, robot)
@@ -36,6 +38,8 @@ class Attacker(Entity):
         self.spiralRadiusCorners = spiralRadiusCorners
         self.approximationSpeed = approximationSpeed
         self.ballOffset = ballOffset
+        self.ballShift = ballShift
+        self.slave = slave
 
         # States
         self.lastDirectionChange = 0
@@ -69,8 +73,8 @@ class Attacker(Entity):
                     self.lastChat = time.time()
                     self.robot.direction *= -1
     
-    def inAttackRegion(self, rb, rr, rg, yrange=0.15):
-        return np.abs(rr[1] + (rg[0] - rr[0]) / (rb[0] - rr[0]) * (rb[1] - rr[1])) < yrange
+    def inAttackRegion(self, rb, rr, rg, yrange=0.15, xgoal=0.75):
+        return np.abs(rr[1] + (xgoal - rr[0]) / (rb[0] - rr[0]) * (rb[1] - rr[1])) < yrange
 
     def alignedToGoal(self, rb, rr, rg):
         return self.inAttackRegion(rb, rr, rg) and howFrontBall(rb, rr, rg) < 0 and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
@@ -131,7 +135,7 @@ class Attacker(Entity):
 
         # Movimento de alinhamento
         if self.attackState == 0 or time.time()-self.elapsed < .2:
-            Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset)
+            Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset - self.ballShift)
 
             if np.abs(rb[1]) > rl[1]:
                 self.robot.vref = math.inf
@@ -160,6 +164,12 @@ class Attacker(Entity):
            for robot in enemies:#otherAllies + enemies:
                if np.abs(ang(unit(angl(robot.pos-rr)), unit(self.robot.th))) < 30 * np.pi / 180:
                 self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
+
+        # if self.slave and self.attackState == 0:
+        #     print("I {0} am slave".format(self.robot.id))
+        #     for robot in [r for r in otherAllies if r.entity.__class__.__name__ ==  "Attacker"]:
+        #         self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
+
 
         # Campo para evitar outro robô, (só se não estiver alinhado)
         #if self.attackState == 0:
