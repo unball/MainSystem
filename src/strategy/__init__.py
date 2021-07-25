@@ -61,6 +61,7 @@ class MainStrategy(Strategy):
         self.ambitiousLineHyst = 0.1
         self.formationState = "learn"
         self.learnState = "safe"
+        self.currentAttacker = 1
 
         self.insaneBehavior = False
 
@@ -297,17 +298,26 @@ class MainStrategy(Strategy):
         # print([robot.entity.__class__.__name__ for robot in self.world.team])
 
     def update(self):
-        formation = self.formationDecider()
+        #formation = self.formationDecider()
         #self.entityDecider([GoalKeeper, Attacker, Midfielder])
-        self.entityDecider(formation)
+        #self.entityDecider(formation)
         # decisionList = [0,1]
         # attackerIndex = self.attackerDecider.decide(decisionList)
         # self.world.team[attackerIndex].updateEntity(Attacker)
         # for otherIndex in [index for index in decisionList if index != attackerIndex]:
         #     self.world.team[otherIndex].updateEntity(Midfielder)
-        #self.world.team[0].updateEntity(Attacker)
-        #self.world.team[1].updateEntity(Midfielder)
-        #self.world.team[2].updateEntity(GoalKeeper)
+        d1 = norm(self.world.team[1].pos, self.world.ball.pos)
+        d2 = norm(self.world.team[2].pos, self.world.ball.pos)
+
+        if self.currentAttacker == 1 and d2 < d1:
+            self.currentAttacker = 2
+        elif self.currentAttacker == 2 and d1 < d2:
+            self.currentAttacker = 1
+        
+        self.world.team[0].updateEntity(GoalKeeper)
+        self.world.team[1].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker == 1 else 0, slave = self.currentAttacker != 1)
+        self.world.team[2].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker == 2 else 0, slave = self.currentAttacker != 2)
+
         for robot in self.world.team:
             if robot.entity is not None:
                 robot.updateSpin()
