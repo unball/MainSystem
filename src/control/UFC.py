@@ -15,7 +15,7 @@ def close_event():
 
 class UFC_Simple(Control):
   """Controle unificado para o Univector Field, utiliza o ângulo definido pelo campo como referência \\(\\theta_d\\)."""
-  def __init__(self, world, kw=4, kp=20, mu=0.3, vmax=2, L=L, enableInjection=False):
+  def __init__(self, world, kw=4, kp=20, mu=0.3, vmax=1.5, L=L, enableInjection=False):
     Control.__init__(self, world)
 
     self.g = 9.8
@@ -28,8 +28,8 @@ class UFC_Simple(Control):
     self.kv = 10
     self.vbias = 0.4
 
-    self.sd_min = 1e-3
-    self.sd_max = 0.2
+    self.sd_min = 1e-4
+    self.sd_max = 0.5
 
     self.lastth = [0,0,0,0]
     self.lastdth = 0
@@ -57,14 +57,12 @@ class UFC_Simple(Control):
     count = 0
 
     for i in range(n):
-      if norm(pos, field.Pb[:2]) < 0.05:
-        break
       th = field.F(pos)
       thlist = np.append(thlist, th)
       pos = pos + step * unit(th)
       count += 1
 
-    aes = np.sum(np.abs(angError(thlist[1:], thlist[:-1]))) / count if count > 0 else 0
+    aes = np.sum(np.abs(angError(thlist[1:], thlist[:-1]))) / n
   
     return aes + 0.05 * abs(error)
 

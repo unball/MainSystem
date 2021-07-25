@@ -306,6 +306,8 @@ class MainStrategy(Strategy):
         # self.world.team[attackerIndex].updateEntity(Attacker)
         # for otherIndex in [index for index in decisionList if index != attackerIndex]:
         #     self.world.team[otherIndex].updateEntity(Midfielder)
+
+
         d1 = norm(self.world.team[1].pos, self.world.ball.pos)
         d2 = norm(self.world.team[2].pos, self.world.ball.pos)
 
@@ -315,8 +317,11 @@ class MainStrategy(Strategy):
             self.currentAttacker = 1
         
         self.world.team[0].updateEntity(GoalKeeper)
-        self.world.team[1].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker == 1 else 0, slave = self.currentAttacker != 1)
-        self.world.team[2].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker == 2 else 0, slave = self.currentAttacker != 2)
+        self.world.team[1].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker != 1 else 0, slave = self.currentAttacker != 1)
+        self.world.team[2].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker != 2 else 0, slave = self.currentAttacker != 2)
+
+        # self.world.team[1].updateEntity(Attacker)
+        # self.world.team[2].updateEntity(Defender)
 
         for robot in self.world.team:
             if robot.entity is not None:

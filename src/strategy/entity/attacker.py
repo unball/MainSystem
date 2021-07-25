@@ -19,7 +19,7 @@ class Attacker(Entity):
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
-                 spiralRadius = 0.05, 
+                 spiralRadius = 0.08, 
                  spiralRadiusCorners = 0.05, 
                  approximationSpeed = 0.8, 
                  ballOffset = -0.03,
@@ -73,14 +73,14 @@ class Attacker(Entity):
                     self.lastChat = time.time()
                     self.robot.direction *= -1
     
-    def inAttackRegion(self, rb, rr, rg, yrange=0.15, xgoal=0.75):
+    def inAttackRegion(self, rb, rr, rg, yrange=0.25, xgoal=0.75):
         return np.abs(rr[1] + (xgoal - rr[0]) / (rb[0] - rr[0]) * (rb[1] - rr[1])) < yrange
 
     def alignedToGoal(self, rb, rr, rg):
-        return self.inAttackRegion(rb, rr, rg) and howFrontBall(rb, rr, rg) < 0 and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
+        return self.inAttackRegion(rb + 0.10 * angl(rg-rb), rr, rg) and howFrontBall(rb, rr, rg) < 0 and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleTrackState * np.pi / 180
 
     def alignedToGoalRelaxed(self, rb, rr, rg):
-        return self.inAttackRegion(rb, rr, rg, 0.50) and howFrontBall(rb, rr, rg) < 0.10 and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
+        return howFrontBall(rb, rr, rg) < 0.10 #and abs(angError(self.robot.th, ang(rb, rg))) < self.alignmentAngleAtackState * np.pi / 180
 
     def fieldDecider(self):
         # Variáveis úteis
@@ -147,7 +147,7 @@ class Attacker(Entity):
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
             self.robot.vref = math.inf
-            self.robot.field = DirectionalField(self.attackAngle)
+            self.robot.field = DirectionalField(ang(rr, rg))
         
         if self.attackState==0: self.elapsed = math.inf
 
