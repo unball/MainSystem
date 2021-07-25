@@ -7,7 +7,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     rb = rb.copy()
     #rbp = rb + vb * norm(rb, rr) / (vravg + 0.00001)
 
-    u = np.roots([norml(vb) ** 2 - (max(vravg-0.05, 0.1))**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
+    u = np.roots([norml(vb) ** 2 - (max(vravg-0.05, 0.3))**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
     u = [x for x in u if x >= 0 and not(np.iscomplex(x))]
 
     if len(u) == 0 or norm(rb, rr) < 0.1:

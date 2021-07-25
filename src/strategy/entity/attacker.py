@@ -19,7 +19,7 @@ class Attacker(Entity):
                  perpBallLimiarAtackState = 0.075 * 2, 
                  alignmentAngleTrackState = 30, 
                  alignmentAngleAtackState = 90, 
-                 spiralRadius = 0.08, 
+                 spiralRadius = 0.07, 
                  spiralRadiusCorners = 0.05, 
                  approximationSpeed = 0.8, 
                  ballOffset = -0.03,
@@ -96,7 +96,7 @@ class Attacker(Entity):
         enemies = [robot for robot in self.world.enemies]
 
         # Atualiza histórico de velocidade do robô
-        self.vravg = 0.995 * self.vravg + 0.005 * norml(vr)
+        self.vravg = 0.995 * self.vravg + 0.005 * np.dot(vr, unit(ang(rr, rb)))
         
         # if self.attackState == 0 and norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
         #     self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
@@ -108,7 +108,7 @@ class Attacker(Entity):
         if self.attackState == 0:
             if self.alignedToGoal(rb, rr, rg):
                 self.attackState = 1
-                print("atacando")
+                #print("atacando")
                 #self.attackAngle = self.angleToAttack(rr, rb, rg)
                 self.attackAngle = ang(rr, rg)
                 self.elapsed = time.time()
@@ -123,7 +123,7 @@ class Attacker(Entity):
             if self.alignedToGoalRelaxed(rb, rr, rg) :
                 self.attackState =  1
             else:
-                print("indo até a bola")
+                #print("indo até a bola")
                 self.attackState = 0
 
         # # Ataque à bola
@@ -147,7 +147,7 @@ class Attacker(Entity):
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
             self.robot.vref = math.inf
-            self.robot.field = DirectionalField(ang(rr, rg))
+            self.robot.field = DirectionalField(0.5 * ang(rr, rg) + 0.5 * ang(rr, rb))
         
         if self.attackState==0: self.elapsed = math.inf
 
