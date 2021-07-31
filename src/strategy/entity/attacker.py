@@ -103,6 +103,11 @@ class Attacker(Entity):
         # else:
         #     self.robot.setSpin(0)
 
+        if norm(rr, rb) < 0.085 and np.abs(rb[1]) > rl[1] and np.any([norm(rr, x.pos) < 0.20 for x in enemies]):
+            self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
+        else:
+            self.robot.setSpin(0)
+
         # Define estado do movimento
         # Ir até a bola
         if self.attackState == 0:
@@ -137,7 +142,7 @@ class Attacker(Entity):
         if self.attackState == 0 or time.time()-self.elapsed < .2:
             Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset - self.ballShift)
 
-            if np.abs(rb[1]) > rl[1]:
+            if np.abs(Pb[1]) > rl[1]:
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
@@ -146,8 +151,10 @@ class Attacker(Entity):
         
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
+            drb = norm(rr, rb)
+            drg = norm(rr, rg)
             self.robot.vref = math.inf
-            self.robot.field = DirectionalField(0.5 * ang(rr, rg) + 0.5 * ang(rr, rb))
+            self.robot.field = DirectionalField((drg * ang(rr, rg) + drb * ang(rr, rb)) / (drb + drg))
         
         if self.attackState==0: self.elapsed = math.inf
 
