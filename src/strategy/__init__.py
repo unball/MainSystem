@@ -7,6 +7,7 @@ from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
 from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm
 from .decider.attackerDecider import AttackerDecider
+from copy import copy
 import numpy as np
 import time
 
@@ -40,10 +41,10 @@ class MainStrategy(Strategy):
 
         self.world = world
         self.formations = {
-            "insane": (Attacker, Attacker, Midfielder),
-            "crazy": (Attacker, Midfielder, Defender), 
-            "ambitious": (Attacker, Midfielder, GoalKeeper),
-            "safe": (Attacker, Defender, GoalKeeper)
+            "insane": [Attacker, Attacker, Attacker],
+            "crazy": [Attacker, Attacker, Defender], 
+            "ambitious": [Attacker, Attacker, GoalKeeper],
+            "safe": [Attacker, Defender, GoalKeeper]
         }
         self.lastGoalkeeper = None
         self.goalkeeperIndx = None
@@ -201,10 +202,10 @@ class MainStrategy(Strategy):
 
         # Executa formação conforme o estado
         if self.formationState != "learn":
-            return self.formations[self.formationState]
+            return copy(self.formations[self.formationState])
         else:
             self.learnStateUpdate()
-            return self.formations[self.learnState]
+            return copy(self.formations[self.learnState])
 
     def formationDeciderInsane(self):
         rb = np.array(self.world.ball.pos)
@@ -220,7 +221,7 @@ class MainStrategy(Strategy):
             print("ESTADO INSANO INVÁLIDO!")
 
         # Executa o estado
-        return self.formations[self.formationState]
+        return copy(self.formations[self.formationState])
 
     def entityDecider(self, formation):
         if len(self.world.team) == 0: return
@@ -307,27 +308,51 @@ class MainStrategy(Strategy):
         # for otherIndex in [index for index in decisionList if index != attackerIndex]:
         #     self.world.team[otherIndex].updateEntity(Midfielder)
 
+        if self.world.ball.pos[0] < -0.35:
+            formation = [GoalKeeper, Attacker, Defender]
+        else:
+            formation = [GoalKeeper, Attacker, Attacker]
 
-        d1 = norm(self.world.team[1].pos, self.world.ball.pos)
-        d2 = norm(self.world.team[2].pos, self.world.ball.pos)
+        toDecide = [0,1,2]
 
-        if self.currentAttacker == 1 and d2 + 0.20 < d1:
-            self.currentAttacker = 2
-            print("atacante é o 2")
-        elif self.currentAttacker == 2 and d1 + 0.20 < d2:
-            self.currentAttacker = 1
-            print("atacante é o 1")
+        if GoalKeeper in formation:
+            self.world.team[0].updateEntity(GoalKeeper)
+            toDecide.remove(0)
+            formation.remove(GoalKeeper)
+
+        if Attacker in formation:
+            d1 = norm(self.world.team[toDecide[0]].pos, self.world.ball.pos)
+            d2 = norm(self.world.team[toDecide[1]].pos, self.world.ball.pos)
+
+            if self.currentAttacker == toDecide[0] and d2 + 0.20 < d1:
+                self.currentAttacker = toDecide[1]
+                print("atacante é o " + str(toDecide[1]))
+            elif self.currentAttacker == toDecide[1] and d1 + 0.20 < d2:
+                self.currentAttacker = toDecide[0]
+                print("atacante é o " + str(toDecide[0]))
         
-        self.world.team[0].updateEntity(GoalKeeper)
-        self.world.team[1].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker != 1 else 0, slave = self.currentAttacker != 1)
-        self.world.team[2].updateEntity(Attacker, ballShift=0.15 if self.currentAttacker != 2 else 0, slave = self.currentAttacker != 2)
+            self.world.team[self.currentAttacker].updateEntity(Attacker, ballShift=0, slave=False)
+            toDecide.remove(self.currentAttacker)
+            formation.remove(Attacker)
+        
+        if Attacker in formation:
+            self.world.team[toDecide[0]].updateEntity(Attacker, ballShift=0.15, slave=True)
+            toDecide.remove(toDecide[0])
+            formation.remove(Attacker)
 
+        if Defender in formation:
+            self.world.team[toDecide[0]].updateEntity(Defender)
+            toDecide.remove(toDecide[0])
+            formation.remove(Defender)
+
+
+        # self.world.team[0].updateEntity(Attacker)
         # self.world.team[1].updateEntity(Attacker)
-        # self.world.team[2].updateEntity(Defender)
+        # self.world.team[2].updateEntity(Attacker)
 
         for robot in self.world.team:
+            robot.updateSpin()
             if robot.entity is not None:
-                robot.updateSpin()
                 robot.entity.fieldDecider()
                 robot.entity.directionDecider()
 
