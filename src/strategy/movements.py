@@ -18,8 +18,8 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     #rbp = rb
 
     # Não precisa ir para o futuro se já está atras da bola indo para tras ou na frente da bola indo para frente
-    if (rr[0] < rb[0] and rbp[0] < rb[0]) or (rr[0] > rb[0] and rbp[0] > rb[0]):
-        rbp[0] = rb[0]
+    if howFrontBall(rr, rb, rg) < 0 and howFrontBall(rbp, rb, rg) < 0 or howFrontBall(rr, rb, rg) > 0 and howFrontBall(rbp, rb, rg) > 0:
+        rbp = rb
 
     #rbp[0] = max(rbp[0], -rl[0])
     #rbp[0] = sat(rbp[0], rg[0])
