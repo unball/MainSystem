@@ -298,6 +298,13 @@ class MainStrategy(Strategy):
 
         # print([robot.entity.__class__.__name__ for robot in self.world.team])
 
+    def nearestGoal(self, indexes):
+        rg = np.array([-0.75, 0])
+        rrs = np.array([self.world.team[i].pos for i in indexes])
+        nearest = indexes[np.argmin(np.linalg.norm(rrs-rg, axis=1))]
+
+        return nearest
+
     def update(self):
         #formation = self.formationDecider()
         #self.entityDecider([GoalKeeper, Attacker, Midfielder])
@@ -308,7 +315,7 @@ class MainStrategy(Strategy):
         # for otherIndex in [index for index in decisionList if index != attackerIndex]:
         #     self.world.team[otherIndex].updateEntity(Midfielder)
 
-        if self.world.ball.pos[0] < -0.35:
+        if self.world.ball.pos[0] < -0.45:
             formation = [GoalKeeper, Attacker, Defender]
         else:
             formation = [GoalKeeper, Attacker, Attacker]
@@ -316,20 +323,35 @@ class MainStrategy(Strategy):
         toDecide = [0,1,2]
 
         if GoalKeeper in formation:
-            self.world.team[0].updateEntity(GoalKeeper)
-            toDecide.remove(0)
+            nearest = self.nearestGoal(toDecide)
+            self.world.team[nearest].updateEntity(GoalKeeper)
+            
+            toDecide.remove(nearest)
             formation.remove(GoalKeeper)
 
-        if Attacker in formation:
+        if Defender in formation:
+            nearest = self.nearestGoal(toDecide)
+            self.world.team[nearest].updateEntity(Defender)
+
+            toDecide.remove(nearest)
+            formation.remove(Defender)
+
+        if Attacker in formation and len(toDecide) >= 2:
             d1 = norm(self.world.team[toDecide[0]].pos, self.world.ball.pos)
             d2 = norm(self.world.team[toDecide[1]].pos, self.world.ball.pos)
-
-            if self.currentAttacker == toDecide[0] and d2 + 0.20 < d1:
-                self.currentAttacker = toDecide[1]
-                print("atacante é o " + str(toDecide[1]))
-            elif self.currentAttacker == toDecide[1] and d1 + 0.20 < d2:
-                self.currentAttacker = toDecide[0]
-                print("atacante é o " + str(toDecide[0]))
+            
+            if self.currentAttacker not in toDecide:
+                if d1 < d2:
+                    self.currentAttacker = toDecide[0]
+                else:
+                    self.currentAttacker = toDecide[1]
+            else: 
+                if self.currentAttacker == toDecide[0] and d2 + 0.20 < d1:
+                    self.currentAttacker = toDecide[1]
+                    print("atacante é o " + str(toDecide[1]))
+                elif self.currentAttacker == toDecide[1] and d1 + 0.20 < d2:
+                    self.currentAttacker = toDecide[0]
+                    print("atacante é o " + str(toDecide[0]))
         
             self.world.team[self.currentAttacker].updateEntity(Attacker, ballShift=0, slave=False)
             toDecide.remove(self.currentAttacker)
@@ -339,11 +361,6 @@ class MainStrategy(Strategy):
             self.world.team[toDecide[0]].updateEntity(Attacker, ballShift=0.15, slave=True)
             toDecide.remove(toDecide[0])
             formation.remove(Attacker)
-
-        if Defender in formation:
-            self.world.team[toDecide[0]].updateEntity(Defender)
-            toDecide.remove(toDecide[0])
-            formation.remove(Defender)
 
 
         # self.world.team[0].updateEntity(Attacker)
