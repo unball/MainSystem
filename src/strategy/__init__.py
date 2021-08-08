@@ -336,6 +336,7 @@ class MainStrategy(Strategy):
             toDecide.remove(nearest)
             formation.remove(Defender)
 
+        hasMaster = False
         if Attacker in formation and len(toDecide) >= 2:
             d1 = norm(self.world.team[toDecide[0]].pos, self.world.ball.pos)
             d2 = norm(self.world.team[toDecide[1]].pos, self.world.ball.pos)
@@ -356,16 +357,17 @@ class MainStrategy(Strategy):
             self.world.team[self.currentAttacker].updateEntity(Attacker, ballShift=0, slave=False)
             toDecide.remove(self.currentAttacker)
             formation.remove(Attacker)
+            hasMaster = True
         
         if Attacker in formation:
-            self.world.team[toDecide[0]].updateEntity(Attacker, ballShift=0.15, slave=True)
+            self.world.team[toDecide[0]].updateEntity(Attacker, ballShift=0.15 if hasMaster else 0, slave=True)
             toDecide.remove(toDecide[0])
             formation.remove(Attacker)
 
 
         # self.world.team[0].updateEntity(Attacker)
-        # self.world.team[1].updateEntity(Attacker)
-        # self.world.team[2].updateEntity(Attacker)
+        # self.world.team[1].updateEntity(Defender)
+        # self.world.team[2].updateEntity(GoalKeeper)
 
         for robot in self.world.team:
             robot.updateSpin()
