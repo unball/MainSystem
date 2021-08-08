@@ -349,10 +349,10 @@ class MainStrategy(Strategy):
             else: 
                 if self.currentAttacker == toDecide[0] and d2 + 0.20 < d1:
                     self.currentAttacker = toDecide[1]
-                    print("atacante é o " + str(toDecide[1]))
+                    #print("atacante é o " + str(toDecide[1]))
                 elif self.currentAttacker == toDecide[1] and d1 + 0.20 < d2:
                     self.currentAttacker = toDecide[0]
-                    print("atacante é o " + str(toDecide[0]))
+                    #print("atacante é o " + str(toDecide[0]))
         
             self.world.team[self.currentAttacker].updateEntity(Attacker, ballShift=0, slave=False)
             toDecide.remove(self.currentAttacker)

@@ -126,8 +126,10 @@ class TeamRobot(Robot):
         self.world.vss.command.write(self.id, 0, 0)
 
     def updateEntity(self, entityClass, forced_update=False, **kwargs):
-        if self.entity is None or self.entity.__class__.__name__ != entityClass.__name__ or forced_update:
-            self.entity = entityClass(self.world, self, **kwargs)
+        newEntity = entityClass(self.world, self, **kwargs)
+        if self.entity is None or self.entity.__class__.__name__ != entityClass.__name__ or not self.entity.equalsTo(newEntity) or forced_update:
+            #print("mudou entidade do robô {0}: de {1} para {2}".format(self.id, self.entity.__class__.__name__, entityClass.__name__))
+            self.entity = newEntity
 
     def isEntityLocked(self):
         if self.entity is None: return False
@@ -189,6 +191,10 @@ class TeamRobot(Robot):
         """Verifica se o robô está vivo baseado na relação entre a velocidade enviada pelo controle e a velocidade medida pela visão"""
         # if time.time() - self.forcedAliveTime < self.forcedAliveTimeTimeOut:
         #     return True
+
+        if not self.on:
+            self.timeLastResponse = time.time()
+            return True
 
         ctrlVel = np.abs(self.lastControlLinVel)
         

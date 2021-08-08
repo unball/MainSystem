@@ -19,6 +19,9 @@ class Defender(Entity):
     @property
     def control(self):
         return self._control
+
+    def equalsTo(self, otherDefender):
+        return True
         
     def directionDecider(self):
        if self.robot.field is not None:
