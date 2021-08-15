@@ -22,7 +22,7 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
         rbp = rb
 
     #rbp[0] = max(rbp[0], -rl[0])
-    #rbp[0] = sat(rbp[0], rg[0])
+    rbp[0] = sat(rbp[0], rl[0])
     rbp[1] = sat(rbp[1], rl[1])
     offsetVector = offset * unit(angl(rg-rbp))#+ 0.015 * unit(angl(rg-rb) + np.pi/2)
 
@@ -30,10 +30,12 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     rbp[0] = max(rbp[0], -0.20)
 
     target = rbp + offsetVector
+    target[0] = sat(target[0], rl[0])
+    target[1] = sat(target[1], rl[1])
     
     # Ângulo da bola até o gol
     if abs(rbp[1]) >= rl[1]: angle = 0
-    else: angle = ang(target + vb, rg)
+    else: angle = ang(target, rg)
 
     return np.array([*target[:2], angle])
 
