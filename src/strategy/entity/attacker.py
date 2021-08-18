@@ -66,7 +66,7 @@ class Attacker(Entity):
             ref_th = self.robot.field.F(self.robot.pose)
             rob_th = self.robot.th
 
-            if time.time()-self.lastChat > .3:
+            if time.time()-self.lastChat > 0.5:
                 if abs(angError(ref_th, rob_th)) > 120 * np.pi / 180:
                     self.robot.direction *= -1
                     self.lastChat = time.time()
