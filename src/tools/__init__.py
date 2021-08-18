@@ -116,3 +116,11 @@ def distToBall(pa, pb, pc):
   c = pa[0]*pb[1] - (pb[0] + pa[1])
   return np.abs((a*pc[0] + b*pc[1] + c)) / np.sqrt(a**2 + b**2)
   
+def bestWithHyst(state: int, possibleStates: list, possibleStatesDistances: list, hyst: float):
+  if state in possibleStates:
+    distances = np.array(possibleStatesDistances) + [hyst for s in possibleStates if s != state]
+  else:
+    distances = np.array(possibleStatesDistances)
+
+  best = np.argmin(distances)
+  return possibleStates[best]

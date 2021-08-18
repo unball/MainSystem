@@ -5,8 +5,9 @@ from .entity.defender import Defender
 from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm
+from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm, bestWithHyst
 from .decider.attackerDecider import AttackerDecider
+from .movements import blockBallElipse
 from copy import copy
 import numpy as np
 import time
@@ -62,7 +63,8 @@ class MainStrategy(Strategy):
         self.ambitiousLineHyst = 0.1
         self.formationState = "learn"
         self.learnState = "safe"
-        self.currentAttacker = 1
+        self.currentAttacker = None
+        self.currentDefender = None
 
         self.insaneBehavior = False
 
@@ -305,6 +307,15 @@ class MainStrategy(Strategy):
 
         return nearest
 
+    def ellipseTarget(self):
+        rb = np.array(self.world.ball.pos)
+        vb = np.array(self.world.ball.v)
+        rr = np.array([0,0,0]) # dummy, usado para computar angulo do pose, não é necessário aqui
+        
+        pose, spin = blockBallElipse(rb, vb, rr, self.world.field.areaEllipseCenter, *self.world.field.areaEllipseSize)
+
+        return pose[:2]
+
     def update(self):
         #formation = self.formationDecider()
         #self.entityDecider([GoalKeeper, Attacker, Midfielder])
@@ -330,29 +341,21 @@ class MainStrategy(Strategy):
             formation.remove(GoalKeeper)
 
         if Defender in formation:
-            nearest = self.nearestGoal(toDecide)
-            self.world.team[nearest].updateEntity(Defender)
+            target = self.ellipseTarget()
+            distances = [norm(target, self.world.team[robotIndex].pos) for robotIndex in toDecide]
 
-            toDecide.remove(nearest)
+            self.currentDefender = bestWithHyst(self.currentDefender, toDecide, distances, 0.20)
+            self.world.team[self.currentDefender].updateEntity(Defender)
+
+            toDecide.remove(self.currentDefender)
             formation.remove(Defender)
 
         hasMaster = False
         if Attacker in formation and len(toDecide) >= 2:
             d1 = norm(self.world.team[toDecide[0]].pos, self.world.ball.pos)
             d2 = norm(self.world.team[toDecide[1]].pos, self.world.ball.pos)
-            
-            if self.currentAttacker not in toDecide:
-                if d1 < d2:
-                    self.currentAttacker = toDecide[0]
-                else:
-                    self.currentAttacker = toDecide[1]
-            else: 
-                if self.currentAttacker == toDecide[0] and d2 + 0.20 < d1:
-                    self.currentAttacker = toDecide[1]
-                    #print("atacante é o " + str(toDecide[1]))
-                elif self.currentAttacker == toDecide[1] and d1 + 0.20 < d2:
-                    self.currentAttacker = toDecide[0]
-                    #print("atacante é o " + str(toDecide[0]))
+
+            self.currentAttacker = bestWithHyst(self.currentAttacker, toDecide, [d1, d2], 0.20)
         
             self.world.team[self.currentAttacker].updateEntity(Attacker, ballShift=0, slave=False)
             toDecide.remove(self.currentAttacker)
