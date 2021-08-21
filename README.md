@@ -9,10 +9,13 @@ Para executar o sistema rode `python3 src/main.py [cor do time]`
 O sistema pode ser executado com docker. 
 
 Para gerar a imagem docker basta fazer:
-`docker build . -f Dockerfile -t 'alp-winners'`
+
+`docker build . -f Dockerfile -t alp-winners`
 
 Para criar e rodar um container:
+
 `docker run -it --net=host --name='alp-winners-container' alp-winners /bin/bash`
 
 Para remover o container depois de usado:
+
 `docker container rm alp-winners-container -f`
