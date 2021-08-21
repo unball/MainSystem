@@ -5,7 +5,7 @@ from strategy.field.areaAvoidance.avoidanceField import AvoidanceField
 from strategy.field.areaAvoidance.avoidCircle import AvoidCircle
 from strategy.field.areaAvoidance.avoidRect import AvoidRect
 from strategy.field.areaAvoidance.avoidEllipse import AvoidEllipse
-from strategy.movements import goToBall
+from strategy.movements import goToBall, avoidObstacle
 from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, unit, angl
 from tools.interval import Interval
 from control.UFC import UFC_Simple
@@ -149,15 +149,20 @@ class Attacker(Entity):
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
+                rps = np.array([r.pos for r in enemies+otherAllies])
+                Pbv = avoidObstacle(Pb, rr[:2], rl-[0.15,0], rps)
+                #Pbv = Pb
+
                 self.robot.vref = self.approximationSpeed + 2 * norml(vb)
-                self.robot.field = UVF(Pb, radius=self.spiralRadius, Kr=0.03)
-        
+                self.robot.field = UVF(Pbv, radius=self.spiralRadius, Kr=0.03)
+
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
             drb = norm(rr, rb)
             drg = norm(rr, rg)
+            angle = (drg * ang(rr, rg) + drb * ang(rr, rb)) / (drb + drg)
             self.robot.vref = math.inf
-            self.robot.field = DirectionalField((drg * ang(rr, rg) + drb * ang(rr, rb)) / (drb + drg))
+            self.robot.field = DirectionalField(angle)
         
         if self.attackState==0: self.elapsed = math.inf
 

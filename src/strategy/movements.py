@@ -1,6 +1,6 @@
 import numpy as np
 import scipy
-from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine, insideEllipse, howPerpBall
+from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine, insideEllipse, howPerpBall, perpl
 import math
 
 def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
@@ -38,6 +38,42 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     else: angle = ang(target, rg)
 
     return np.array([*target[:2], angle])
+
+def avoidObstacle(rt, rr, rl, rps):
+    obstacles = []
+    
+    a = rt[:2] - rr
+    p = perpl(unit(ang(rr, rt[:2])))
+    
+    for rp in rps:
+        A = np.array([a, p]).T
+        b = rp - rr
+
+        [alpha, beta] = np.linalg.solve(A, b)
+
+        if np.abs(beta) < 0.10 and alpha > 0 and alpha < min(1, 0.30 / norml(a)):
+            obstacles.append([rp, alpha, beta])
+
+    if len(obstacles) == 0:
+        return rt
+
+    obstacles = np.array(obstacles)
+
+    # Nearest obstacle has smallest alpha
+    nearestIndex = np.argmin(obstacles[:,1])
+    rpn, alphan, betan = obstacles[nearestIndex]
+
+    # Possible virtual targets
+    rtv1 = rpn - 0.10 * p * np.sign(betan)
+    rtv2 = rpn + 0.10 * p * np.sign(betan)
+
+    # Choose
+    if np.all(np.abs(rtv1) < rl):
+        return np.array([*rtv1, ang(rr, rt)])
+    elif np.all(np.abs(rtv2) < rl):
+        return np.array([*rtv2, ang(rr, rt)])
+    else:
+        return rt
 
 def goalkeep(rb, vb, rr, rg):
     xGoal = rg[0] 

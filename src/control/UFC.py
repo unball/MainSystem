@@ -133,7 +133,7 @@ class UFC_Simple(Control):
       if np.dot(self.vPb, unit(robot.field.Pb[2])) < 0:
         raw_injection = max(-np.dot(self.vPb, unit(robot.field.Pb[2])), 0)
       else:
-        raw_injection = 0.1 * max(np.dot(self.vPb, unit(robot.field.Pb[2])), 0)
+        raw_injection = 0.5 * max(np.dot(self.vPb, unit(robot.field.Pb[2])), 0)
 
       injection = raw_injection * eta
     else:
