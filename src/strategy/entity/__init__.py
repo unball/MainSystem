@@ -19,6 +19,10 @@ class Entity(ABC):
     def directionDecider(self):
         pass
 
+    @abstractmethod
+    def equalsTo(self, otherEntityOfSameClass):
+        pass
+
     def isLocked(self):
         return False
     

@@ -24,6 +24,9 @@ class GoalKeeper(Entity):
     def control(self):
         return self._control
 
+    def equalsTo(self, otherGoalKeeper):
+        return True
+
     def setGoalKeeperControl(self):
         self._control = GoalKeeperControl(self.world)
     

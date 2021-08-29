@@ -5,8 +5,10 @@ from .entity.defender import Defender
 from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
-from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm
+from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm, bestWithHyst
 from .decider.attackerDecider import AttackerDecider
+from .movements import blockBallElipse
+from copy import copy
 import numpy as np
 import time
 
@@ -40,10 +42,10 @@ class MainStrategy(Strategy):
 
         self.world = world
         self.formations = {
-            "insane": (Attacker, Attacker, Midfielder),
-            "crazy": (Attacker, Midfielder, Defender), 
-            "ambitious": (Attacker, Midfielder, GoalKeeper),
-            "safe": (Attacker, Defender, GoalKeeper)
+            "insane": [Attacker, Attacker, Attacker],
+            "crazy": [Attacker, Attacker, Defender], 
+            "ambitious": [Attacker, Attacker, GoalKeeper],
+            "safe": [Attacker, Defender, GoalKeeper]
         }
         self.lastGoalkeeper = None
         self.goalkeeperIndx = None
@@ -61,6 +63,8 @@ class MainStrategy(Strategy):
         self.ambitiousLineHyst = 0.1
         self.formationState = "learn"
         self.learnState = "safe"
+        self.currentAttacker = None
+        self.currentDefender = None
 
         self.insaneBehavior = False
 
@@ -200,10 +204,10 @@ class MainStrategy(Strategy):
 
         # Executa formação conforme o estado
         if self.formationState != "learn":
-            return self.formations[self.formationState]
+            return copy(self.formations[self.formationState])
         else:
             self.learnStateUpdate()
-            return self.formations[self.learnState]
+            return copy(self.formations[self.learnState])
 
     def formationDeciderInsane(self):
         rb = np.array(self.world.ball.pos)
@@ -219,7 +223,7 @@ class MainStrategy(Strategy):
             print("ESTADO INSANO INVÁLIDO!")
 
         # Executa o estado
-        return self.formations[self.formationState]
+        return copy(self.formations[self.formationState])
 
     def entityDecider(self, formation):
         if len(self.world.team) == 0: return
@@ -296,21 +300,81 @@ class MainStrategy(Strategy):
 
         # print([robot.entity.__class__.__name__ for robot in self.world.team])
 
+    def nearestGoal(self, indexes):
+        rg = np.array([-0.75, 0])
+        rrs = np.array([self.world.team[i].pos for i in indexes])
+        nearest = indexes[np.argmin(np.linalg.norm(rrs-rg, axis=1))]
+
+        return nearest
+
+    def ellipseTarget(self):
+        rb = np.array(self.world.ball.pos)
+        vb = np.array(self.world.ball.v)
+        rr = np.array([0,0,0]) # dummy, usado para computar angulo do pose, não é necessário aqui
+        
+        pose, spin = blockBallElipse(rb, vb, rr, self.world.field.areaEllipseCenter, *self.world.field.areaEllipseSize)
+
+        return pose[:2]
+
     def update(self):
-        formation = self.formationDecider()
+        #formation = self.formationDecider()
         #self.entityDecider([GoalKeeper, Attacker, Midfielder])
-        self.entityDecider(formation)
+        #self.entityDecider(formation)
         # decisionList = [0,1]
         # attackerIndex = self.attackerDecider.decide(decisionList)
         # self.world.team[attackerIndex].updateEntity(Attacker)
         # for otherIndex in [index for index in decisionList if index != attackerIndex]:
         #     self.world.team[otherIndex].updateEntity(Midfielder)
-        #self.world.team[0].updateEntity(Attacker)
-        #self.world.team[1].updateEntity(Midfielder)
-        #self.world.team[2].updateEntity(GoalKeeper)
+
+        if self.world.ball.pos[0] < -0.45:
+            formation = [GoalKeeper, Attacker, Defender]
+        else:
+            formation = [GoalKeeper, Attacker, Attacker]
+
+        toDecide = [0,1,2]
+
+        if GoalKeeper in formation:
+            nearest = self.nearestGoal(toDecide)
+            self.world.team[nearest].updateEntity(GoalKeeper)
+            
+            toDecide.remove(nearest)
+            formation.remove(GoalKeeper)
+
+        if Defender in formation:
+            target = self.ellipseTarget()
+            distances = [norm(target, self.world.team[robotIndex].pos) for robotIndex in toDecide]
+
+            self.currentDefender = bestWithHyst(self.currentDefender, toDecide, distances, 0.20)
+            self.world.team[self.currentDefender].updateEntity(Defender)
+
+            toDecide.remove(self.currentDefender)
+            formation.remove(Defender)
+
+        hasMaster = False
+        if Attacker in formation and len(toDecide) >= 2:
+            d1 = norm(self.world.team[toDecide[0]].pos, self.world.ball.pos)
+            d2 = norm(self.world.team[toDecide[1]].pos, self.world.ball.pos)
+
+            self.currentAttacker = bestWithHyst(self.currentAttacker, toDecide, [d1, d2], 0.20)
+        
+            self.world.team[self.currentAttacker].updateEntity(Attacker, ballShift=0, slave=False)
+            toDecide.remove(self.currentAttacker)
+            formation.remove(Attacker)
+            hasMaster = True
+        
+        if Attacker in formation:
+            self.world.team[toDecide[0]].updateEntity(Attacker, ballShift=0.15 if hasMaster else 0, slave=True)
+            toDecide.remove(toDecide[0])
+            formation.remove(Attacker)
+
+
+        # self.world.team[0].updateEntity(Attacker)
+        # self.world.team[1].updateEntity(Defender)
+        # self.world.team[2].updateEntity(GoalKeeper)
+
         for robot in self.world.team:
+            robot.updateSpin()
             if robot.entity is not None:
-                robot.updateSpin()
                 robot.entity.fieldDecider()
                 robot.entity.directionDecider()
 

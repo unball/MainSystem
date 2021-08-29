@@ -1,13 +1,13 @@
 import numpy as np
 import scipy
-from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine, insideEllipse, howPerpBall
+from tools import unit, angl, ang, norm, sat, howFrontBall, norml, projectLine, insideEllipse, howPerpBall, perpl
 import math
 
 def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
     rb = rb.copy()
     #rbp = rb + vb * norm(rb, rr) / (vravg + 0.00001)
 
-    u = np.roots([norml(vb) ** 2 - (max(vravg-0.05, 0))**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
+    u = np.roots([norml(vb) ** 2 - (max(vravg-0.05, 0.3))**2, 2 * np.dot(rb-rr[:2], vb), norml(rr[:2]-rb)**2])
     u = [x for x in u if x >= 0 and not(np.iscomplex(x))]
 
     if len(u) == 0 or norm(rb, rr) < 0.1:
@@ -17,18 +17,63 @@ def goToBall(rb, vb, rg, rr, rl, vravg, offset=0.015):
         
     #rbp = rb
 
+    # Não precisa ir para o futuro se já está atras da bola indo para tras ou na frente da bola indo para frente
+    if howFrontBall(rr, rb, rg) < 0 and howFrontBall(rbp, rb, rg) < 0 or howFrontBall(rr, rb, rg) > 0 and howFrontBall(rbp, rb, rg) > 0:
+        rbp = rb
+
     #rbp[0] = max(rbp[0], -rl[0])
-    #rbp[0] = sat(rbp[0], rg[0])
+    rbp[0] = sat(rbp[0], rl[0])
     rbp[1] = sat(rbp[1], rl[1])
     offsetVector = offset * unit(angl(rg-rbp))#+ 0.015 * unit(angl(rg-rb) + np.pi/2)
 
+    # Limita x da bola no nosso lado
+    rbp[0] = max(rbp[0], -0.20)
+
     target = rbp + offsetVector
+    target[0] = sat(target[0], rl[0])
+    target[1] = sat(target[1], rl[1])
     
     # Ângulo da bola até o gol
     if abs(rbp[1]) >= rl[1]: angle = 0
-    else: angle = ang(target + vb, rg)
+    else: angle = ang(target, rg)
 
     return np.array([*target[:2], angle])
+
+def avoidObstacle(rt, rr, rl, rps):
+    obstacles = []
+    
+    a = rt[:2] - rr
+    p = perpl(unit(ang(rr, rt[:2])))
+    
+    for rp in rps:
+        A = np.array([a, p]).T
+        b = rp - rr
+
+        [alpha, beta] = np.linalg.solve(A, b)
+
+        if np.abs(beta) < 0.10 and alpha > 0 and alpha < min(1, 0.30 / norml(a)):
+            obstacles.append([rp, alpha, beta])
+
+    if len(obstacles) == 0:
+        return rt
+
+    obstacles = np.array(obstacles)
+
+    # Nearest obstacle has smallest alpha
+    nearestIndex = np.argmin(obstacles[:,1])
+    rpn, alphan, betan = obstacles[nearestIndex]
+
+    # Possible virtual targets
+    rtv1 = rpn - 0.10 * p * np.sign(betan)
+    rtv2 = rpn + 0.10 * p * np.sign(betan)
+
+    # Choose
+    if np.all(np.abs(rtv1) < rl):
+        return np.array([*rtv1, ang(rr, rt)])
+    elif np.all(np.abs(rtv2) < rl):
+        return np.array([*rtv2, ang(rr, rt)])
+    else:
+        return rt
 
 def goalkeep(rb, vb, rr, rg):
     xGoal = rg[0] 
