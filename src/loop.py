@@ -1,5 +1,5 @@
 from client.referee import RefereeCommands, RefereePlacement
-from strategy import MainStrategy, EnemyStrategy
+from strategy import MainStrategy
 from UVF_screen import UVFScreen
 from world import World
 from client import VSS
@@ -11,7 +11,7 @@ import time
 import sys
 
 class Loop:
-    def __init__(self, loop_freq=60, draw_uvf=False, team_yellow=True, team_side=1, immediate_start=False):
+    def __init__(self, loop_freq=60, draw_uvf=False, team_yellow=True, team_side=1, immediate_start=False, static_entities=False):
         # Instancia interface com o simulador
         self.vss = VSS(team_yellow=team_yellow)
 
@@ -21,7 +21,7 @@ class Loop:
 
         # Instancia o mundo e a estratégia
         self.world = World(3, side=team_side, vss=self.vss, team_yellow=team_yellow, immediate_start=immediate_start)
-        self.strategy = MainStrategy(self.world)
+        self.strategy = MainStrategy(self.world, static_entities=static_entities)
 
         # Variáveis
         self.loopTime = 1.0 / loop_freq
