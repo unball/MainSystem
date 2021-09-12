@@ -175,10 +175,10 @@ class Attacker(Entity):
         # if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
         #     self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
         
-        if self.attackState == 0 and rr[0] > 0 and norm(rr, rb) > 0.10:
-           for robot in enemies:#otherAllies + enemies:
-               if np.abs(ang(unit(angl(robot.pos-rr)), unit(self.robot.th))) < 30 * np.pi / 180:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
+        # if self.attackState == 0 and rr[0] > 0 and norm(rr, rb) > 0.10:
+        #    for robot in enemies:#otherAllies + enemies:
+        #        if np.abs(ang(unit(angl(robot.pos-rr)), unit(self.robot.th))) < 30 * np.pi / 180:
+        #         self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
 
         # if self.slave and self.attackState == 0:
         #     print("I {0} am slave".format(self.robot.id))
