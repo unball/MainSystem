@@ -6,7 +6,6 @@ from .entity.midfielder import Midfielder
 from client.protobuf.vssref_common_pb2 import Foul
 from client.referee import RefereeCommands
 from tools import sats, norml, unit, angl, angError, projectLine, howFrontBall, norm, bestWithHyst
-from .decider.attackerDecider import AttackerDecider
 from .movements import blockBallElipse
 from copy import copy
 import numpy as np
