@@ -150,8 +150,8 @@ class Attacker(Entity):
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
             else:
                 rps = np.array([r.pos for r in enemies+otherAllies])
-                Pbv = avoidObstacle(Pb, rr[:2], rl-[0.15,0], rps)
-                #Pbv = Pb
+                # Pbv = avoidObstacle(Pb, rr[:2], rl-[0.15,0], rps)
+                Pbv = Pb
 
                 self.robot.vref = self.approximationSpeed + 2 * norml(vb)
                 self.robot.field = UVF(Pbv, radius=self.spiralRadius, Kr=0.03)
