@@ -8,6 +8,7 @@ from tools import angError, howFrontBall, howPerpBall, ang, norml, norm
 from tools.interval import Interval
 from control.UFC import UFC_Simple
 from control.defender import DefenderControl
+from client.gui import clientProvider
 import numpy as np
 import math
 
@@ -22,6 +23,9 @@ class Defender(Entity):
 
     def equalsTo(self, otherDefender):
         return True
+
+    def onExit(self):
+        clientProvider().removeEllipse(self.robot.id)
         
     def directionDecider(self):
        if self.robot.field is not None:
@@ -65,6 +69,8 @@ class Defender(Entity):
             self.robot.vref = 0
             self.robot.field = DefenderField(pose, *self.world.field.areaEllipseSize, self.world.field.areaEllipseCenter)
 
+        rm = self.world.field.areaEllipseCenter
+        clientProvider().drawEllipse(self.robot.id, rm[0], rm[1], *self.world.field.areaEllipseSize, -np.pi/2, np.pi/2, None, False)
         # Pb = blockBallElipse(rb, vb, rr, rg) 
         # self.robot.field = DefenderField(Pb)
         

@@ -9,6 +9,7 @@ from strategy.movements import goToBall, avoidObstacle
 from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, unit, angl
 from tools.interval import Interval
 from control.UFC import UFC_Simple
+from client.gui import clientProvider
 import numpy as np
 import math
 import time
@@ -57,6 +58,10 @@ class Attacker(Entity):
 
     def equalsTo(self, otherAttacker):
         return self.slave == otherAttacker.slave
+
+    def onExit(self):
+        clientProvider().removeTarget(self.robot.id)
+        clientProvider().removeLine(self.robot.id)
 
     def isLocked(self):
         return self.attackState == 1 or self.attackState == 2
@@ -120,6 +125,8 @@ class Attacker(Entity):
                 #self.attackAngle = self.angleToAttack(rr, rb, rg)
                 self.attackAngle = ang(rr, rg)
                 self.elapsed = time.time()
+
+                clientProvider().drawLine(self.robot.id, rr[0], rr[1], rg[0], rg[1])
             # elif self.alignedToBall2(rb, rr):
             #     self.attackState = 2
             #     self.attackAngle =  self.robot.th if np.dot(unit(self.robot.th), rb- rr[:2]) > 0 else self.robot.th+np.pi #ang(rr, rb) # preciso melhorado
@@ -133,6 +140,8 @@ class Attacker(Entity):
             else:
                 #print("indo até a bola")
                 self.attackState = 0
+
+                clientProvider().removeLine(self.robot.id)
 
         # # Ataque à bola
         # elif self.attackState == 2:
@@ -148,6 +157,8 @@ class Attacker(Entity):
             if np.abs(Pb[1]) > rl[1]:
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
+
+                clientProvider().drawTarget(self.robot.id, Pb[0], Pb[1], Pb[2])
             else:
                 rps = np.array([r.pos for r in enemies+otherAllies])
                 # Pbv = avoidObstacle(Pb, rr[:2], rl-[0.15,0], rps)
@@ -156,6 +167,8 @@ class Attacker(Entity):
                 self.robot.vref = self.approximationSpeed + 2 * norml(vb)
                 self.robot.field = UVF(Pbv, radius=self.spiralRadius, Kr=0.03)
 
+                clientProvider().drawTarget(self.robot.id, Pbv[0], Pbv[1], Pbv[2])
+
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
             drb = norm(rr, rb)
@@ -163,6 +176,8 @@ class Attacker(Entity):
             angle = (drg * ang(rr, rg) + drb * ang(rr, rb)) / (drb + drg)
             self.robot.vref = math.inf
             self.robot.field = DirectionalField(angle)
+
+            clientProvider().drawTarget(self.robot.id, rg[0], rg[1], angle)
         
         if self.attackState==0: self.elapsed = math.inf
 

@@ -23,6 +23,10 @@ class Entity(ABC):
     def equalsTo(self, otherEntityOfSameClass):
         pass
 
+    @abstractmethod
+    def onExit(self):
+        pass
+
     def isLocked(self):
         return False
     

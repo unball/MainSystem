@@ -1,4 +1,5 @@
 from client.referee import RefereeCommands, RefereePlacement
+from client.gui import clientProvider
 from strategy import MainStrategy
 from UVF_screen import UVFScreen
 from world import World
@@ -48,12 +49,24 @@ class Loop:
         else:
             self.vss.command.writeMulti([(0,0) for robot in self.world.team])
 
+        # Desenha no ALP-GUI
+        self.draw()
+
     def busyLoop(self):
         message = self.vss.vision.read()
         if message is not None: self.world.update(message)
         
         command = self.rc.receive()
         if command is not None: self.strategy.manageReferee(self.rp, command)
+
+    def draw(self):
+        for robot in [r for r in self.world.team if r.entity is not None]:
+            clientProvider().drawRobot(robot.id, robot.x, robot.y, robot.thvec_raw.vec[0], robot.direction)
+
+        for robot in self.world.enemies:
+            clientProvider().drawRobot(robot.id+3, robot.x, robot.y, robot.thvec_raw.vec[0], 1, (0.6, 0.6, 0.6))
+
+        clientProvider().drawBall(0, self.world.ball.x, self.world.ball.y)
 
     def run(self):
         t0 = 0
