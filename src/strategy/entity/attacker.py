@@ -106,6 +106,8 @@ class Attacker(Entity):
         # Atualiza histórico de velocidade do robô
         self.vravg = 0.995 * self.vravg + 0.005 * np.dot(vr, unit(ang(rr, rb)))
         
+        Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset - self.ballShift)
+        
         # if self.attackState == 0 and norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
         #     self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
         # else:
@@ -119,7 +121,7 @@ class Attacker(Entity):
         # Define estado do movimento
         # Ir até a bola
         if self.attackState == 0:
-            if self.alignedToGoal(rb, rr, rg):
+            if self.alignedToGoal(Pb[:2], rr, rg):
                 self.attackState = 1
                 #print("atacando")
                 #self.attackAngle = self.angleToAttack(rr, rb, rg)
@@ -135,7 +137,7 @@ class Attacker(Entity):
 
         # Ataque ao gol
         elif self.attackState == 1:
-            if self.alignedToGoalRelaxed(rb, rr, rg) :
+            if self.alignedToGoalRelaxed(Pb[:2], rr, rg) :
                 self.attackState =  1
             else:
                 #print("indo até a bola")
@@ -152,7 +154,6 @@ class Attacker(Entity):
 
         # Movimento de alinhamento
         if self.attackState == 0 or time.time()-self.elapsed < .2:
-            Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset - self.ballShift)
 
             if np.abs(Pb[1]) > rl[1]:
                 self.robot.vref = math.inf
