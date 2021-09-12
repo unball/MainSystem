@@ -94,7 +94,6 @@ class MainStrategy(Strategy):
                 positions = [(0, (rg[0], rg[1], 90))]
                 positions.append((1, (0,  0.30, 1.2*180)))
                 positions.append((2, (0, -0.30, 0.8*180)))
-                print(positions)
                 rp.send(positions)
             else:
                 rg = -np.array(self.world.field.goalPos)
@@ -105,7 +104,6 @@ class MainStrategy(Strategy):
                 robotPos = penaltiPos  - 0.065 * unit(ang*np.pi/180)
                 positions.append((1, (robotPos[0],  robotPos[1], ang)))
                 positions.append((2, (0, -0.30, 3)))
-                print(positions)
                 rp.send(positions)
 
 

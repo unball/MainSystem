@@ -45,7 +45,7 @@ class GoalKeeperControl(Control):
     w = dth + self.kw * np.sign(eth) * np.sqrt(np.abs(eth)) #+ self.kw/100.0 * self.ieth 
 
     # Velocidade limite de deslizamento
-    v1 = self.amax / np.abs(w)
+    v1 = self.amax / np.abs(w) if w != 0 else math.inf
 
     # Velocidade limite das rodas
     v2 = self.vmax - self.L * np.abs(w) / 2
