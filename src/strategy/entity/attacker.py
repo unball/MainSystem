@@ -9,6 +9,7 @@ from strategy.movements import goToBall, avoidObstacle
 from tools import angError, howFrontBall, howPerpBall, ang, norml, norm, insideEllipse, unit, angl
 from tools.interval import Interval
 from control.UFC import UFC_Simple
+from client.gui import clientProvider
 import numpy as np
 import math
 import time
@@ -58,6 +59,10 @@ class Attacker(Entity):
     def equalsTo(self, otherAttacker):
         return self.slave == otherAttacker.slave
 
+    def onExit(self):
+        clientProvider().removeTarget(self.robot.id)
+        clientProvider().removeLine(self.robot.id)
+
     def isLocked(self):
         return self.attackState == 1 or self.attackState == 2
 
@@ -101,6 +106,8 @@ class Attacker(Entity):
         # Atualiza histórico de velocidade do robô
         self.vravg = 0.995 * self.vravg + 0.005 * np.dot(vr, unit(ang(rr, rb)))
         
+        Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset - self.ballShift)
+        
         # if self.attackState == 0 and norm(rr, rb) < 0.085 and np.any([norm(rr, x.pos) < 0.20 for x in enemies]) and rr[0] > 0:
         #     self.robot.setSpin(-np.sign(rr[1]), timeOut=1)
         # else:
@@ -114,12 +121,14 @@ class Attacker(Entity):
         # Define estado do movimento
         # Ir até a bola
         if self.attackState == 0:
-            if self.alignedToGoal(rb, rr, rg):
+            if self.alignedToGoal(Pb[:2], rr, rg):
                 self.attackState = 1
                 #print("atacando")
                 #self.attackAngle = self.angleToAttack(rr, rb, rg)
                 self.attackAngle = ang(rr, rg)
                 self.elapsed = time.time()
+
+                clientProvider().drawLine(self.robot.id, rr[0], rr[1], rg[0], rg[1])
             # elif self.alignedToBall2(rb, rr):
             #     self.attackState = 2
             #     self.attackAngle =  self.robot.th if np.dot(unit(self.robot.th), rb- rr[:2]) > 0 else self.robot.th+np.pi #ang(rr, rb) # preciso melhorado
@@ -128,11 +137,13 @@ class Attacker(Entity):
 
         # Ataque ao gol
         elif self.attackState == 1:
-            if self.alignedToGoalRelaxed(rb, rr, rg) :
+            if self.alignedToGoalRelaxed(Pb[:2], rr, rg) :
                 self.attackState =  1
             else:
                 #print("indo até a bola")
                 self.attackState = 0
+
+                clientProvider().removeLine(self.robot.id)
 
         # # Ataque à bola
         # elif self.attackState == 2:
@@ -143,18 +154,21 @@ class Attacker(Entity):
 
         # Movimento de alinhamento
         if self.attackState == 0 or time.time()-self.elapsed < .2:
-            Pb = goToBall(rb, vb, rg, rr, rl, self.vravg, self.ballOffset - self.ballShift)
 
             if np.abs(Pb[1]) > rl[1]:
                 self.robot.vref = math.inf
                 self.robot.field = UVF(Pb, direction=-np.sign(rb[1]), radius=self.spiralRadiusCorners)
+
+                clientProvider().drawTarget(self.robot.id, Pb[0], Pb[1], Pb[2])
             else:
                 rps = np.array([r.pos for r in enemies+otherAllies])
-                Pbv = avoidObstacle(Pb, rr[:2], rl-[0.15,0], rps)
-                #Pbv = Pb
+                # Pbv = avoidObstacle(Pb, rr[:2], rl-[0.15,0], rps)
+                Pbv = Pb
 
                 self.robot.vref = self.approximationSpeed + 2 * norml(vb)
                 self.robot.field = UVF(Pbv, radius=self.spiralRadius, Kr=0.03)
+
+                clientProvider().drawTarget(self.robot.id, Pbv[0], Pbv[1], Pbv[2])
 
         # Movimento reto
         elif self.attackState == 1 or self.attackState == 2:
@@ -163,6 +177,8 @@ class Attacker(Entity):
             angle = (drg * ang(rr, rg) + drb * ang(rr, rb)) / (drb + drg)
             self.robot.vref = math.inf
             self.robot.field = DirectionalField(angle)
+
+            clientProvider().drawTarget(self.robot.id, rg[0], rg[1], angle)
         
         if self.attackState==0: self.elapsed = math.inf
 
@@ -175,10 +191,10 @@ class Attacker(Entity):
         # if np.any([insideEllipse(robot.pos, a, b, rg) for robot in otherAllies]):
         #     self.robot.field = AvoidanceField(self.robot.field, AvoidEllipse(rg, 0.6*a, 0.80*b), borderSize=0.15)
         
-        if self.attackState == 0 and rr[0] > 0 and norm(rr, rb) > 0.10:
-           for robot in enemies:#otherAllies + enemies:
-               if np.abs(ang(unit(angl(robot.pos-rr)), unit(self.robot.th))) < 30 * np.pi / 180:
-                self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
+        # if self.attackState == 0 and rr[0] > 0 and norm(rr, rb) > 0.10:
+        #    for robot in enemies:#otherAllies + enemies:
+        #        if np.abs(ang(unit(angl(robot.pos-rr)), unit(self.robot.th))) < 30 * np.pi / 180:
+        #         self.robot.field = AvoidanceField(self.robot.field, AvoidCircle(robot.pos, 0.08), borderSize=0.20)
 
         # if self.slave and self.attackState == 0:
         #     print("I {0} am slave".format(self.robot.id))

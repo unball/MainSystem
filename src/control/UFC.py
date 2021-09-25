@@ -101,7 +101,7 @@ class UFC_Simple(Control):
     # Velocidade limite de aproximação
     v3 = self.kp * norm(robot.pos, robot.field.Pb) ** 2 + robot.vref
 
-    v4 = self.kv / abs(eth) + self.vbias
+    # v4 = self.kv / abs(eth) + self.vbias
 
     # Velocidade linear é menor de todas
     sd = self.abs_path_dth(robot.pose, eth, robot.field)

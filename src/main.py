@@ -1,148 +1,28 @@
-from client import VSS
-from world import World
-from strategy import MainStrategy, EnemyStrategy
-from UVF_screen import UVFScreen
-from client.referee import RefereeCommands, RefereePlacement
-import matplotlib.pyplot as plt
-import time
-import sys
-import numpy as np
+from loop import Loop
+import argparse
+import logging
+import client.gui
 
-# Verifia a cor do time
-if sys.argv[1] == "yellow":
-    team_yellow = True
-    team_side = -1
-else:
-    team_yellow = False
-    team_side = 1
+logging.basicConfig(level=logging.INFO)
 
-# Instancia interface com o simulador
-vss = VSS(team_yellow=team_yellow)
-vss_enemy = VSS(team_yellow=not team_yellow)
+# Argumentos
+parser = argparse.ArgumentParser(description='ALP-Winners system')
+parser.add_argument('--team-color', dest='team_color', type=str, choices=['yellow', 'blue'], required=True, help='Team color.')
+parser.add_argument('--team-side', dest='team_side', type=str, choices=['left', 'right'], required=True, help='Team side.')
+parser.add_argument('--immediate-start', dest='immediate_start', action='store_const', const=True, default=False, help='If robots should start moving without VSSReferee telling so.')
+parser.add_argument('--static-entities', dest='static_entities', action='store_const', const=True, default=False, help='If strategy will keep robots with the same entities all the time.')
+parser.add_argument('--disable-alp-gui', dest='disable_alp_gui', action='store_const', const=True, default=False, help='If set, no communciation with ALP-GUI overhead will be added.')
+args = parser.parse_args()
 
-# Instancia interfaces com o referee
-rc = RefereeCommands()
-rp = RefereePlacement(team_yellow=team_yellow)
-
-# Classe do programa principal
-class Loop:
-    def __init__(self, loopFreq = 60, draw_UVF = False):
-        self.world = World(3, side=team_side, vss=vss, team_yellow=team_yellow)
-        self.enemyWorld = World(3, side=-1, team_yellow=not team_yellow)
-
-        self.strategy = MainStrategy(self.world)
-        self.enemyStrategy = EnemyStrategy(self.enemyWorld)
-
-        # Variáveis
-        self.loopTime = 1.0 / loopFreq
-        self.running = True
-
-        # Interface gráfica para mostrar campos
-        self.draw_UVF = draw_UVF
-        if self.draw_UVF:
-            self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
-
-        vss.command.write(0, 0, 0)
-        time.sleep(0.5)
-        # vss.command.setPos(0, 0, 1, 0)
-        #vss.command.setBallPos(10, 10)
-        #vss.command.setPos(0, -0.4, 0.4, 0)
-        #vss.command.setBallPos(0, 0)
-        time.sleep(0.5)
-
-        self.v = []
-        self.t = []
-        self.lastupdatecount = 0
-        self.lastupdatecount2 = 0
-        self.shouldPrintRateTime = 0
-
-    def loop(self):
-        # # Recebe dados do Referee
-        # command = rc.receive()
-
-        # # Executa visão
-        # message = vss.vision.read()
-        # if message is not None:
-        #     self.world.update(message)
-
-        if self.world.updateCount == self.lastupdatecount:
-            #print("Não recebeu pacote!")
-            return
-        self.lastupdatecount = self.world.updateCount
-
-        #print(self.world.team[0].y)
-
-        # Atualiza o estado de jogo
-        self.v.append(self.world.team[0].w)
-        self.t.append(time.time())
-        #self.enemyWorld.update(vss.vision.invertMessage(message))
-
-        # Executa estratégia
-        self.strategy.update()
-        #self.enemyStrategy.manageReferee(rp, command)
-        #self.enemyStrategy.update()
-
-        # Executa o controle
-        if not self.draw_UVF: 
-            vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
-            #vss_enemy.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.enemyWorld.team if robot.entity is not None])
-        else:
-            vss.command.writeMulti([(0,0) for robot in self.world.team])
-        #vss.command.write(0, 10, 30)
-
-        # if len(self.v) > 100:
-        #     plt.plot(np.array(self.t)-min(self.t), self.v)
-        #     plt.show()
-        #     self.v = []
-        #     self.t = []
-
-    def busyLoop(self):
-        message = vss.vision.read()
-        if message is not None:
-            self.world.update(message)
-            self.enemyWorld.update(message)
-        
-        command = rc.receive()
-        if command is not None:
-            self.strategy.manageReferee(rp, command)
-
-    def run(self):
-
-        if self.draw_UVF:
-            self.UVF_screen.initialiazeScreen()
-            self.UVF_screen.initialiazeObjects()
-
-        t0 = 0
-
-        while self.running:
-            
-            # Executa o loop de visão e referee até dar o tempo de executar o resto
-            self.busyLoop()
-            while time.time() - t0 < self.loopTime:
-                self.busyLoop()
-                
-            # Tempo inicial do loop
-            #print(1000 * (time.time() - t0))
-            t0 = time.time()
-
-            # Executa o loop
-            self.loop()
-
-            #print((time.time()-t0)*1000)
-            # if time.time() > self.shouldPrintRateTime:
-            #     print(self.world.updateCount - self.lastupdatecount2)
-            #     self.lastupdatecount2 = self.world.updateCount
-            #     self.shouldPrintRateTime = time.time() + 1
-
-            # Dorme para que a próxima chamada seja 
-            #time.sleep(max(self.loopTime - (time.time()-t0), 0))
-
-            if self.draw_UVF:
-                self.UVF_screen.updateScreen()
-
-            #time.sleep(1)
+if args.disable_alp_gui: client.gui.disabled = True
 
 # Instancia o programa principal
-loop = Loop(draw_UVF=False)
+loop = Loop(
+    draw_uvf=False, 
+    team_yellow=True if args.team_color == 'yellow' else False,
+    team_side=1 if args.team_side == 'left' else -1,
+    immediate_start=args.immediate_start,
+    static_entities=args.static_entities
+)
 
 loop.run()

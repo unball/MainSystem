@@ -3,7 +3,6 @@ import pathlib
 moduleFolder = str(pathlib.Path(__file__).parent.absolute())
 import sys
 sys.path.append(moduleFolder + '/protobuf/')
-print(moduleFolder + '/protobuf/')
 import vssref_command_pb2
 import vssref_common_pb2
 import vssref_placement_pb2

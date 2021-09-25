@@ -57,7 +57,7 @@ def avoidObstacle(rt, rr, rl, rps):
     if len(obstacles) == 0:
         return rt
 
-    obstacles = np.array(obstacles)
+    obstacles = np.array(obstacles, dtype=object)
 
     # Nearest obstacle has smallest alpha
     nearestIndex = np.argmin(obstacles[:,1])

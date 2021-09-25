@@ -47,9 +47,9 @@ class Field:
         return (self.goalAreaWidth, self.goalAreaHeight)
 
 class World:
-    def __init__(self, n_robots=5, side=1, vss=None, team_yellow=False):
-        self._team = [TeamRobot(self, i) for i in range(n_robots)]
-        self.enemies = [TeamRobot(self, i) for i in range(n_robots)]
+    def __init__(self, n_robots=5, side=1, vss=None, team_yellow=False, immediate_start=False):
+        self._team = [TeamRobot(self, i, on=immediate_start) for i in range(n_robots)]
+        self.enemies = [TeamRobot(self, i, on=immediate_start) for i in range(n_robots)]
         self.ball = Ball(self)
         self.field = Field(side)
         self.vss = vss

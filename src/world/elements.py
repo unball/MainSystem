@@ -88,12 +88,12 @@ class Robot(Element):
         super().update(x,y,vx,vy,w)
 
 class TeamRobot(Robot):
-    def __init__(self, world, id, control=None):
+    def __init__(self, world, id, control=None, on=False):
         super().__init__(world, id)
 
         self.field = None
         self.vref = math.inf
-        self._on = False
+        self._on = on
         self.spin = 0
         self.spinTime = 0
         self.spinTimeOut = 0.5
@@ -129,6 +129,7 @@ class TeamRobot(Robot):
         newEntity = entityClass(self.world, self, **kwargs)
         if self.entity is None or self.entity.__class__.__name__ != entityClass.__name__ or not self.entity.equalsTo(newEntity) or forced_update:
             #print("mudou entidade do robô {0}: de {1} para {2}".format(self.id, self.entity.__class__.__name__, entityClass.__name__))
+            if self.entity is not None: self.entity.onExit()
             self.entity = newEntity
 
     def isEntityLocked(self):

@@ -93,7 +93,7 @@ def howPerpBall(rb, rr, rg):
     return np.dot(rr[:2]-rb, unit(angl(rg-rb)+np.pi/2))
 
 def projectLine(r, v, xline):
-  return ((xline-r[0])/v[0])*v[1] + r[1]
+  return ((xline-r[0])/v[0])*v[1] + r[1] if v[0] != 0 else 0
 
 def insideEllipse(r, a, b, rm):
   """ Retorna se a posição r está dentro da elipse de parâmetros a, b e centro rm"""
