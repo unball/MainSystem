@@ -70,3 +70,7 @@ def insideRect(r, rm, s):
 
 def projectLine(r, v, xline):
   return ((xline-r[0])/v[0])*v[1] + r[1]
+
+def map_range(x, in_min, in_max, out_min, out_max):
+  """ Mapeia x entre in_min, in_max e out_min, out_max"""
+  return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min

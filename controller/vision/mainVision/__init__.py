@@ -268,13 +268,13 @@ class MainVision(Vision):
     cX = M["m10"] / M["m00"]
     cY = M["m01"] / M["m00"]
     # Define qual o polígono da figura principal
-    poligono = self.definePoly(mainShape)
+    poligono = 3#self.definePoly(mainShape)
     
     # Computa o identificador com base na forma e no número de contornos internos
     candidato = (0 if poligono == 3 else 2) + countInternalContours -1
     if candidato >= self._world.n_robots: return None
     
-    identificador = self.obterIdentificador(centerMeters, candidato)
+    identificador = 0#self.obterIdentificador(centerMeters, candidato)
 
     # Calcula o ângulo com base no vetor entre o centro do contorno principal e o centro da camisa
     calculatedAngle = 180.0/np.pi *np.arctan2(-(center[1]-cY), center[0]-cX)
