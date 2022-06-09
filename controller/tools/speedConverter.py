@@ -9,11 +9,7 @@ r = 0.03
 L = 0.075
 PWM_max = 255
 PWM_min = -255
-max_motor_speed = 0.3
-vr_max = max_motor_speed
-vl_max = max_motor_speed
-vr_min = -max_motor_speed
-vl_min = -max_motor_speed
+max_motor_speed = 1
 
 # Calcula maior velocidade do motor em m/s
 max_tics_per_s = 70000.
@@ -29,6 +25,12 @@ def speeds2motors(v: float, w: float) -> (int, int):
   # Computa a velocidade angular de rotação de cada roda
   vr = (v + (L/2)*w) / (2*pi*r) * wheel_reduction
   vl = (v - (L/2)*w) / (2*pi*r) * wheel_reduction
+
+  # Calcula a velocidade angular máxima de cada roda
+  vr_max = max_motor_speed / (2*pi*r) 
+  vr_min = -vr_max
+  vl_max = max_motor_speed / (2*pi*r) 
+  vl_min = -vr_max
   
   #if fabs(vr) > max_motor_speed or fabs(vl) > max_motor_speed:
   #  vr = max_motor_speed * vr / max(vr, vl)
