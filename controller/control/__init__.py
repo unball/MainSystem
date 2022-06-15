@@ -23,3 +23,21 @@ class HLC(ABC, ParamsPattern):
   def actuate(self, reference, robot, spin):
     """Este método deve fazer a atuação do controle de alto nível na planta, ele recebe a referência, o robô e se é para executar spin. Retorna a velocidade linear e angular."""
     pass
+
+class LLC(ABC, ParamsPattern):
+  """Classe mãe de um controle de baixo nível"""
+
+  def __init__(self, name, source, default):
+    ABC.__init__(self)
+    ParamsPattern.__init__(self, source, default, name=name)
+
+  @abstractmethod
+  def actuate(self, reference, robot, spin):
+    """Este método deve fazer a atuação do controle de baixo nível na planta, ele recebe a referência, o robô e se é para executar spin. Retorna valores de PWM para rodas A e B."""
+
+  @abstractmethod
+  def PImotorA(err):
+    """Implementa um PI digital com anti-windup para o motor A"""
+
+  def PImotorA(err):
+    """Implementa um PI digital com anti-windup para o motor A"""
