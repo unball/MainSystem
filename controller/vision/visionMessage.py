@@ -25,6 +25,14 @@ class VisionMessage():
     
     self.ball_found = False
     """Indica se a bola foi encontrada"""
+
+  
+  def showMessage(self):
+    print(f"Número de robôs aliados: {self.n_robots}")
+    print(f"Lista com coordenada x dos robôs (aliados e inimigos) {self.allyPoses}")
+    print(f"Indica se a bola foi encontrada: {self.ball_found}")
+    print(f"Coordenada x da bola: {self.ball_x}")
+    print(f"Coordenada y da bola: {self.ball_y}")
     
   @property
   def nRobots(self):
