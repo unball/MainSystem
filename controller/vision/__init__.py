@@ -51,8 +51,8 @@ class Vision(ABC):
         'vx': self._world.ball.vel[0],
         'vy': self._world.ball.vel[1]
       },
-      'Robots': {
-        i: {
+      'Robots': [
+        {
           'x': self._world.robots[i].pose[0],
           'y': self._world.robots[i].pose[1],
           'orientation': self._world.robots[i].pose[2],
@@ -61,8 +61,13 @@ class Vision(ABC):
           'vangular': self._world.robots[i].w
         }
         for i in range(self._world.n_robots)
-      }
+      ]
     }
+    print('-'*20)
+    print('Robots:')
+    for robot in message['Robots']:
+      print(type(robot), robot)
+
     self.server_pickle.send(message)
 
     if self.usePastPositions is False:
