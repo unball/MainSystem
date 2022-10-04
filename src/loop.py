@@ -10,24 +10,27 @@ import numpy as np
 import logging
 import time
 import sys
+from client.client_pickle import ClientPickle
+import keyboard
 
 class Loop:
     def __init__(self, loop_freq=60, draw_uvf=False, team_yellow=True, team_side=1, immediate_start=False, static_entities=False):
         # Instancia interface com o simulador
-        self.vss = VSS(team_yellow=team_yellow)
+        #self.vss = VSS(team_yellow=team_yellow)
 
         # Instancia interfaces com o referee
-        self.rc = RefereeCommands()
-        self.rp = RefereePlacement(team_yellow=team_yellow)
+        #self.rc = RefereeCommands()
+        #self.rp = RefereePlacement(team_yellow=team_yellow)
 
         # Instancia o mundo e a estratégia
-        self.world = World(3, side=team_side, vss=self.vss, team_yellow=team_yellow, immediate_start=immediate_start)
+        self.world = World(5, side=team_side, team_yellow=team_yellow, immediate_start=immediate_start)
         self.strategy = MainStrategy(self.world, static_entities=static_entities)
 
         # Variáveis
         self.loopTime = 1.0 / loop_freq
         self.running = True
         self.lastupdatecount = 0
+        self.pclient = ClientPickle()
 
         # Interface gráfica para mostrar campos
         self.draw_uvf = draw_uvf
@@ -35,6 +38,7 @@ class Loop:
             self.UVF_screen = UVFScreen(self.world, index_uvf_robot=1)
             self.UVF_screen.initialiazeScreen()
             self.UVF_screen.initialiazeObjects()
+        
 
     def loop(self):
         if self.world.updateCount == self.lastupdatecount: return
@@ -44,20 +48,21 @@ class Loop:
         self.strategy.update()
 
         # Executa o controle
-        if not self.draw_uvf: 
-            self.vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
-        else:
-            self.vss.command.writeMulti([(0,0) for robot in self.world.team])
+        # if not self.draw_uvf: 
+        #     self.vss.command.writeMulti([robot.entity.control.actuate(robot) for robot in self.world.team if robot.entity is not None])
+        # else:
+        #     self.vss.command.writeMulti([(0,0) for robot in self.world.team])
 
         # Desenha no ALP-GUI
         self.draw()
 
     def busyLoop(self):
-        message = self.vss.vision.read()
+        message = self.pclient.receive()
+        #message = self.vss.vision.read()
         if message is not None: self.world.update(message)
         
-        command = self.rc.receive()
-        if command is not None: self.strategy.manageReferee(self.rp, command)
+        # command = self.rc.receive()
+        # if command is not None: self.strategy.manageReferee(self.rp, command)
 
     def draw(self):
         for robot in [r for r in self.world.team if r.entity is not None]:
@@ -72,9 +77,8 @@ class Loop:
         t0 = 0
 
         logging.info("System is running")
-
+        
         while self.running:
-            
             # Executa o loop de visão e referee até dar o tempo de executar o resto
             self.busyLoop()
             while time.time() - t0 < self.loopTime:
