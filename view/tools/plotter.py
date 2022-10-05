@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, GLib
+from pgi.repository import Gtk, Gdk, GLib
 from helpers import LoopThread
 import cairo
 import numpy as np

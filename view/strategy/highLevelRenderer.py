@@ -1,4 +1,4 @@
-from gi.repository import Gdk
+from pgi.repository import Gdk
 from view.tools.cv2Renderer import cv2Renderer
 from view.tools.drawing import Drawing
 from controller.tools.pixel2metric import meters2pixel,pixel2meters,meters2pixelSize,invertAng,invertVec

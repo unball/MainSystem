@@ -1,4 +1,4 @@
-from gi.repository import Gtk, GLib
+from pgi.repository import Gtk, GLib
 from pkg_resources import resource_filename
 
 class ViewMux(Gtk.ListBox):

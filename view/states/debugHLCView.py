@@ -1,4 +1,4 @@
-from gi.repository import Gtk, GLib
+from pgi.repository import Gtk, GLib
 from pkg_resources import resource_filename
 from view.tools.stackSelector import StackSelector
 from view.strategy.highLevelRenderer import HighLevelRenderer

@@ -1,9 +1,9 @@
 """Este módulo implementa a interface gráfica do sistema."""
 
-import gi
-gi.require_version('Gtk', '3.0')
+import pgi
+pgi.require_version('Gtk', '3.0')
 
-from gi.repository import Gtk, Gdk
+from pgi.repository import Gtk, Gdk
 from pkg_resources import resource_filename
 
 from view.vision.camerasView import CameraHandlerView

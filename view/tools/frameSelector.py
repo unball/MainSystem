@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from gi.repository import Gtk
+from pgi.repository import Gtk
 
 class FrameRenderer(ABC):
   """Esta classe encapsula a lógica de uma página de um GtkNotebook em que cada página produz frames diferentes a serem mostrados"""

@@ -1,4 +1,4 @@
-from gi.repository import Gtk
+from pgi.repository import Gtk
 from pkg_resources import resource_filename
 from view.tools.cv2Renderer import cv2Renderer
 from view.tools.frameSelector import FrameSelector

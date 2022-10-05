@@ -2,7 +2,7 @@
 
 from threading import Thread
 import queue
-from gi.repository import GLib
+from pgi.repository import GLib
 
 from controller.vision.mainVision import MainVision
 from controller.communication.rosRadio import RosRadio

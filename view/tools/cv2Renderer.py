@@ -1,4 +1,4 @@
-from gi.repository import Gdk, GdkPixbuf, GLib, Gtk
+from pgi.repository import Gdk, GdkPixbuf, GLib, Gtk
 from pkg_resources import resource_filename
 from helpers import LoopThread
 import cv2
