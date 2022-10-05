@@ -65,9 +65,10 @@ class World(ParamsPattern):
       #else:
       theta = allyPose[2]
 
-      with open("res.txt", "w+") as f:
-        f.append(f"{time.time()} {allyPose[0]} {allyPose[1]} {theta}")
-    
+      #with open("res.txt", "w+") as f:
+      #  f.append(f"{time.time()} {allyPose[0]} {allyPose[1]} {theta}")
+      print((f"{time.time()} {allyPose[0]} {allyPose[1]} {theta}"))
+
       self.robots[i].raw_update(allyPose[0], allyPose[1], theta)
 
     # Atualiza a lista de robôs adversários
