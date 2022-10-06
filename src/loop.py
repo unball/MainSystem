@@ -11,7 +11,6 @@ import logging
 import time
 import sys
 from client.client_pickle import ClientPickle
-import keyboard
 
 class Loop:
     def __init__(self, loop_freq=60, draw_uvf=False, team_yellow=True, team_side=1, immediate_start=False, static_entities=False):
@@ -54,7 +53,7 @@ class Loop:
         #     self.vss.command.writeMulti([(0,0) for robot in self.world.team])
 
         # Desenha no ALP-GUI
-        self.draw()
+        #self.draw()
 
     def busyLoop(self):
         message = self.pclient.receive()

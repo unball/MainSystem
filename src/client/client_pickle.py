@@ -1,11 +1,11 @@
 import socket
 import pickle
-import keyboard
 
 class ClientPickle:
     def __init__(self):
         self.host =socket.gethostname()
-        self.port = 5001
+        port = input('Connect to port: ')
+        self.port = int(port)
         self.psocket = socket.socket()
         self.psocket.connect((self.host, self.port))
         #while True:
